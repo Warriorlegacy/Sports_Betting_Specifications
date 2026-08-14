@@ -53,8 +53,12 @@ export const SportsbookHeader: React.FC<SportsbookHeaderProps> = ({
     { id: 'Football', label: '⚽ Football' },
     { id: 'Cricket', label: '🏏 Cricket' },
     { id: 'Basketball', label: '🏀 Basketball' },
-    { id: 'Tennis', label: '🎾 Tennis' }
+    { id: 'Tennis', label: '🎾 Tennis' },
+    { id: 'Baseball', label: '⚾ Baseball' },
+    { id: 'American Football', label: '🏈 NFL' },
+    { id: 'Esports', label: '🎮 Esports' }
   ];
+
 
   return (
     <header className="sticky top-0 z-40 w-full bg-[#060911]/95 backdrop-blur-xl border-b border-slate-800 shadow-2xl">

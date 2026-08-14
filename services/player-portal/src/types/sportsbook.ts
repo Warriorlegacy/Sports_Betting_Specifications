@@ -1,4 +1,14 @@
-export type SportCategory = 'All' | 'Football' | 'Cricket' | 'Basketball' | 'Tennis' | 'American Football' | 'Esports';
+export type SportCategory = 
+  | 'All' 
+  | 'Football' 
+  | 'Cricket' 
+  | 'Basketball' 
+  | 'Tennis' 
+  | 'American Football' 
+  | 'Baseball' 
+  | 'Ice Hockey' 
+  | 'Table Tennis' 
+  | 'Esports';
 
 export type OddsFormat = 'DECIMAL' | 'AMERICAN' | 'FRACTIONAL';
 
@@ -69,6 +79,10 @@ export interface LiveMatch {
   id: string;
   sport: SportCategory;
   league: string;
+  country?: string;
+  flag?: string;
+  matchDate: string; // Format 'YYYY-MM-DD', e.g. '2026-08-14'
+  startTime: string; // e.g. '19:45 BST' or '20:00 IST'
   homeTeam: {
     name: string;
     shortName: string;
@@ -85,6 +99,7 @@ export interface LiveMatch {
     score: number | string;
     subScore?: string;
   };
+
   inPlay: boolean;
   isLocked: boolean;
   status: 'LIVE' | 'HALFTIME' | 'UPCOMING' | 'SETTLED' | 'SUSPENDED';
