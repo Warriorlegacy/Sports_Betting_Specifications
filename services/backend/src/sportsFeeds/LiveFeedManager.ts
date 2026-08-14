@@ -8,6 +8,8 @@ import { matchingEngineService } from '../realtime/matchingEngineService';
 import { realTimeGateway } from '../realtime/socketGateway';
 import { query } from '../db/pool';
 import { realSportsFeedService } from './RealSportsFeedService';
+import { failoverFeedOrchestrator } from './FailoverFeedOrchestrator';
+import { config } from '../config';
 
 export class LiveFeedManager {
 
@@ -82,8 +84,12 @@ export class LiveFeedManager {
 
     console.log('[LiveFeedManager] Multi-Sport In-Play Ingestion Engine started.');
 
-    // Start real-world sports feeder
+    // Start real-world ESPN sports feeder (Tier 4)
     realSportsFeedService.start();
+
+    // Start third-party provider failover orchestrator (Tiers 1-3)
+    failoverFeedOrchestrator.start(config.feedPollIntervalMs);
+    console.log('[LiveFeedManager] FailoverFeedOrchestrator (Tiers 1-3) started.');
 
     // Step simulation every 2.5 seconds
     this.intervalTimer = setInterval(() => {
@@ -101,10 +107,40 @@ export class LiveFeedManager {
     console.log('[LiveFeedManager] In-Play Ingestion Engine paused.');
   }
 
+  /**
+   * Returns all live matches merged from all active tiers:
+   *   Tier 1-3: Third-party providers (Odds-API, Sportmonks, CricAPI)
+   *   Tier 4:   ESPN Free API (RealSportsFeedService)
+   *   Tier 5:   Internal simulator adapters
+   * Higher-priority provider data overrides lower-priority for same matchId.
+   */
   public getAllLiveMatches(): LiveMatchTelemetry[] {
-    const realMatches = realSportsFeedService.getAllRealTelemetry();
-    const simulatedMatches = Array.from(this.liveMatches.values());
-    return [...realMatches, ...simulatedMatches];
+    // Build a priority map: lower-priority-number wins
+    // ESPN = priority 4, Simulator = priority 5, Third-party = 1–3
+    const mergeMap = new Map<string, { priority: number; telemetry: LiveMatchTelemetry }>();
+
+    // Add simulator matches (lowest priority — 5)
+    for (const t of Array.from(this.liveMatches.values())) {
+      mergeMap.set(t.marketId, { priority: 5, telemetry: t });
+    }
+
+    // Add ESPN matches (priority 4)
+    for (const t of realSportsFeedService.getAllRealTelemetry()) {
+      const existing = mergeMap.get(t.marketId);
+      if (!existing || 4 < existing.priority) {
+        mergeMap.set(t.marketId, { priority: 4, telemetry: t });
+      }
+    }
+
+    // Add third-party provider matches (priorities 1–3 — highest)
+    for (const t of failoverFeedOrchestrator.getCachedMatches()) {
+      const existing = mergeMap.get(t.marketId);
+      if (!existing || 1 < existing.priority) {
+        mergeMap.set(t.marketId, { priority: 1, telemetry: t });
+      }
+    }
+
+    return Array.from(mergeMap.values()).map(v => v.telemetry);
   }
 
   public getMatchTelemetry(marketId: string): LiveMatchTelemetry | undefined {

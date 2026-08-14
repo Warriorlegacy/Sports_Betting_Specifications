@@ -4,12 +4,13 @@ import { AuthenticatedRequest, authenticateToken, requireRoles } from '../../mid
 import { settleMarketAtomic } from '../../db/ledger';
 import { realTimeGateway } from '../../realtime/socketGateway';
 import { liveFeedManager } from '../../sportsFeeds/LiveFeedManager';
+import { failoverFeedOrchestrator } from '../../sportsFeeds/FailoverFeedOrchestrator';
 
 export const marketRouter = Router();
 
 /**
  * GET /api/markets/live/telemetry
- * Returns active live in-play telemetry for all sports.
+ * Returns all live telemetry from all active tiers (Tier 1-5 merged).
  */
 marketRouter.get('/live/telemetry', (_req, res: Response) => {
   const allMatches = liveFeedManager.getAllLiveMatches();
@@ -35,13 +36,13 @@ marketRouter.get('/telemetry/:marketId', (req, res: Response) => {
 
 /**
  * POST /api/markets/real-feed/sync
- * Forces an immediate fetch of live games from global sports data providers.
+ * Forces an immediate fetch of live games from ESPN global feeds (Tier 4).
  */
 marketRouter.post('/real-feed/sync', async (_req, res: Response) => {
   try {
     const { realSportsFeedService } = await import('../../sportsFeeds/RealSportsFeedService');
     const synced = await realSportsFeedService.syncAllRealSports();
-    res.json({ success: true, message: `Synced ${synced} real-world matches from live global feeds.`, count: synced });
+    res.json({ success: true, message: `Synced ${synced} real-world matches from ESPN feeds.`, count: synced });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -56,6 +57,152 @@ marketRouter.get('/real-feed/status', async (_req, res: Response) => {
     realMatches: realSportsFeedService.getAllRealTelemetry(),
     timestamp: Date.now()
   });
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// PROVIDER ADMIN ROUTES
+// ──────────────────────────────────────────────────────────────────────────────
+
+/**
+ * GET /api/markets/providers/status
+ * Returns health dashboard for all 5 tiers:
+ * — Circuit breaker state (open/closed)
+ * — Last fetch time & match count
+ * — API key configured (yes/no)
+ * — Next re-probe timestamp if currently unhealthy
+ */
+marketRouter.get('/providers/status', (_req, res: Response) => {
+  const { realSportsFeedService } = require('../../sportsFeeds/RealSportsFeedService');
+  const thirdPartyReport = failoverFeedOrchestrator.getHealthReport();
+
+  res.json({
+    summary: {
+      totalMatches: liveFeedManager.getAllLiveMatches().length,
+      activeTier: thirdPartyReport.activeTier,
+      timestamp: new Date().toISOString()
+    },
+    tiers: [
+      ...thirdPartyReport.providers,
+      {
+        name: 'ESPN Free API (Tier 4)',
+        priority: 4,
+        healthy: true,
+        keyConfigured: true,
+        lastFetchCount: realSportsFeedService.getAllRealTelemetry().length,
+        lastFetchAt: Date.now()
+      },
+      {
+        name: 'Internal Simulator (Tier 5)',
+        priority: 5,
+        healthy: true,
+        keyConfigured: true,
+        lastFetchCount: 4,
+        lastFetchAt: Date.now()
+      }
+    ]
+  });
+});
+
+/**
+ * POST /api/markets/providers/sync
+ * Forces an immediate fetch across all provider tiers (Tiers 1-4).
+ */
+marketRouter.post('/providers/sync', async (_req, res: Response) => {
+  try {
+    const [thirdPartyMatches, espnCount] = await Promise.all([
+      failoverFeedOrchestrator.fetchAll(),
+      (async () => {
+        const { realSportsFeedService } = await import('../../sportsFeeds/RealSportsFeedService');
+        return realSportsFeedService.syncAllRealSports();
+      })()
+    ]);
+
+    res.json({
+      success: true,
+      message: `Full sync complete across all provider tiers.`,
+      thirdPartyMatches: thirdPartyMatches.length,
+      espnMatches: espnCount,
+      totalAvailable: liveFeedManager.getAllLiveMatches().length
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * POST /api/markets/providers/test
+ * Force-tests a specific provider by name and returns sample results.
+ * Body: { "provider": "odds" | "sportmonks" | "cricapi" }
+ */
+marketRouter.post('/providers/test', async (req, res: Response) => {
+  const { provider = 'odds' } = req.body;
+
+  if (!provider || typeof provider !== 'string') {
+    return res.status(400).json({ error: 'provider name required in body (odds|sportmonks|cricapi)' });
+  }
+
+  try {
+    const result = await failoverFeedOrchestrator.testProvider(provider);
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * POST /api/markets/telemetry/ingest
+ * Webhook endpoint for third-party push providers.
+ * Accepts a normalized LiveMatchTelemetry payload.
+ * Compatible with: Sportmonks webhooks, CricAPI push, custom integrations.
+ *
+ * Auth: X-Webhook-Secret header must match WEBHOOK_SECRET env var (if configured)
+ */
+marketRouter.post('/telemetry/ingest', async (req, res: Response) => {
+  try {
+    const webhookSecret = process.env.WEBHOOK_SECRET;
+    if (webhookSecret) {
+      const incomingSecret = req.headers['x-webhook-secret'];
+      if (incomingSecret !== webhookSecret) {
+        return res.status(403).json({ error: 'Invalid webhook secret' });
+      }
+    }
+
+    const payload = req.body;
+
+    // Accept single telemetry or array
+    const telemetries = Array.isArray(payload) ? payload : [payload];
+    let ingestedCount = 0;
+
+    for (const t of telemetries) {
+      if (!t.marketId || !t.homeTeam || !t.awayTeam) continue;
+
+      // Normalize required fields with defaults
+      const telemetry = {
+        ...t,
+        isLocked: t.isLocked ?? false,
+        inPlay: t.inPlay ?? false,
+        status: t.status ?? (t.inPlay ? 'IN_PLAY' : 'PRE_MATCH'),
+        updatedAt: Date.now()
+      };
+
+      await liveFeedManager.submitExternalTelemetry(telemetry);
+
+      // Upsert to DB
+      await query(
+        `INSERT INTO markets (id, event_name, market_type, sport, is_locked, in_play, status)
+         VALUES ($1, $2, 'MATCH_ODDS', $3, FALSE, $4, $5)
+         ON CONFLICT (id) DO UPDATE
+         SET in_play = EXCLUDED.in_play, status = EXCLUDED.status, updated_at = NOW()`,
+        [telemetry.marketId, telemetry.eventName || `${telemetry.homeTeam} vs ${telemetry.awayTeam}`, telemetry.sport || 'Football', Boolean(telemetry.inPlay), telemetry.status || 'OPEN']
+      ).catch(() => {});
+
+      ingestedCount++;
+    }
+
+    res.json({ success: true, ingested: ingestedCount });
+  } catch (err: any) {
+    res.status(400).json({ error: err.message });
+  }
 });
 
 

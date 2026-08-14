@@ -14,8 +14,22 @@ export const config = {
     url: process.env.REDIS_URL || `redis://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || '6379'}`
   },
   simulatorEnabled: process.env.SIMULATOR_ENABLED !== 'false',
-  inactivitySleepTimeoutMs: parseInt(process.env.INACTIVITY_SLEEP_TIMEOUT_MS || '60000', 10), // 1 minute default
+  inactivitySleepTimeoutMs: parseInt(process.env.INACTIVITY_SLEEP_TIMEOUT_MS || '60000', 10),
   renderApiKey: process.env.RENDER_API_KEY || 'rnd_09x1C0VulSvph8tXNHdZY2g87KJN',
-  renderServiceId: process.env.RENDER_SERVICE_ID || ''
+  renderServiceId: process.env.RENDER_SERVICE_ID || '',
+
+  // ── Third-Party Sports Data API Keys ────────────────────────────────────────
+  // Tier 1: The-Odds-API — https://the-odds-api.com (free: 500 req/mo)
+  theOddsApiKey: process.env.ODDS_API_KEY || '',
+
+  // Tier 2: Sportmonks — https://sportmonks.com (developer plan: 200 req/h)
+  sportmonksApiKey: process.env.SPORTMONKS_API_KEY || '',
+
+  // Tier 3: CricAPI — https://cricapi.com (free: 100 calls/day)
+  cricApiKey: process.env.CRICAPI_KEY || '',
+
+  // Feed orchestration: how often (ms) to poll third-party providers
+  feedPollIntervalMs: parseInt(process.env.FEED_POLL_INTERVAL_MS || '30000', 10),
 };
+
 
