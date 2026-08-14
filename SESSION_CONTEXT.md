@@ -108,7 +108,76 @@ These have **full ball-by-ball / point-by-point adapters** with real-time odds s
 
 ---
 
-## 🌙 1-Minute Inactivity Sleep & Auto-Suspend Specification
+## 🔌 Phase 4: Third-Party API Provider Integration (COMPLETE ✅)
+
+### 4-Tier Failover Chain
+
+```
+Tier 1: The-Odds-API  ──► Real odds + scores (40+ sports, circuit breaker)
+  ↓ fails (3 consecutive errors → circuit open, re-probe in 5 min)
+Tier 2: Sportmonks   ──► Football specialist (700+ leagues, live stats)
+  ↓ fails
+Tier 3: CricAPI      ──► Cricket specialist (ball-by-ball, scorecards)
+  ↓ fails
+Tier 4: ESPN Free API ──► Always available (15 endpoints, no key)
+  ↓ always running in parallel
+Tier 5: Simulator    ──► 4 premium in-play matches (offline fallback)
+```
+
+**Merging Strategy:** All tiers run in parallel. Lower tier number = higher priority. When the same match exists in multiple tiers (by marketId), the highest-priority provider's data wins.
+
+### Provider Files
+
+| File | Provider | Key Env Var |
+| :--- | :--- | :--- |
+| `providers/TheOddsApiProvider.ts` | The-Odds-API (Tier 1) | `ODDS_API_KEY` |
+| `providers/SportmonksProvider.ts` | Sportmonks (Tier 2) | `SPORTMONKS_API_KEY` |
+| `providers/CricApiProvider.ts` | CricAPI (Tier 3) | `CRICAPI_KEY` |
+| `providers/IExternalProvider.ts` | Interface contract | — |
+| `FailoverFeedOrchestrator.ts` | Orchestrator + circuit breaker | — |
+
+### Circuit Breaker Behavior
+- **3 consecutive failures** → circuit opens, provider skipped
+- **After 5 minutes** → auto re-probe (circuit half-open)
+- **On success** → circuit fully closed, failure count reset
+- **Stale cache** → returned during circuit-open period (no data loss)
+
+### Admin API Endpoints
+
+| Method | Endpoint | Purpose |
+| :--- | :--- | :--- |
+| `GET` | `/api/markets/providers/status` | Health dashboard for all 5 tiers |
+| `POST` | `/api/markets/providers/sync` | Force sync all providers now |
+| `POST` | `/api/markets/providers/test` | Test specific provider (body: `{provider: "odds"}`) |
+| `POST` | `/api/markets/telemetry/ingest` | Webhook push ingestion from any provider |
+
+### Webhook Ingest Format
+```bash
+POST /api/markets/telemetry/ingest
+X-Webhook-Secret: <WEBHOOK_SECRET env var>
+Content-Type: application/json
+
+{
+  "marketId": "MKT_CUSTOM_001",
+  "eventName": "India vs England - 1st ODI",
+  "sport": "CRICKET",
+  "homeTeam": "India",
+  "awayTeam": "England",
+  "inPlay": true,
+  "status": "IN_PLAY",
+  "summaryScore": "India 245/6 (42.3 ov)"
+}
+```
+
+### To Enable Premium Providers
+Add to Render environment variables:
+```env
+ODDS_API_KEY=<from https://the-odds-api.com>
+SPORTMONKS_API_KEY=<from https://sportmonks.com>
+CRICAPI_KEY=<from https://cricapi.com>
+```
+When keys are absent, those tiers are gracefully skipped — ESPN + Simulator always run.
+
 
 ### How It Works
 1. **Activity Tracking:**
