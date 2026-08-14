@@ -106,6 +106,28 @@ All accounts share the default password: **`password123`**
 
 ---
 
+## 📅 Global Fixtures Calendar & Date-Filtered Navigation
+
+### Features
+1. **Interactive Date Bar:**
+   - Real-time tab indicators: `LIVE NOW`, `ALL DATES`, `Today`, `Tomorrow`, and upcoming daily pills.
+   - Dynamic match count badges per date tab.
+2. **Status Segmented Filters:**
+   - `All`, `Live Now (In-Play)`, `Upcoming`, and `Settled / Results`.
+3. **Instant Search & League Grouping:**
+   - Multi-field search (team, league, country, or tournament name).
+   - Accordion grouping by Championship with flag and country badges.
+4. **Worldwide Sport Coverage:**
+   - 🏏 Cricket (ICC, The Hundred, CPL, Bilateral tours)
+   - ⚽ Football (Premier League, La Liga, Champions League, MLS)
+   - 🎾 Tennis (ATP Masters 1000, WTA 1000, Grand Slams)
+   - 🏀 Basketball (NBA, EuroLeague, FIBA)
+   - ⚾ Baseball (MLB)
+   - 🏈 American Football (NFL)
+   - 🎮 Esports (League of Legends LCK, CS2 Major)
+
+---
+
 ## 🛠️ Verification & Health Check Endpoints
 
 - **Backend Health Check:** `GET https://sports-exchange-backend-j1aj.onrender.com/api/health`
@@ -113,4 +135,5 @@ All accounts share the default password: **`password123`**
 - **Inactivity Sleep Status:** `GET https://sports-exchange-backend-j1aj.onrender.com/api/inactivity/status`
 - **Wake Server Endpoint:** `POST https://sports-exchange-backend-j1aj.onrender.com/api/inactivity/wake`
 - **Live Markets List:** `GET https://sports-exchange-backend-j1aj.onrender.com/api/markets`
+
 
