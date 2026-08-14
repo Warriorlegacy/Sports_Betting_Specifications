@@ -269,10 +269,16 @@ export class MatchingEngineService {
     const isUuid = (id?: string) => Boolean(id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id));
     if (isUuid(orderParams.betId)) {
       await query(
-        `UPDATE bets SET matched_stake = $1, status = $2, matched_at = CASE WHEN $1 > 0 THEN NOW() ELSE NULL END, updated_at = NOW() WHERE id = $3`,
+        `UPDATE bets 
+         SET matched_stake = $1, 
+             status = $2, 
+             matched_at = CASE WHEN $1::numeric > 0 THEN NOW() ELSE NULL END, 
+             updated_at = NOW() 
+         WHERE id = $3`,
         [matchedStake, finalStatus, orderParams.betId]
       );
     }
+
 
     return {
       status: finalStatus,
