@@ -4,7 +4,7 @@
 
 const http = require('http');
 
-const API_BASE = process.env.HEALTHCHECK_HOST || 'http://localhost:5000';
+const API_BASE = process.env.HEALTHCHECK_HOST || 'https://sports-exchange-backend-j1aj.onrender.com';
 
 function checkEndpoint(path) {
   return new Promise((resolve, reject) => {

@@ -1,6 +1,6 @@
 # 🌐 Session Context & Deployment Status
 
-**Last Updated:** 2026-08-14  
+**Last Updated:** 2026-08-14T16:02:49+05:30  
 **Project:** Enterprise Multi-Tier Sports Betting Exchange & Sportsbook Platform  
 **Repository:** [Warriorlegacy/Sports_Betting_Specifications](https://github.com/Warriorlegacy/Sports_Betting_Specifications) (Branch: `main`)
 
@@ -76,7 +76,6 @@ RealSportsFeedService.ts (backend)
 GET /api/markets/live/telemetry → { telemetry: [...], liveMatches: [...], count: N }
      ↓
 Player Portal App.tsx (fetches on load + every 30s polling)
-     ↓ merged with simulated in-play matches
      ↓
 SportsbookHome.tsx (date-filtered match list)
 ```
@@ -93,18 +92,20 @@ SportsbookHome.tsx (date-filtered match list)
 
 ---
 
-## 🎯 Live In-Play Simulated Matches (Always Running)
+## 🎯 Live In-Play Simulated Matches (Internal Engine Only)
 
-These 4 premium simulated in-play matches run continuously alongside real data:
+These 4 premium simulated in-play matches run **internally** for liquidity and matching engine purposes only. They are **NOT** exposed through the public telemetry API anymore.
 
 | Market ID | Event | Sport | Status |
 | :--- | :--- | :--- | :--- |
-| `MKT_IND_AUS_T20` | India vs Australia - 2nd T20 International | Cricket | IN_PLAY |
-| `MKT_ARS_CHE_PL` | Arsenal vs Chelsea - Premier League Derby | Football | IN_PLAY |
-| `MKT_ALC_SIN_WIM` | Carlos Alcaraz vs Jannik Sinner - Wimbledon Final | Tennis | IN_PLAY |
-| `MKT_LAL_BOS_NBA` | Los Angeles Lakers vs Boston Celtics - NBA Showcase | Basketball | IN_PLAY |
+| `MKT_IND_AUS_T20` | India vs Australia - 2nd T20 International | Cricket | IN_PLAY (internal) |
+| `MKT_ARS_CHE_PL` | Arsenal vs Chelsea - Premier League Derby | Football | IN_PLAY (internal) |
+| `MKT_ALC_SIN_WIM` | Carlos Alcaraz vs Jannik Sinner - Wimbledon Final | Tennis | IN_PLAY (internal) |
+| `MKT_LAL_BOS_NBA` | Los Angeles Lakers vs Boston Celtics - NBA Showcase | Basketball | IN_PLAY (internal) |
 
-These have **full ball-by-ball / point-by-point adapters** with real-time odds shifts.
+These have **full ball-by-ball / point-by-point adapters** with real-time odds shifts. They feed the matching engine order book but are no longer returned by `GET /api/markets/live/telemetry`.
+
+**Change made:** `LiveFeedManager.getAllLiveMatches()` and `getMatchTelemetry()` no longer fall back to simulator data when real feeds return zero matches. Frontend now shows an accurate empty state instead of mock fixtures.
 
 ---
 
@@ -184,7 +185,7 @@ When keys are absent, those tiers are gracefully skipped — ESPN + Simulator al
    - Express middleware tracks the timestamp of all incoming HTTP requests (`/api/bets`, `/api/markets`, `/api/auth`, `/api/ledger`, etc.).
    - Socket.io gateway tracks all active connected WebSocket connections and room subscriptions.
 2. **Inactivity Cron Loop:**
-   - Runs background evaluation every 15 seconds.
+   - Runs background evaluation every 15 seconds inside the backend process.
    - When `connectedSockets === 0` and `idleDuration >= 60,000 ms (1 minute)`:
      - Automatically pauses background odds feed simulator & CPU timers.
      - Calls Render REST API: `POST https://api.render.com/v1/services/srv-d9v95km417fc73cedmdg/suspend` with `Authorization: Bearer rnd_09x1C0VulSvph8tXNHdZY2g87KJN`.
@@ -192,9 +193,11 @@ When keys are absent, those tiers are gracefully skipped — ESPN + Simulator al
 3. **Resume / Wake Up:**
    - Any HTTP request, API call, or wake endpoint (`POST /api/inactivity/wake`) automatically resets the activity timer and restarts liquidity simulators.
    - If suspended on Render, calling `POST https://api.render.com/v1/services/srv-d9v95km417fc73cedmdg/resume` wakes the service.
-4. **Standalone Cron Script:**
+4. **Standalone Cron Script (optional):**
    - Path: `scripts/render_inactivity_cron.js`
    - Run command: `node scripts/render_inactivity_cron.js`
+   - Can be scheduled via Render Cron Jobs or external cron for redundancy.
+5. **Current Status:** ✅ Configured and running. Health check shows `renderAutoSleepConfigured: true`.
 
 ---
 

@@ -8,7 +8,7 @@
  * and put Render service to sleep if no activity in the past 1 minute.
  */
 
-const BACKEND_URL = process.env.BACKEND_URL || 'https://sports-exchange-backend.onrender.com';
+const BACKEND_URL = process.env.BACKEND_URL || 'https://sports-exchange-backend-j1aj.onrender.com';
 const RENDER_API_KEY = process.env.RENDER_API_KEY || 'rnd_09x1C0VulSvph8tXNHdZY2g87KJN';
 const RENDER_SERVICE_ID = process.env.RENDER_SERVICE_ID || '';
 
