@@ -17,8 +17,7 @@ import {
   SGPTicket,
   CashOutBet
 } from './types/sportsbook';
-import { INITIAL_LIVE_MATCHES, INITIAL_CASHOUT_BETS } from './services/mockSportsbookData';
-import { SportsbookEngine } from './services/sportsbookEngine';
+import { INITIAL_CASHOUT_BETS } from './services/mockSportsbookData';
 import { Zap, User, Lock, ArrowRight, Shield } from 'lucide-react';
 
 function convertTelemetryToMatch(t: any): LiveMatch {
@@ -140,8 +139,9 @@ export const App: React.FC = () => {
   const [selectedSport, setSelectedSport] = useState<SportCategory>('All');
   const [oddsFormat, setOddsFormat] = useState<OddsFormat>('DECIMAL');
 
-  // Sportsbook & Live Match State
-  const [liveMatches, setLiveMatches] = useState<LiveMatch[]>(INITIAL_LIVE_MATCHES);
+  // Sportsbook & Live Match State — starts EMPTY, filled by real ESPN data
+  const [liveMatches, setLiveMatches] = useState<LiveMatch[]>([]);
+  const [matchesLoading, setMatchesLoading] = useState<boolean>(true);
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
   const [cashOutBets, setCashOutBets] = useState<CashOutBet[]>(INITIAL_CASHOUT_BETS);
 
@@ -203,25 +203,22 @@ export const App: React.FC = () => {
   }, [selectedExchangeMarketId, currentUser]);
 
   // Fetch live real telemetry from backend (ESPN / global sports feeds)
+  // Replaces the full match list with real data — never merges with mock data
   const fetchLiveTelemetry = useCallback(async () => {
     try {
       const res = await api.markets.getLiveTelemetry();
       const tels: any[] = res.telemetry || res.liveMatches || [];
       if (tels.length > 0) {
-        setLiveMatches((prev) => {
-          const map = new Map<string, LiveMatch>();
-          // Keep mock/simulated matches as base
-          prev.forEach((m) => map.set(m.id, m));
-          // Overlay with real live data (takes precedence)
-          tels.forEach((t: any) => {
-            const converted = convertTelemetryToMatch(t);
-            map.set(converted.id, { ...(map.get(converted.id) || converted), ...converted });
-          });
-          return Array.from(map.values());
-        });
+        // Convert every telemetry entry to a LiveMatch and replace the list entirely
+        const realMatches = tels
+          .map((t: any) => convertTelemetryToMatch(t))
+          .filter((m: LiveMatch) => Boolean(m.homeTeam?.name && m.awayTeam?.name));
+        setLiveMatches(realMatches);
+        setMatchesLoading(false);
       }
     } catch (e) {
-      // Backend not available — keep existing mock data as fallback
+      // Backend unreachable — leave current state as-is (don't inject mock data)
+      console.warn('[LiveTelemetry] Backend unreachable, retrying next poll...');
     }
   }, []);
 
@@ -244,21 +241,9 @@ export const App: React.FC = () => {
     }
   }, [fetchUserData, fetchExchangeMarkets, fetchLiveTelemetry]);
 
-  // Real-Time Live Odds & Match Telemetry Ticker (Fires every 2 seconds for simulated matches)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setLiveMatches((prevMatches) => {
-        const { updatedMatches, updatedCashOutBets } = SportsbookEngine.simulateTick(
-          prevMatches,
-          cashOutBets
-        );
-        setCashOutBets(updatedCashOutBets);
-        return updatedMatches;
-      });
-    }, 2200);
-
-    return () => clearInterval(interval);
-  }, [cashOutBets]);
+  // NOTE: SportsbookEngine.simulateTick() has been intentionally removed.
+  // All match data comes from the real ESPN API via fetchLiveTelemetry.
+  // Simulated odds ticks were causing fake matches to persist alongside real data.
 
   // Poll real ESPN/live feed every 30 seconds to refresh actual match data
   useEffect(() => {

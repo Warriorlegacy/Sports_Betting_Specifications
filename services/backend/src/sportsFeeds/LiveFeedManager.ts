@@ -108,31 +108,24 @@ export class LiveFeedManager {
   }
 
   /**
-   * Returns all live matches merged from all active tiers:
+   * Returns all live matches from real data sources only:
    *   Tier 1-3: Third-party providers (Odds-API, Sportmonks, CricAPI)
    *   Tier 4:   ESPN Free API (RealSportsFeedService)
-   *   Tier 5:   Internal simulator adapters
-   * Higher-priority provider data overrides lower-priority for same matchId.
+   *
+   * Simulated matches (India vs Australia etc.) are NEVER returned in the
+   * public API — they are internal engine liquidity tools only.
+   * When no real matches are available, an empty array is returned so the
+   * frontend can display an accurate "no matches" state rather than fake data.
    */
   public getAllLiveMatches(): LiveMatchTelemetry[] {
-    // Build a priority map: lower-priority-number wins
-    // ESPN = priority 4, Simulator = priority 5, Third-party = 1–3
     const mergeMap = new Map<string, { priority: number; telemetry: LiveMatchTelemetry }>();
 
-    // Add simulator matches (lowest priority — 5)
-    for (const t of Array.from(this.liveMatches.values())) {
-      mergeMap.set(t.marketId, { priority: 5, telemetry: t });
-    }
-
-    // Add ESPN matches (priority 4)
+    // Tier 4: ESPN Free API matches
     for (const t of realSportsFeedService.getAllRealTelemetry()) {
-      const existing = mergeMap.get(t.marketId);
-      if (!existing || 4 < existing.priority) {
-        mergeMap.set(t.marketId, { priority: 4, telemetry: t });
-      }
+      mergeMap.set(t.marketId, { priority: 4, telemetry: t });
     }
 
-    // Add third-party provider matches (priorities 1–3 — highest)
+    // Tier 1-3: Third-party provider matches (override ESPN if same match)
     for (const t of failoverFeedOrchestrator.getCachedMatches()) {
       const existing = mergeMap.get(t.marketId);
       if (!existing || 1 < existing.priority) {
@@ -144,7 +137,7 @@ export class LiveFeedManager {
   }
 
   public getMatchTelemetry(marketId: string): LiveMatchTelemetry | undefined {
-    return realSportsFeedService.getTelemetry(marketId) || this.liveMatches.get(marketId);
+    return realSportsFeedService.getTelemetry(marketId) || undefined;
   }
 
 

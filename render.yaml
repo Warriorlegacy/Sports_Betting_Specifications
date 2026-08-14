@@ -11,28 +11,83 @@ services:
     buildCommand: npm install --include=dev && npm run build
     startCommand: node dist/index.js
     healthCheckPath: /api/health
+    autoDeploy: yes
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
-        value: 10000
+        value: "10000"
       - key: COMMISSION_RATE
         value: "0.02"
       - key: JWT_SECRET
         generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: "7d"
       - key: DATABASE_URL
-        sync: false # Neon PostgreSQL connection string
+        sync: false
       - key: REDIS_URL
-        sync: false # Upstash Redis connection string
+        sync: false
       - key: UPSTASH_REDIS_REST_URL
-        sync: false # Upstash Redis REST URL
+        sync: false
       - key: UPSTASH_REDIS_REST_TOKEN
-        sync: false # Upstash Redis REST Token
+        sync: false
+      - key: REDIS_HOST
+        value: "localhost"
+      - key: REDIS_PORT
+        value: "6379"
       - key: SIMULATOR_ENABLED
         value: "true"
       - key: INACTIVITY_SLEEP_TIMEOUT_MS
-        value: "60000" # 1 min inactivity auto-sleep
+        value: "60000"
       - key: RENDER_API_KEY
         sync: false
       - key: RENDER_SERVICE_ID
         sync: false
+      - key: ODDS_API_KEY
+        sync: false
+      - key: SPORTMONKS_API_KEY
+        sync: false
+      - key: CRICAPI_KEY
+        sync: false
+      - key: WEBHOOK_SECRET
+        generateValue: true
+      - key: FEED_POLL_INTERVAL_MS
+        value: "30000"
+
+  # -------------------------------------------------------------
+  # 2. Player Portal (React + Vite Static Build)
+  # -------------------------------------------------------------
+  - type: web
+    name: sports-exchange-player-portal
+    env: node
+    plan: free
+    region: oregon
+    rootDir: services/player-portal
+    buildCommand: npm install && npm run build
+    startCommand: npm run preview
+    healthCheckPath: /
+    autoDeploy: yes
+    envVars:
+      - key: VITE_API_URL
+        value: "https://sports-exchange-backend-j1aj.onrender.com"
+      - key: VITE_WS_URL
+        value: "https://sports-exchange-backend-j1aj.onrender.com"
+
+  # -------------------------------------------------------------
+  # 3. Agent Portal (React + Vite Static Build)
+  # -------------------------------------------------------------
+  - type: web
+    name: sports-exchange-agent-portal
+    env: node
+    plan: free
+    region: oregon
+    rootDir: services/agent-portal
+    buildCommand: npm install && npm run build
+    startCommand: npm run preview
+    healthCheckPath: /
+    autoDeploy: yes
+    envVars:
+      - key: VITE_API_URL
+        value: "https://sports-exchange-backend-j1aj.onrender.com"
+      - key: VITE_WS_URL
+        value: "https://sports-exchange-backend-j1aj.onrender.com"
