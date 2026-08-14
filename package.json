@@ -1,0 +1,30 @@
+{
+  "name": "sports-betting-exchange-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Enterprise Multi-Tier Sports Betting Exchange with 5-Tier Credit Ledger and Real-Time Order Matching",
+  "workspaces": [
+    "services/*"
+  ],
+  "scripts": {
+    "dev:backend": "npm --prefix services/backend run dev",
+    "dev:matching-engine": "npm --prefix services/matching-engine run dev",
+    "dev:agent-portal": "npm --prefix services/agent-portal run dev",
+    "dev:player-portal": "npm --prefix services/player-portal run dev",
+    "test:backend": "npm --prefix services/backend test",
+    "test:matching-engine": "npm --prefix services/matching-engine test",
+    "test": "npm run test:backend && npm run test:matching-engine",
+    "build": "npm --prefix services/backend run build && npm --prefix services/agent-portal run build && npm --prefix services/player-portal run build"
+  },
+  "keywords": [
+    "sports-betting",
+    "betfair-exchange",
+    "order-matching-engine",
+    "hierarchy-ledger",
+    "socketio",
+    "redis",
+    "postgresql"
+  ],
+  "author": "Sports Exchange Platform",
+  "license": "MIT"
+}

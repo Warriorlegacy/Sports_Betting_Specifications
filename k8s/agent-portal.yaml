@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-portal
+  namespace: sports-exchange
+  labels:
+    app: agent-portal
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: agent-portal
+  template:
+    metadata:
+      labels:
+        app: agent-portal
+    spec:
+      containers:
+        - name: agent-portal
+          image: ghcr.io/your-org/sports-exchange-agent-portal:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "1"
+              memory: "512Mi"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: agent-portal-service
+  namespace: sports-exchange
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: agent-portal

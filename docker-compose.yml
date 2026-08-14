@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sports_exchange_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: exchange_admin
+      POSTGRES_PASSWORD: exchange_secure_password_2026
+      POSTGRES_DB: sports_exchange
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./services/backend/src/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./services/backend/src/db/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U exchange_admin -d sports_exchange"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: sports_exchange_redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./services/backend
+      dockerfile: Dockerfile
+    container_name: sports_exchange_backend
+    restart: unless-stopped
+    environment:
+      PORT: 5000
+      NODE_ENV: production
+      DATABASE_URL: postgresql://exchange_admin:exchange_secure_password_2026@postgres:5432/sports_exchange
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: super_secure_sports_exchange_jwt_secret_key_2026_xyz
+      COMMISSION_RATE: 0.02
+      SIMULATOR_ENABLED: "true"
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  matching-engine:
+    build:
+      context: ./services/matching-engine
+      dockerfile: Dockerfile
+    container_name: sports_exchange_matching_engine
+    restart: unless-stopped
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  agent-portal:
+    build:
+      context: ./services/agent-portal
+      dockerfile: Dockerfile
+    container_name: sports_exchange_agent_portal
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+  player-portal:
+    build:
+      context: ./services/player-portal
+      dockerfile: Dockerfile
+    container_name: sports_exchange_player_portal
+    restart: unless-stopped
+    ports:
+      - "3001:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+  redisdata:

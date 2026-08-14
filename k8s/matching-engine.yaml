@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: matching-engine
+  namespace: sports-exchange
+  labels:
+    app: matching-engine
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: matching-engine
+  template:
+    metadata:
+      labels:
+        app: matching-engine
+    spec:
+      containers:
+        - name: matching-engine
+          image: ghcr.io/your-org/sports-exchange-matching-engine:latest
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: sports-exchange-config
+            - secretRef:
+                name: sports-exchange-secrets
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "512Mi"
+            limits:
+              cpu: "2"
+              memory: "2Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: matching-engine-service
+  namespace: sports-exchange
+spec:
+  ports:
+    - port: 5001
+      targetPort: 5001
+  selector:
+    app: matching-engine

@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background-color: #060911;
+  color: #f8fafc;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  overflow-x: hidden;
+}
+
+.mono-num {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: #090e1a;
+}
+::-webkit-scrollbar-thumb {
+  background: #1e293b;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #334155;
+}
+
+/* Odds Cell Pulsing effect when price changes */
+@keyframes flash-blue {
+  0% { background-color: rgba(37, 99, 235, 0.6); }
+  100% { background-color: transparent; }
+}
+
+@keyframes flash-pink {
+  0% { background-color: rgba(236, 72, 153, 0.6); }
+  100% { background-color: transparent; }
+}
+
+.flash-back {
+  animation: flash-blue 0.4s ease-out;
+}
+
+.flash-lay {
+  animation: flash-pink 0.4s ease-out;
+}
