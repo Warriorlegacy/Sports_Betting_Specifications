@@ -17,6 +17,7 @@ export class RealSportsFeedService {
   private cachedTelemetry: Map<string, LiveMatchTelemetry> = new Map();
 
   private endpoints: RealSportEndpoint[] = [
+    // ⚽ FOOTBALL / SOCCER
     {
       sport: 'FOOTBALL',
       categoryName: 'Football',
@@ -41,10 +42,32 @@ export class RealSportsFeedService {
     {
       sport: 'FOOTBALL',
       categoryName: 'Football',
+      url: 'https://site.api.espn.com/apis/site/v2/sports/soccer/ger.1/scoreboard',
+      leagueName: 'Bundesliga',
+      country: 'Germany'
+    },
+    {
+      sport: 'FOOTBALL',
+      categoryName: 'Football',
+      url: 'https://site.api.espn.com/apis/site/v2/sports/soccer/fra.1/scoreboard',
+      leagueName: 'Ligue 1',
+      country: 'France'
+    },
+    {
+      sport: 'FOOTBALL',
+      categoryName: 'Football',
+      url: 'https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/scoreboard',
+      leagueName: 'UEFA Champions League',
+      country: 'Europe'
+    },
+    {
+      sport: 'FOOTBALL',
+      categoryName: 'Football',
       url: 'https://site.api.espn.com/apis/site/v2/sports/soccer/usa.1/scoreboard',
       leagueName: 'Major League Soccer',
       country: 'USA'
     },
+    // 🏀 BASKETBALL
     {
       sport: 'BASKETBALL',
       categoryName: 'Basketball',
@@ -53,17 +76,56 @@ export class RealSportsFeedService {
       country: 'USA'
     },
     {
-      sport: 'FOOTBALL', // Baseball falls under mainstream
+      sport: 'BASKETBALL',
+      categoryName: 'Basketball',
+      url: 'https://site.api.espn.com/apis/site/v2/sports/basketball/wnba/scoreboard',
+      leagueName: 'WNBA',
+      country: 'USA'
+    },
+    {
+      sport: 'BASKETBALL',
+      categoryName: 'Basketball',
+      url: 'https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard',
+      leagueName: 'NCAA Basketball',
+      country: 'USA'
+    },
+    // ⚾ BASEBALL
+    {
+      sport: 'FOOTBALL', // Baseball mapped under general category
       categoryName: 'Baseball',
       url: 'https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard',
       leagueName: 'MLB',
       country: 'USA'
     },
+    // 🏈 AMERICAN FOOTBALL
+    {
+      sport: 'FOOTBALL',
+      categoryName: 'American Football',
+      url: 'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard',
+      leagueName: 'NFL',
+      country: 'USA'
+    },
+    // 🏒 HOCKEY
+    {
+      sport: 'FOOTBALL',
+      categoryName: 'Ice Hockey',
+      url: 'https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/scoreboard',
+      leagueName: 'NHL',
+      country: 'USA'
+    },
+    // 🎾 TENNIS
     {
       sport: 'TENNIS',
       categoryName: 'Tennis',
       url: 'https://site.api.espn.com/apis/site/v2/sports/tennis/atp/scoreboard',
       leagueName: 'ATP World Tour',
+      country: 'Global'
+    },
+    {
+      sport: 'TENNIS',
+      categoryName: 'Tennis',
+      url: 'https://site.api.espn.com/apis/site/v2/sports/tennis/wta/scoreboard',
+      leagueName: 'WTA Tour',
       country: 'Global'
     }
   ];

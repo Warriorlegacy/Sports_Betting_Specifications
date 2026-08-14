@@ -202,25 +202,26 @@ export const App: React.FC = () => {
     }
   }, [selectedExchangeMarketId, currentUser]);
 
-  // Fetch live real telemetry from backend (ESPN, Open Sports feeds)
+  // Fetch live real telemetry from backend (ESPN / global sports feeds)
   const fetchLiveTelemetry = useCallback(async () => {
     try {
       const res = await api.markets.getLiveTelemetry();
-      if (res.telemetry && Array.isArray(res.telemetry) && res.telemetry.length > 0) {
+      const tels: any[] = res.telemetry || res.liveMatches || [];
+      if (tels.length > 0) {
         setLiveMatches((prev) => {
           const map = new Map<string, LiveMatch>();
+          // Keep mock/simulated matches as base
           prev.forEach((m) => map.set(m.id, m));
-          
-          res.telemetry.forEach((t: any) => {
+          // Overlay with real live data (takes precedence)
+          tels.forEach((t: any) => {
             const converted = convertTelemetryToMatch(t);
             map.set(converted.id, { ...(map.get(converted.id) || converted), ...converted });
           });
-
           return Array.from(map.values());
         });
       }
     } catch (e) {
-      // Offline fallback
+      // Backend not available — keep existing mock data as fallback
     }
   }, []);
 
@@ -243,7 +244,7 @@ export const App: React.FC = () => {
     }
   }, [fetchUserData, fetchExchangeMarkets, fetchLiveTelemetry]);
 
-  // Real-Time Live Odds & Match Telemetry Ticker (Fires every 2 seconds)
+  // Real-Time Live Odds & Match Telemetry Ticker (Fires every 2 seconds for simulated matches)
   useEffect(() => {
     const interval = setInterval(() => {
       setLiveMatches((prevMatches) => {
@@ -258,6 +259,15 @@ export const App: React.FC = () => {
 
     return () => clearInterval(interval);
   }, [cashOutBets]);
+
+  // Poll real ESPN/live feed every 30 seconds to refresh actual match data
+  useEffect(() => {
+    const livePolling = setInterval(() => {
+      fetchLiveTelemetry();
+    }, 30000);
+    return () => clearInterval(livePolling);
+  }, [fetchLiveTelemetry]);
+
 
   // Socket.io Real-Time Streaming for Exchange & Live Telemetry
   useEffect(() => {

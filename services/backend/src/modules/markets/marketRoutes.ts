@@ -12,8 +12,11 @@ export const marketRouter = Router();
  * Returns active live in-play telemetry for all sports.
  */
 marketRouter.get('/live/telemetry', (_req, res: Response) => {
+  const allMatches = liveFeedManager.getAllLiveMatches();
   res.json({
-    liveMatches: liveFeedManager.getAllLiveMatches(),
+    telemetry: allMatches,       // Key frontend fetchLiveTelemetry() reads
+    liveMatches: allMatches,     // Legacy compat key
+    count: allMatches.length,
     timestamp: Date.now()
   });
 });

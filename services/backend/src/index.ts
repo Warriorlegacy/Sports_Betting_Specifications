@@ -7,6 +7,7 @@ import { realTimeGateway } from './realtime/socketGateway';
 import { matchingEngineService } from './realtime/matchingEngineService';
 import { oddsFeedSimulator } from './simulator/oddsFeedSimulator';
 import { inactivityMonitor } from './inactivity/inactivityMonitor';
+import { liveFeedManager } from './sportsFeeds/LiveFeedManager';
 
 // Module Routers
 import { authRouter } from './modules/auth/authRoutes';
@@ -77,11 +78,17 @@ if (process.env.NODE_ENV !== 'test') {
     // Hydrate matching engine order books
     await matchingEngineService.initFromDatabase();
 
+    // Start real-world multi-sport live feed engine (ESPN + fallback adapters)
+    setTimeout(() => {
+      liveFeedManager.start();
+      console.log('[Boot] LiveFeedManager (real + simulated sports) started.');
+    }, 3000);
+
     // Start mock liquidity generator if enabled
     if (config.simulatorEnabled) {
       setTimeout(() => {
         oddsFeedSimulator.start();
-      }, 2000);
+      }, 5000);
     }
 
     // Start inactivity monitor cron
