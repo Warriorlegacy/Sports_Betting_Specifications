@@ -1,4 +1,6 @@
-const API_BASE = (import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : '/api');
+const DEFAULT_BACKEND_URL = 'https://sports-exchange-backend-j1aj.onrender.com';
+const API_BASE = ((import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app') ? DEFAULT_BACKEND_URL : DEFAULT_BACKEND_URL))).replace(/\/$/, '') + '/api';
+
 
 export function getAuthToken(): string | null {
   return localStorage.getItem('exchange_player_token');

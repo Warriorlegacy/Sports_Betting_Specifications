@@ -5,13 +5,15 @@ class PlayerSocketService {
 
   public connect(): Socket {
     if (!this.socket) {
-      const socketUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL || '/';
+      const DEFAULT_BACKEND_URL = 'https://sports-exchange-backend-j1aj.onrender.com';
+      const socketUrl = import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL || DEFAULT_BACKEND_URL;
       this.socket = io(socketUrl, {
         transports: ['websocket', 'polling'],
         reconnection: true,
         reconnectionAttempts: 10,
         reconnectionDelay: 1000
       });
+
 
       this.socket.on('connect', () => {
         console.log('Player Portal WebSocket connected:', this.socket?.id);
