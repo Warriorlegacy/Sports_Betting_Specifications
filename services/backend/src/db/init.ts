@@ -148,7 +148,8 @@ INSERT INTO markets (id, event_name, market_type, sport, is_locked, in_play, sta
 VALUES 
 ('MKT_IND_AUS_T20', 'India vs Australia - 2nd T20 International', 'MATCH_ODDS', 'Cricket', FALSE, TRUE, 'OPEN'),
 ('MKT_ARS_CHE_PL', 'Arsenal vs Chelsea - Premier League Derby', 'MATCH_ODDS', 'Football', FALSE, TRUE, 'OPEN'),
-('MKT_ALC_SIN_WIM', 'Carlos Alcaraz vs Jannik Sinner - Wimbledon Final', 'MATCH_ODDS', 'Tennis', FALSE, TRUE, 'OPEN')
+('MKT_ALC_SIN_WIM', 'Carlos Alcaraz vs Jannik Sinner - Wimbledon Final', 'MATCH_ODDS', 'Tennis', FALSE, TRUE, 'OPEN'),
+('MKT_LAL_BOS_NBA', 'Los Angeles Lakers vs Boston Celtics - NBA Showcase', 'MATCH_ODDS', 'Basketball', FALSE, TRUE, 'OPEN')
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO market_selections (market_id, selection_id, selection_name)
@@ -159,9 +160,12 @@ VALUES
 ('MKT_ARS_CHE_PL', 2, 'Chelsea'),
 ('MKT_ARS_CHE_PL', 3, 'The Draw'),
 ('MKT_ALC_SIN_WIM', 1, 'Carlos Alcaraz'),
-('MKT_ALC_SIN_WIM', 2, 'Jannik Sinner')
+('MKT_ALC_SIN_WIM', 2, 'Jannik Sinner'),
+('MKT_LAL_BOS_NBA', 1, 'LA Lakers'),
+('MKT_LAL_BOS_NBA', 2, 'Boston Celtics')
 ON CONFLICT (market_id, selection_id) DO NOTHING;
 `;
+
 
 export async function initializeDatabase(): Promise<void> {
   try {

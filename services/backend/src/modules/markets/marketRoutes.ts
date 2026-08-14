@@ -3,8 +3,49 @@ import { query } from '../../db/pool';
 import { AuthenticatedRequest, authenticateToken, requireRoles } from '../../middleware/auth';
 import { settleMarketAtomic } from '../../db/ledger';
 import { realTimeGateway } from '../../realtime/socketGateway';
+import { liveFeedManager } from '../../sportsFeeds/LiveFeedManager';
 
 export const marketRouter = Router();
+
+/**
+ * GET /api/markets/live/telemetry
+ * Returns active live in-play telemetry for all sports.
+ */
+marketRouter.get('/live/telemetry', (_req, res: Response) => {
+  res.json({
+    liveMatches: liveFeedManager.getAllLiveMatches(),
+    timestamp: Date.now()
+  });
+});
+
+/**
+ * GET /api/markets/telemetry/:marketId
+ */
+marketRouter.get('/telemetry/:marketId', (req, res: Response) => {
+  const { marketId } = req.params;
+  const telemetry = liveFeedManager.getMatchTelemetry(marketId);
+  if (!telemetry) {
+    return res.status(404).json({ error: 'Live telemetry not found for market' });
+  }
+  res.json({ telemetry });
+});
+
+/**
+ * POST /api/markets/telemetry/ingest
+ * Webhook endpoint for external sports data providers (Sportmonks / The-Odds-API / CricAPI).
+ */
+marketRouter.post('/telemetry/ingest', async (req, res: Response) => {
+  try {
+    const telemetry = req.body;
+    if (!telemetry || !telemetry.marketId) {
+      return res.status(400).json({ error: 'Invalid telemetry payload. marketId required.' });
+    }
+    await liveFeedManager.submitExternalTelemetry(telemetry);
+    res.json({ success: true, message: 'Telemetry ingested successfully', marketId: telemetry.marketId });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 /**
  * GET /api/markets
@@ -46,7 +87,8 @@ marketRouter.get('/', async (_req, res: Response) => {
       status: m.status,
       winningSelectionId: m.winning_selection_id,
       createdAt: m.created_at,
-      selections: selectionsMap[m.id] || []
+      selections: selectionsMap[m.id] || [],
+      telemetry: liveFeedManager.getMatchTelemetry(m.id) || null
     }));
 
     res.json({ markets });
@@ -55,6 +97,7 @@ marketRouter.get('/', async (_req, res: Response) => {
     res.status(500).json({ error: 'Failed to fetch markets' });
   }
 });
+
 
 /**
  * GET /api/markets/:marketId

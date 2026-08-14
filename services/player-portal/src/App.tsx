@@ -127,13 +127,60 @@ export const App: React.FC = () => {
     return () => clearInterval(interval);
   }, [cashOutBets]);
 
-  // Socket.io Real-Time Streaming for Exchange Mode
+  // Socket.io Real-Time Streaming for Exchange & Live Telemetry
   useEffect(() => {
-    if (!currentUser || !selectedExchangeMarketId) return;
     const socket = playerSocket.connect();
+    socket.emit('subscribe:telemetry');
 
-    socket.emit('subscribe:market', { marketId: selectedExchangeMarketId });
-    socket.emit('subscribe:user', { userId: currentUser.id });
+    if (currentUser) {
+      socket.emit('subscribe:user', { userId: currentUser.id });
+    }
+
+    if (selectedExchangeMarketId) {
+      socket.emit('subscribe:market', { marketId: selectedExchangeMarketId });
+    }
+
+    // 1. Live Match Point-by-point / Ball-by-ball Telemetry Updates
+    const handleTelemetry = (data: { marketId: string; telemetry: any }) => {
+      if (!data || !data.telemetry) return;
+      const t = data.telemetry;
+
+      setLiveMatches((prev) =>
+        prev.map((m) => {
+          if (m.id === data.marketId) {
+            let updated = { ...m };
+            updated.isLocked = Boolean(t.isLocked);
+
+            if (t.cricket) {
+              updated.homeTeam = { ...m.homeTeam, score: `${t.cricket.runs}/${t.cricket.wickets}`, subScore: `(${t.cricket.overs} ov)` };
+              updated.clock = `${t.cricket.overs} Overs`;
+              updated.events = [
+                { id: `ev-${Date.now()}`, minute: `${t.cricket.overs} Ov`, team: 'HOME', type: 'BOUNDARY', player: t.cricket.striker?.name || 'Batsman', detail: t.cricket.lastEventDescription },
+                ...(m.events || []).slice(0, 8)
+              ];
+            } else if (t.tennis) {
+              const curSet = t.tennis.sets[t.tennis.currentSet - 1] || { home: 0, away: 0 };
+              updated.homeTeam = { ...m.homeTeam, score: curSet.home, subScore: `Pts: ${t.tennis.currentGameScore.home}` };
+              updated.awayTeam = { ...m.awayTeam, score: curSet.away, subScore: `Pts: ${t.tennis.currentGameScore.away}` };
+              updated.clock = `Set ${t.tennis.currentSet}`;
+            } else if (t.basketball) {
+              updated.homeTeam = { ...m.homeTeam, score: t.basketball.homeScore };
+              updated.awayTeam = { ...m.awayTeam, score: t.basketball.awayScore };
+              updated.clock = `${t.basketball.quarterName} ${t.basketball.gameClock}`;
+            } else if (t.football) {
+              updated.homeTeam = { ...m.homeTeam, score: t.football.homeGoals };
+              updated.awayTeam = { ...m.awayTeam, score: t.football.awayGoals };
+              updated.clock = `${t.football.minute}'`;
+            }
+            return updated;
+          }
+          return m;
+        })
+      );
+    };
+
+    socket.on('match:telemetry', handleTelemetry);
+    socket.on('match:global_telemetry', handleTelemetry);
 
     socket.on('ladder:update', (data: { marketId: string; ladder: Record<number, SelectionLadder> }) => {
       if (data.marketId === selectedExchangeMarketId) {
@@ -145,6 +192,9 @@ export const App: React.FC = () => {
       setExchangeMarkets((prev) =>
         prev.map((m) => (m.id === data.marketId ? { ...m, isLocked: data.isLocked, status: data.status } : m))
       );
+      setLiveMatches((prev) =>
+        prev.map((m) => (m.id === data.marketId ? { ...m, isLocked: data.isLocked } : m))
+      );
     });
 
     socket.on('user:balance', (data: { availableCredit: number; exposure: number }) => {
@@ -155,12 +205,17 @@ export const App: React.FC = () => {
     });
 
     return () => {
-      socket.emit('unsubscribe:market', { marketId: selectedExchangeMarketId });
+      if (selectedExchangeMarketId) {
+        socket.emit('unsubscribe:market', { marketId: selectedExchangeMarketId });
+      }
+      socket.off('match:telemetry', handleTelemetry);
+      socket.off('match:global_telemetry', handleTelemetry);
       socket.off('ladder:update');
       socket.off('market:status');
       socket.off('user:balance');
     };
   }, [currentUser, selectedExchangeMarketId, fetchExchangeMarketData]);
+
 
   // Handle Login
   const handleLogin = async (usernameOverride?: string) => {

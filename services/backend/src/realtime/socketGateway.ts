@@ -47,6 +47,12 @@ export class RealTimeGateway {
         socket.join(`user:${data.userId}`);
       });
 
+      // 4. Global match telemetry subscription
+      socket.on('subscribe:telemetry', () => {
+        inactivityMonitor.recordActivity('socket:subscribe_telemetry');
+        socket.join('telemetry:global');
+      });
+
       socket.on('disconnect', () => {
         this.connectedSockets.delete(socket.id);
         inactivityMonitor.setConnectedSockets(this.connectedSockets.size);
@@ -57,6 +63,29 @@ export class RealTimeGateway {
   public getConnectedCount(): number {
     return this.connectedSockets.size;
   }
+
+  /**
+   * Broadcasts live point-by-point/ball-by-ball match telemetry to all subscribers (<50ms).
+   */
+  public broadcastMatchTelemetry(marketId: string, telemetry: any): void {
+    if (!this.io) return;
+    this.io.to(`market:${marketId}`).emit('match:telemetry', {
+      marketId,
+      telemetry,
+      timestamp: Date.now()
+    });
+    this.io.to('telemetry:global').emit('match:telemetry', {
+      marketId,
+      telemetry,
+      timestamp: Date.now()
+    });
+    this.io.emit('match:global_telemetry', {
+      marketId,
+      telemetry,
+      timestamp: Date.now()
+    });
+  }
+
 
 
   private async sendMarketLadderToSocket(socket: Socket, marketId: string): Promise<void> {
