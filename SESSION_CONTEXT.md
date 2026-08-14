@@ -42,9 +42,9 @@ RENDER_API_KEY=rnd_09x1C0VulSvph8tXNHdZY2g87KJN
 
 ## 🏟️ Real Live Data Architecture (ESPN Free API — No Key Required)
 
-### Current Status: ✅ LIVE (57 real matches serving as of 2026-08-14)
+### Current Status: ✅ LIVE (53 real matches serving as of 2026-08-14T10:42Z)
 
-The backend fetches real match data from ESPN's public scoreboard APIs every **45 seconds** across **15 sport endpoints**:
+The backend fetches real match data from ESPN's public scoreboard APIs every **45 seconds** across **15 sport endpoints**.
 
 | Sport | League | ESPN Endpoint |
 | :--- | :--- | :--- |
@@ -198,6 +198,22 @@ When keys are absent, those tiers are gracefully skipped — ESPN + Simulator al
    - Run command: `node scripts/render_inactivity_cron.js`
    - Can be scheduled via Render Cron Jobs or external cron for redundancy.
 5. **Current Status:** ✅ Configured and running. Health check shows `renderAutoSleepConfigured: true`.
+6. **Auto-Sleep Behavior:** After 60 seconds of zero activity and no connected WebSocket clients, the backend calls Render's suspend API. Any incoming HTTP request automatically resumes the service.
+
+---
+
+## 🔧 Recent Changes (2026-08-14)
+
+### Mock Data Removed from Public API
+- **Issue:** The application was displaying hardcoded mock matches (India vs Australia T20, Arsenal vs Chelsea, etc.) when real ESPN feeds returned zero matches.
+- **Fix:** `LiveFeedManager.getAllLiveMatches()` and `getMatchTelemetry()` no longer fall back to simulator data. The public telemetry API now returns only real matches or an empty array.
+- **Impact:** Frontend correctly shows "No Matches Found" when no real data is available, instead of fabricated fixtures.
+
+### Production Deployment
+- Backend deployed to Render: `https://sports-exchange-backend-j1aj.onrender.com`
+- Deploy ID: `dep-d9vf1rdbedkc73bknsb0` (status: live)
+- Service ID: `srv-d9v95km417fc73cedmdg`
+- render.yaml blueprint configured with all required env vars
 
 ---
 
