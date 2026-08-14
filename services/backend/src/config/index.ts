@@ -13,5 +13,9 @@ export const config = {
     port: parseInt(process.env.REDIS_PORT || '6379', 10),
     url: process.env.REDIS_URL || `redis://${process.env.REDIS_HOST || 'localhost'}:${process.env.REDIS_PORT || '6379'}`
   },
-  simulatorEnabled: process.env.SIMULATOR_ENABLED !== 'false'
+  simulatorEnabled: process.env.SIMULATOR_ENABLED !== 'false',
+  inactivitySleepTimeoutMs: parseInt(process.env.INACTIVITY_SLEEP_TIMEOUT_MS || '60000', 10), // 1 minute default
+  renderApiKey: process.env.RENDER_API_KEY || 'rnd_09x1C0VulSvph8tXNHdZY2g87KJN',
+  renderServiceId: process.env.RENDER_SERVICE_ID || ''
 };
+

@@ -10,6 +10,7 @@ services:
     rootDir: services/backend
     buildCommand: npm install && npm run build
     startCommand: node dist/index.js
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
@@ -20,8 +21,18 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: DATABASE_URL
-        sync: false # Paste your Neon.tech or Supabase connection string
+        sync: false # Neon PostgreSQL connection string
       - key: REDIS_URL
-        sync: false # Paste your Upstash Redis connection string
+        sync: false # Upstash Redis connection string
+      - key: UPSTASH_REDIS_REST_URL
+        sync: false # Upstash Redis REST URL
+      - key: UPSTASH_REDIS_REST_TOKEN
+        sync: false # Upstash Redis REST Token
       - key: SIMULATOR_ENABLED
         value: "true"
+      - key: INACTIVITY_SLEEP_TIMEOUT_MS
+        value: "60000" # 1 min inactivity auto-sleep
+      - key: RENDER_API_KEY
+        sync: false
+      - key: RENDER_SERVICE_ID
+        sync: false

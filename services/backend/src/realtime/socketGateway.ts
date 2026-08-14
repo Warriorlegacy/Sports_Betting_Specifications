@@ -2,9 +2,11 @@ import { Server as HttpServer } from 'http';
 import { Server, Socket } from 'socket.io';
 import { matchingEngineService } from './matchingEngineService';
 import { query } from '../db/pool';
+import { inactivityMonitor } from '../inactivity/inactivityMonitor';
 
 export class RealTimeGateway {
   private io: Server | null = null;
+  private connectedSockets: Set<string> = new Set();
 
   public initialize(httpServer: HttpServer): void {
     this.io = new Server(httpServer, {
@@ -17,8 +19,12 @@ export class RealTimeGateway {
     });
 
     this.io.on('connection', (socket: Socket) => {
+      this.connectedSockets.add(socket.id);
+      inactivityMonitor.setConnectedSockets(this.connectedSockets.size);
+
       // 1. Client joins a market room
       socket.on('subscribe:market', async (data: { marketId: string }) => {
+        inactivityMonitor.recordActivity('socket:subscribe_market');
         if (!data || !data.marketId) return;
         const room = `market:${data.marketId}`;
         socket.join(room);
@@ -29,21 +35,29 @@ export class RealTimeGateway {
 
       // 2. Client leaves a market room
       socket.on('unsubscribe:market', (data: { marketId: string }) => {
+        inactivityMonitor.recordActivity('socket:unsubscribe_market');
         if (!data || !data.marketId) return;
         socket.leave(`market:${data.marketId}`);
       });
 
       // 3. User subscribes to private balance and order notifications
       socket.on('subscribe:user', (data: { userId: string }) => {
+        inactivityMonitor.recordActivity('socket:subscribe_user');
         if (!data || !data.userId) return;
         socket.join(`user:${data.userId}`);
       });
 
       socket.on('disconnect', () => {
-        // Socket cleanup
+        this.connectedSockets.delete(socket.id);
+        inactivityMonitor.setConnectedSockets(this.connectedSockets.size);
       });
     });
   }
+
+  public getConnectedCount(): number {
+    return this.connectedSockets.size;
+  }
+
 
   private async sendMarketLadderToSocket(socket: Socket, marketId: string): Promise<void> {
     try {

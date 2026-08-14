@@ -6,6 +6,7 @@ import { initializeDatabase } from './db/init';
 import { realTimeGateway } from './realtime/socketGateway';
 import { matchingEngineService } from './realtime/matchingEngineService';
 import { oddsFeedSimulator } from './simulator/oddsFeedSimulator';
+import { inactivityMonitor } from './inactivity/inactivityMonitor';
 
 // Module Routers
 import { authRouter } from './modules/auth/authRoutes';
@@ -21,6 +22,7 @@ const server = http.createServer(app);
 // Middleware
 app.use(cors({ origin: '*' }));
 app.use(express.json());
+app.use(inactivityMonitor.middleware());
 
 // API Routes
 app.use('/api/auth', authRouter);
@@ -36,8 +38,24 @@ app.get('/api/health', (_req, res) => {
     status: 'OK',
     timestamp: new Date().toISOString(),
     service: 'Sports Exchange Backend Engine',
-    version: '1.0.0'
+    version: '1.0.0',
+    inactivity: inactivityMonitor.getStatus()
   });
+});
+
+// Inactivity Management & Status Endpoints
+app.get('/api/inactivity/status', (_req, res) => {
+  res.json(inactivityMonitor.getStatus());
+});
+
+app.post('/api/inactivity/wake', (_req, res) => {
+  inactivityMonitor.wakeUp('explicit_api_wake');
+  res.json({ message: 'Server woken up successfully', status: inactivityMonitor.getStatus() });
+});
+
+app.post('/api/inactivity/sleep', async (_req, res) => {
+  await inactivityMonitor.putToSleep();
+  res.json({ message: 'Sleep mode initiated', status: inactivityMonitor.getStatus() });
 });
 
 // Real-Time Socket Gateway
@@ -65,5 +83,9 @@ if (process.env.NODE_ENV !== 'test') {
         oddsFeedSimulator.start();
       }, 2000);
     }
+
+    // Start inactivity monitor cron
+    inactivityMonitor.start();
   });
 }
+
