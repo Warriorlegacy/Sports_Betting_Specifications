@@ -163,12 +163,15 @@ export class MatchingEngineService {
           executedTrades.push(trade);
           await this.persistTrade(trade);
 
-          // Update lay order in database
-          const layStatus = layOrder.matchedStake >= layOrder.stake ? 'MATCHED' : 'PARTIALLY_MATCHED';
-          await query(
-            `UPDATE bets SET matched_stake = $1, status = $2, matched_at = NOW(), updated_at = NOW() WHERE id = $3`,
-            [layOrder.matchedStake, layStatus, layOrder.betId]
-          );
+          // Update lay order in database if it is a real DB-backed bet
+          const isUuid = (id?: string) => Boolean(id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id));
+          if (isUuid(layOrder.betId)) {
+            const layStatus = layOrder.matchedStake >= layOrder.stake ? 'MATCHED' : 'PARTIALLY_MATCHED';
+            await query(
+              `UPDATE bets SET matched_stake = $1, status = $2, matched_at = NOW(), updated_at = NOW() WHERE id = $3`,
+              [layOrder.matchedStake, layStatus, layOrder.betId]
+            ).catch(() => {});
+          }
 
           if (layOrder.matchedStake < layOrder.stake) {
             survivingLays.push(layOrder);
@@ -226,11 +229,14 @@ export class MatchingEngineService {
           executedTrades.push(trade);
           await this.persistTrade(trade);
 
-          const backStatus = backOrder.matchedStake >= backOrder.stake ? 'MATCHED' : 'PARTIALLY_MATCHED';
-          await query(
-            `UPDATE bets SET matched_stake = $1, status = $2, matched_at = NOW(), updated_at = NOW() WHERE id = $3`,
-            [backOrder.matchedStake, backStatus, backOrder.betId]
-          );
+          const isUuid = (id?: string) => Boolean(id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id));
+          if (isUuid(backOrder.betId)) {
+            const backStatus = backOrder.matchedStake >= backOrder.stake ? 'MATCHED' : 'PARTIALLY_MATCHED';
+            await query(
+              `UPDATE bets SET matched_stake = $1, status = $2, matched_at = NOW(), updated_at = NOW() WHERE id = $3`,
+              [backOrder.matchedStake, backStatus, backOrder.betId]
+            ).catch(() => {});
+          }
 
           if (backOrder.matchedStake < backOrder.stake) {
             survivingBacks.push(backOrder);
@@ -260,10 +266,13 @@ export class MatchingEngineService {
     }
 
     // Update incoming bet in database
-    await query(
-      `UPDATE bets SET matched_stake = $1, status = $2, matched_at = CASE WHEN $1 > 0 THEN NOW() ELSE NULL END, updated_at = NOW() WHERE id = $3`,
-      [matchedStake, finalStatus, orderParams.betId]
-    );
+    const isUuid = (id?: string) => Boolean(id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id));
+    if (isUuid(orderParams.betId)) {
+      await query(
+        `UPDATE bets SET matched_stake = $1, status = $2, matched_at = CASE WHEN $1 > 0 THEN NOW() ELSE NULL END, updated_at = NOW() WHERE id = $3`,
+        [matchedStake, finalStatus, orderParams.betId]
+      );
+    }
 
     return {
       status: finalStatus,
@@ -298,24 +307,30 @@ export class MatchingEngineService {
    */
   private async persistTrade(trade: Trade): Promise<void> {
     try {
-      await query(
-        `INSERT INTO trades (market_id, selection_id, back_bet_id, lay_bet_id, back_user_id, lay_user_id, price, stake)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-        [
-          trade.marketId,
-          trade.selectionId,
-          trade.backBetId,
-          trade.layBetId,
-          trade.backUserId,
-          trade.layUserId,
-          trade.price,
-          trade.stake
-        ]
-      );
+      const isUuid = (id?: string) => Boolean(id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id));
+      
+      // Both legs must be valid UUID foreign keys to write to trades table
+      if (isUuid(trade.backBetId) && isUuid(trade.layBetId)) {
+        await query(
+          `INSERT INTO trades (market_id, selection_id, back_bet_id, lay_bet_id, back_user_id, lay_user_id, price, stake)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+          [
+            trade.marketId,
+            trade.selectionId,
+            trade.backBetId,
+            trade.layBetId,
+            isUuid(trade.backUserId) ? trade.backUserId : '00000000-0000-0000-0000-000000000000',
+            isUuid(trade.layUserId) ? trade.layUserId : '00000000-0000-0000-0000-000000000000',
+            trade.price,
+            trade.stake
+          ]
+        );
+      }
     } catch (err) {
       console.error('Error persisting trade record:', err);
     }
   }
+
 
   /**
    * Generates Betfair-standard 3-tier Back/Lay ladder depth for all runners in a market.
