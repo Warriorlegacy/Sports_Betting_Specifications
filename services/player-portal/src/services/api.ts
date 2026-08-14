@@ -47,8 +47,10 @@ export const api = {
     getAll: () => request('/markets'),
     getDetails: (marketId: string) => request(`/markets/${marketId}`),
     getLiveTelemetry: () => request('/markets/live/telemetry'),
-    getTelemetry: (marketId: string) => request(`/markets/telemetry/${marketId}`)
+    getTelemetry: (marketId: string) => request(`/markets/telemetry/${marketId}`),
+    syncRealFeed: () => request('/markets/real-feed/sync', { method: 'POST' })
   },
+
 
   bets: {
     placeBet: (betData: { marketId: string; selectionId: number; type: 'BACK' | 'LAY'; price: number; stake: number }) =>

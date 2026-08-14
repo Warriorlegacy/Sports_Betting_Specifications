@@ -21,7 +21,116 @@ import { INITIAL_LIVE_MATCHES, INITIAL_CASHOUT_BETS } from './services/mockSport
 import { SportsbookEngine } from './services/sportsbookEngine';
 import { Zap, User, Lock, ArrowRight, Shield } from 'lucide-react';
 
+function convertTelemetryToMatch(t: any): LiveMatch {
+  const sportMap: Record<string, SportCategory> = {
+    CRICKET: 'Cricket',
+    FOOTBALL: 'Football',
+    TENNIS: 'Tennis',
+    BASKETBALL: 'Basketball',
+    BASEBALL: 'Baseball',
+    HORSE_RACING: 'Football'
+  };
+
+  const sportCat: SportCategory = sportMap[t.sport] || 'Football';
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  let homeScore: number | string = 0;
+  let awayScore: number | string = 0;
+  let homeSubScore: string | undefined = undefined;
+  let awaySubScore: string | undefined = undefined;
+  let clock = '00:00';
+
+  if (t.cricket) {
+    homeScore = `${t.cricket.runs}/${t.cricket.wickets}`;
+    awayScore = t.cricket.target ? `Target: ${t.cricket.target}` : '-';
+    homeSubScore = `(${t.cricket.overs} ov)`;
+    clock = `${t.cricket.overs} Overs`;
+  } else if (t.tennis) {
+    const curSet = t.tennis.sets?.[t.tennis.currentSet - 1] || { home: 0, away: 0 };
+    homeScore = curSet.home;
+    awayScore = curSet.away;
+    homeSubScore = `Pts: ${t.tennis.currentGameScore?.home || '0'}`;
+    awaySubScore = `Pts: ${t.tennis.currentGameScore?.away || '0'}`;
+    clock = `Set ${t.tennis.currentSet}`;
+  } else if (t.basketball) {
+    homeScore = t.basketball.homeScore;
+    awayScore = t.basketball.awayScore;
+    clock = `${t.basketball.quarterName} ${t.basketball.gameClock}`;
+  } else if (t.football) {
+    homeScore = t.football.homeGoals;
+    awayScore = t.football.awayGoals;
+    clock = `${t.football.minute}'`;
+  }
+
+  const matchDate = t.startTime ? t.startTime.split('T')[0] : todayStr;
+  const startTime = t.startTime
+    ? new Date(t.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    : '19:00';
+
+  return {
+    id: t.marketId,
+    sport: sportCat,
+    league: t.venue || 'Global Tournament',
+    country: 'Global',
+    flag: '🌍',
+    matchDate,
+    startTime,
+    currentPeriod: '1st Half',
+    possessionTeam: 'HOME',
+    attackPhase: 'BUILD_UP',
+    ballPosition: { x: 50, y: 50 },
+
+    possessionStats: { home: 50, away: 50 },
+    shots: [],
+    events: [],
+    stats: [
+      { label: 'Attacks', home: 45, away: 40, homePercent: 53, awayPercent: 47 },
+      { label: 'Dangerous Attacks', home: 22, away: 18, homePercent: 55, awayPercent: 45 }
+    ],
+    winProbabilityHistory: [
+      { minute: 0, homeProb: 45, drawProb: 25, awayProb: 30 },
+      { minute: 45, homeProb: 50, drawProb: 20, awayProb: 30 }
+    ],
+    momentumHistory: [
+      { minute: 0, momentum: 0 },
+      { minute: 45, momentum: 20 }
+    ],
+
+    homeTeam: {
+      name: t.homeTeam || 'Home Team',
+      shortName: (t.homeTeam || 'HOM').substring(0, 3).toUpperCase(),
+      color: '#3b82f6',
+      score: homeScore,
+      subScore: homeSubScore
+    },
+    awayTeam: {
+      name: t.awayTeam || 'Away Team',
+      shortName: (t.awayTeam || 'AWY').substring(0, 3).toUpperCase(),
+      color: '#ef4444',
+      score: awayScore,
+      subScore: awaySubScore
+    },
+    clock,
+    inPlay: Boolean(t.inPlay),
+    status: t.status === 'COMPLETED' ? 'SETTLED' : t.inPlay ? 'LIVE' : 'UPCOMING',
+    isLocked: Boolean(t.isLocked),
+    markets: [
+      {
+        id: `MKT_MAIN_${t.marketId}`,
+        name: 'Match Winner / Moneyline',
+        category: 'MAIN',
+        selections: [
+          { id: '1', name: t.homeTeam || 'Home', price: 1.95 },
+          { id: '2', name: t.awayTeam || 'Away', price: 1.95 }
+        ]
+      }
+    ]
+  };
+}
+
 export const App: React.FC = () => {
+
+
   // Navigation & User State
   const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -93,11 +202,33 @@ export const App: React.FC = () => {
     }
   }, [selectedExchangeMarketId, currentUser]);
 
+  // Fetch live real telemetry from backend (ESPN, Open Sports feeds)
+  const fetchLiveTelemetry = useCallback(async () => {
+    try {
+      const res = await api.markets.getLiveTelemetry();
+      if (res.telemetry && Array.isArray(res.telemetry) && res.telemetry.length > 0) {
+        setLiveMatches((prev) => {
+          const map = new Map<string, LiveMatch>();
+          prev.forEach((m) => map.set(m.id, m));
+          
+          res.telemetry.forEach((t: any) => {
+            const converted = convertTelemetryToMatch(t);
+            map.set(converted.id, { ...(map.get(converted.id) || converted), ...converted });
+          });
+
+          return Array.from(map.values());
+        });
+      }
+    } catch (e) {
+      // Offline fallback
+    }
+  }, []);
+
   // Initial load
   useEffect(() => {
     const token = getAuthToken();
     if (token) {
-      Promise.all([fetchUserData(), fetchExchangeMarkets()]).finally(() => setLoading(false));
+      Promise.all([fetchUserData(), fetchExchangeMarkets(), fetchLiveTelemetry()]).finally(() => setLoading(false));
     } else {
       // Default demo session for instantaneous access
       setCurrentUser({
@@ -107,9 +238,10 @@ export const App: React.FC = () => {
         exposure: 1500.0,
         creditLimit: 25000.0
       });
+      fetchLiveTelemetry();
       setLoading(false);
     }
-  }, [fetchUserData, fetchExchangeMarkets]);
+  }, [fetchUserData, fetchExchangeMarkets, fetchLiveTelemetry]);
 
   // Real-Time Live Odds & Match Telemetry Ticker (Fires every 2 seconds)
   useEffect(() => {
@@ -145,8 +277,14 @@ export const App: React.FC = () => {
       if (!data || !data.telemetry) return;
       const t = data.telemetry;
 
-      setLiveMatches((prev) =>
-        prev.map((m) => {
+      setLiveMatches((prev) => {
+        const exists = prev.some((m) => m.id === data.marketId);
+        if (!exists) {
+          const newMatch = convertTelemetryToMatch(t);
+          return [newMatch, ...prev];
+        }
+
+        return prev.map((m) => {
           if (m.id === data.marketId) {
             let updated = { ...m };
             updated.isLocked = Boolean(t.isLocked);
@@ -159,9 +297,9 @@ export const App: React.FC = () => {
                 ...(m.events || []).slice(0, 8)
               ];
             } else if (t.tennis) {
-              const curSet = t.tennis.sets[t.tennis.currentSet - 1] || { home: 0, away: 0 };
-              updated.homeTeam = { ...m.homeTeam, score: curSet.home, subScore: `Pts: ${t.tennis.currentGameScore.home}` };
-              updated.awayTeam = { ...m.awayTeam, score: curSet.away, subScore: `Pts: ${t.tennis.currentGameScore.away}` };
+              const curSet = t.tennis.sets?.[t.tennis.currentSet - 1] || { home: 0, away: 0 };
+              updated.homeTeam = { ...m.homeTeam, score: curSet.home, subScore: `Pts: ${t.tennis.currentGameScore?.home || '0'}` };
+              updated.awayTeam = { ...m.awayTeam, score: curSet.away, subScore: `Pts: ${t.tennis.currentGameScore?.away || '0'}` };
               updated.clock = `Set ${t.tennis.currentSet}`;
             } else if (t.basketball) {
               updated.homeTeam = { ...m.homeTeam, score: t.basketball.homeScore };
@@ -175,12 +313,13 @@ export const App: React.FC = () => {
             return updated;
           }
           return m;
-        })
-      );
+        });
+      });
     };
 
     socket.on('match:telemetry', handleTelemetry);
     socket.on('match:global_telemetry', handleTelemetry);
+
 
     socket.on('ladder:update', (data: { marketId: string; ladder: Record<number, SelectionLadder> }) => {
       if (data.marketId === selectedExchangeMarketId) {

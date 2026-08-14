@@ -31,21 +31,30 @@ marketRouter.get('/telemetry/:marketId', (req, res: Response) => {
 });
 
 /**
- * POST /api/markets/telemetry/ingest
- * Webhook endpoint for external sports data providers (Sportmonks / The-Odds-API / CricAPI).
+ * POST /api/markets/real-feed/sync
+ * Forces an immediate fetch of live games from global sports data providers.
  */
-marketRouter.post('/telemetry/ingest', async (req, res: Response) => {
+marketRouter.post('/real-feed/sync', async (_req, res: Response) => {
   try {
-    const telemetry = req.body;
-    if (!telemetry || !telemetry.marketId) {
-      return res.status(400).json({ error: 'Invalid telemetry payload. marketId required.' });
-    }
-    await liveFeedManager.submitExternalTelemetry(telemetry);
-    res.json({ success: true, message: 'Telemetry ingested successfully', marketId: telemetry.marketId });
+    const { realSportsFeedService } = await import('../../sportsFeeds/RealSportsFeedService');
+    const synced = await realSportsFeedService.syncAllRealSports();
+    res.json({ success: true, message: `Synced ${synced} real-world matches from live global feeds.`, count: synced });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
 });
+
+/**
+ * GET /api/markets/real-feed/status
+ */
+marketRouter.get('/real-feed/status', async (_req, res: Response) => {
+  const { realSportsFeedService } = await import('../../sportsFeeds/RealSportsFeedService');
+  res.json({
+    realMatches: realSportsFeedService.getAllRealTelemetry(),
+    timestamp: Date.now()
+  });
+});
+
 
 /**
  * GET /api/markets

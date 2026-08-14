@@ -7,8 +7,10 @@ import { FootballFeedAdapter } from './adapters/FootballFeedAdapter';
 import { matchingEngineService } from '../realtime/matchingEngineService';
 import { realTimeGateway } from '../realtime/socketGateway';
 import { query } from '../db/pool';
+import { realSportsFeedService } from './RealSportsFeedService';
 
 export class LiveFeedManager {
+
   private adapters: Map<SportType, IFeedAdapter> = new Map();
   private liveMatches: Map<string, LiveMatchTelemetry> = new Map();
   private intervalTimer: NodeJS.Timeout | null = null;
@@ -73,11 +75,15 @@ export class LiveFeedManager {
   }
 
   public start(): void {
+
     if (this.isRunning) return;
     this.isRunning = true;
     this.initDefaultMatches();
 
     console.log('[LiveFeedManager] Multi-Sport In-Play Ingestion Engine started.');
+
+    // Start real-world sports feeder
+    realSportsFeedService.start();
 
     // Step simulation every 2.5 seconds
     this.intervalTimer = setInterval(() => {
@@ -90,17 +96,21 @@ export class LiveFeedManager {
       clearInterval(this.intervalTimer);
       this.intervalTimer = null;
     }
+    realSportsFeedService.stop();
     this.isRunning = false;
     console.log('[LiveFeedManager] In-Play Ingestion Engine paused.');
   }
 
   public getAllLiveMatches(): LiveMatchTelemetry[] {
-    return Array.from(this.liveMatches.values());
+    const realMatches = realSportsFeedService.getAllRealTelemetry();
+    const simulatedMatches = Array.from(this.liveMatches.values());
+    return [...realMatches, ...simulatedMatches];
   }
 
   public getMatchTelemetry(marketId: string): LiveMatchTelemetry | undefined {
-    return this.liveMatches.get(marketId);
+    return realSportsFeedService.getTelemetry(marketId) || this.liveMatches.get(marketId);
   }
+
 
   /**
    * Ingests external provider data (Webhook / REST polling)
