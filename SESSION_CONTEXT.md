@@ -76,9 +76,41 @@ All accounts share the default password: **`password123`**
 
 ---
 
+## 🏏 Multi-Sport Live In-Play Ingestion & Telemetry Architecture
+
+### Supported Sports Adapters
+1. **Cricket (`CricketFeedAdapter`):**
+   - Ball-by-ball simulation, current over & ball tracking.
+   - Batsman scores, balls faced, strike rate, bowler figures (overs, runs, wickets, economy).
+   - In-play run rate (CRR) & Required Run Rate (RRR) calculation.
+   - Automatic market suspension triggers on wickets, reviews, and innings break.
+2. **Tennis (`TennisFeedAdapter`):**
+   - Point-by-point tracking (0, 15, 30, 40, Adv, Game).
+   - Serving player indicator, aces, double faults, break point alerts.
+   - Sets history, tie-break scoring, and match momentum estimation.
+3. **Basketball (`BasketballFeedAdapter`):**
+   - 4-quarter + Overtime clock management with 24-second shot clock countdown.
+   - Points in paint, 3-pointers made/attempted, team fouls, and free throws.
+   - Live spread and totals recalculation.
+4. **Football (`FootballFeedAdapter`):**
+   - Live minute tracking (1H, HT, 2H, ET), goals, corner counts, yellow/red cards.
+   - Dangerous attacks, possession % shifts, and VAR check market freeze.
+
+### Real-Time Telemetry Endpoints
+- **Live Match Telemetry Stream:** `GET https://sports-exchange-backend-j1aj.onrender.com/api/markets/live/telemetry`
+- **Single Market Telemetry:** `GET https://sports-exchange-backend-j1aj.onrender.com/api/markets/telemetry/:marketId`
+- **External Webhook Ingestion:** `POST https://sports-exchange-backend-j1aj.onrender.com/api/markets/telemetry/ingest`
+- **Socket.io Event Subscriptions:**
+  - `subscribe:telemetry` -> Emits `match:telemetry` and `match:global_telemetry` (<50ms updates)
+  - `subscribe:market` -> Emits `ladder:update` and `market:status`
+
+---
+
 ## 🛠️ Verification & Health Check Endpoints
 
 - **Backend Health Check:** `GET https://sports-exchange-backend-j1aj.onrender.com/api/health`
+- **Live Matches Telemetry:** `GET https://sports-exchange-backend-j1aj.onrender.com/api/markets/live/telemetry`
 - **Inactivity Sleep Status:** `GET https://sports-exchange-backend-j1aj.onrender.com/api/inactivity/status`
 - **Wake Server Endpoint:** `POST https://sports-exchange-backend-j1aj.onrender.com/api/inactivity/wake`
 - **Live Markets List:** `GET https://sports-exchange-backend-j1aj.onrender.com/api/markets`
+
