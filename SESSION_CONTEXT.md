@@ -1,6 +1,6 @@
 # 🌐 Session Context & Deployment Status
 
-**Last Updated:** 2026-08-17T01:48:48+05:30  
+**Last Updated:** 2026-08-17T01:58:11+05:30  
 **Project:** Enterprise Multi-Tier Sports Betting Exchange & Sportsbook Platform  
 **Repository:** [Warriorlegacy/Sports_Betting_Specifications](https://github.com/Warriorlegacy/Sports_Betting_Specifications) (Branch: `main`)
 
@@ -11,10 +11,26 @@
 | Component | Platform | Live URL / Endpoint | Dashboard / Management |
 | :--- | :--- | :--- | :--- |
 | **Backend API & WebSockets** | Render (Node.js) | `https://sports-exchange-backend-j1aj.onrender.com` | [Render Dashboard](https://dashboard.render.com/web/srv-d9v95km417fc73cedmdg) |
-| **Player Portal (Sportsbook)** | Vercel (React Vite) | `https://player-portal-kappa.vercel.app` | [Vercel Project](https://vercel.com/piyushs-projects-1495f171/player-portal) |
-| **Agent & Admin Portal** | Vercel (React Vite) | `https://agent-portal-one-omega.vercel.app` | [Vercel Project](https://vercel.com/piyushs-projects-1495f171/agent-portal) |
+| **Player Portal (Sportsbook & Cashier)** | Vercel (React Vite) | `https://player-portal-kappa.vercel.app` | [Vercel Project](https://vercel.com/piyushs-projects-1495f171/player-portal) |
+| **Agent & Admin Portal (Ledger & Payouts)** | Vercel (React Vite) | `https://agent-portal-one-omega.vercel.app` | [Vercel Project](https://vercel.com/piyushs-projects-1495f171/agent-portal) |
 | **Relational Database** | Neon.tech (PostgreSQL 16) | `ep-rapid-frost-axygvdc9-pooler.c-4.us-east-2.aws.neon.tech` | [Neon Console](https://console.neon.tech) |
 | **In-Memory Cache / PubSub** | Upstash (Redis 7) | `mint-dinosaur-126655.upstash.io:6379` | [Upstash Console](https://console.upstash.com) |
+
+---
+
+## 💳 Robust Deposit & Withdrawal System (100% Functional & Audited)
+
+### 1. Instant Player Deposit Rails
+- **Instant UPI / QR Code**: One-click instant deposit via Google Pay, PhonePe, Paytm, BHIM, Cred.
+- **USDT / Crypto**: TRC-20, BEP-20, ERC-20 multi-chain support with address copy & real-time rate conversion.
+- **Bank Wire / IMPS**: Direct account transfer with UTR reference verification.
+- **Cards / NetBanking**: Visa, MasterCard, RuPay support.
+
+### 2. Player Withdrawal & Payout Management
+- **Atomic Balance Locking**: Requested amounts are instantly locked from `available_credit` to prevent double-spending.
+- **Multi-Method Payouts**: Payouts to personal UPI ID, Bank IMPS (Account + IFSC), or USDT TRC-20 address.
+- **Operator Approval Queue**: Admin and Agent portals have a dedicated **Withdrawals Queue** to review requests, verify account details, and Approve/Dispatch or Reject/Refund with 1 click.
+- **Double-Entry Ledger Statement**: Every transaction (`DEPOSIT`, `WITHDRAWAL_PENDING`, `WITHDRAWAL_COMPLETED`, `WITHDRAWAL_REFUND`) creates an immutable audit record in PostgreSQL.
 
 ---
 
