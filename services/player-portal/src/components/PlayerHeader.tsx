@@ -12,6 +12,7 @@ interface PlayerHeaderProps {
   selectedSport: string;
   setSelectedSport: (sport: string) => void;
   onOpenCashier?: (tab?: 'DEPOSIT' | 'WITHDRAW' | 'HISTORY') => void;
+  onOpenLogin?: () => void;
   onLogout: () => void;
   onRefresh: () => void;
 }
@@ -21,6 +22,7 @@ export const PlayerHeader: React.FC<PlayerHeaderProps> = ({
   selectedSport,
   setSelectedSport,
   onOpenCashier,
+  onOpenLogin,
   onLogout,
   onRefresh
 }) => {
@@ -118,6 +120,18 @@ export const PlayerHeader: React.FC<PlayerHeaderProps> = ({
                 </button>
               </div>
             </div>
+          )}
+
+          {/* Guest Sign In Button */}
+          {!user && onOpenLogin && (
+            <button
+              type="button"
+              onClick={onOpenLogin}
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-blue-600/30 flex items-center space-x-1.5 transition-all"
+            >
+              <User className="w-3.5 h-3.5" />
+              <span>Sign In</span>
+            </button>
           )}
         </div>
 

@@ -10,7 +10,8 @@ import {
   DollarSign,
   TrendingUp,
   Sliders,
-  History
+  History,
+  User
 } from 'lucide-react';
 import { OddsFormat, SportCategory } from '../types/sportsbook';
 
@@ -31,6 +32,7 @@ interface SportsbookHeaderProps {
   betSlipCount: number;
   onToggleSlip: () => void;
   onOpenCashier: (tab?: 'DEPOSIT' | 'WITHDRAW' | 'HISTORY') => void;
+  onOpenLogin?: () => void;
   onLogout: () => void;
   onRefresh: () => void;
 }
@@ -47,6 +49,7 @@ export const SportsbookHeader: React.FC<SportsbookHeaderProps> = ({
   betSlipCount,
   onToggleSlip,
   onOpenCashier,
+  onOpenLogin,
   onLogout,
   onRefresh
 }) => {
@@ -204,6 +207,18 @@ export const SportsbookHeader: React.FC<SportsbookHeaderProps> = ({
               </div>
             )}
 
+            {/* Sign In Button if Guest / Not Logged In */}
+            {!user && onOpenLogin && (
+              <button
+                type="button"
+                onClick={onOpenLogin}
+                className="px-4 py-2 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-extrabold text-xs shadow-lg shadow-blue-600/30 flex items-center space-x-1.5 transition-all"
+              >
+                <User className="w-3.5 h-3.5" />
+                <span>Sign In</span>
+              </button>
+            )}
+
             {/* Bet Slip Trigger */}
             <button
               type="button"
@@ -219,14 +234,16 @@ export const SportsbookHeader: React.FC<SportsbookHeaderProps> = ({
               )}
             </button>
 
-            {/* Logout */}
-            <button
-              onClick={onLogout}
-              title="Sign Out"
-              className="p-2 text-slate-400 hover:text-rose-400 bg-slate-950/80 rounded-2xl border border-slate-800 transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+            {/* Logout if Logged In */}
+            {user && (
+              <button
+                onClick={onLogout}
+                title="Sign Out"
+                className="p-2 text-slate-400 hover:text-rose-400 bg-slate-950/80 rounded-2xl border border-slate-800 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
 

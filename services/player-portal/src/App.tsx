@@ -8,6 +8,7 @@ import { CashOutManager } from './components/CashOutManager';
 import { EnhancedBetSlip } from './components/EnhancedBetSlip';
 import { MyBets, UserBet } from './components/MyBets';
 import { CashierModal } from './components/CashierModal';
+import { LoginModal } from './components/LoginModal';
 import { api, setAuthToken, removeAuthToken, getAuthToken } from './services/api';
 import { playerSocket } from './services/socket';
 import {
@@ -164,6 +165,9 @@ export const App: React.FC = () => {
   const [isCashierOpen, setIsCashierOpen] = useState<boolean>(false);
   const [cashierTab, setCashierTab] = useState<'DEPOSIT' | 'WITHDRAW' | 'HISTORY'>('DEPOSIT');
 
+  // Sign In / Auth Modal State
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
+
   // Exchange Ladder State (for P2P mode)
   const [exchangeMarkets, setExchangeMarkets] = useState<Market[]>([]);
   const [selectedExchangeMarketId, setSelectedExchangeMarketId] = useState<string>('');
@@ -177,13 +181,17 @@ export const App: React.FC = () => {
   const [loginPassword, setLoginPassword] = useState<string>('password123');
   const [loginError, setLoginError] = useState<string | null>(null);
 
-  // Fetch logged in user details
+  // Fetch logged in user details from real backend database
   const fetchUserData = useCallback(async () => {
     try {
       const meRes = await api.auth.getMe();
-      setCurrentUser(meRes.user);
+      if (meRes && meRes.user) {
+        setCurrentUser(meRes.user);
+      }
     } catch (err) {
-      console.log('No backend user session, initialized local trader profile.');
+      console.log('No active authenticated backend session');
+      removeAuthToken();
+      setCurrentUser(null);
     }
   }, []);
 
@@ -237,22 +245,14 @@ export const App: React.FC = () => {
     }
   }, []);
 
-  // Initial load
+  // Initial load: Check real session, fetch live matches
   useEffect(() => {
     const token = getAuthToken();
     if (token) {
       Promise.all([fetchUserData(), fetchExchangeMarkets(), fetchLiveTelemetry()]).finally(() => setLoading(false));
     } else {
-      // Default demo session for instantaneous access
-      setCurrentUser({
-        id: '00000000-0000-0000-0000-000000000004',
-        username: 'player_rahul',
-        availableCredit: 10000.0,
-        exposure: 1500.0,
-        creditLimit: 25000.0
-      });
-      fetchLiveTelemetry();
-      setLoading(false);
+      setCurrentUser(null);
+      Promise.all([fetchExchangeMarkets(), fetchLiveTelemetry()]).finally(() => setLoading(false));
     }
   }, [fetchUserData, fetchExchangeMarkets, fetchLiveTelemetry]);
 
@@ -386,28 +386,20 @@ export const App: React.FC = () => {
   }, [currentUser, selectedExchangeMarketId, fetchExchangeMarketData]);
 
 
-  // Handle Login
-  const handleLogin = async (usernameOverride?: string) => {
+  // Handle Login with real credentials
+  const handleLogin = async (usernameOverride?: string, passwordOverride?: string) => {
     try {
       setLoading(true);
       setLoginError(null);
       const u = usernameOverride || loginUsername;
-      try {
-        const res = await api.auth.login({ username: u, password: loginPassword });
-        setAuthToken(res.token);
-        setCurrentUser(res.user);
-      } catch (e) {
-        // Fallback local session if backend DB is cold
-        setCurrentUser({
-          id: '00000000-0000-0000-0000-000000000004',
-          username: u,
-          availableCredit: 10000.0,
-          exposure: 1500.0,
-          creditLimit: 25000.0
-        });
-      }
+      const p = passwordOverride || loginPassword;
+      const res = await api.auth.login({ username: u, password: p });
+      setAuthToken(res.token);
+      setCurrentUser(res.user);
+      setIsLoginModalOpen(false);
+      await Promise.all([fetchUserData(), fetchExchangeMarkets(), fetchLiveTelemetry()]);
     } catch (err: any) {
-      setLoginError(err.message || 'Login failed');
+      setLoginError(err.message || 'Invalid username or password');
     } finally {
       setLoading(false);
     }
@@ -477,7 +469,16 @@ export const App: React.FC = () => {
 
   // Place Bets from Universal Bet Slip
   const handlePlaceBets = async (items: BetSlipItem[]) => {
+    if (!currentUser) {
+      setIsLoginModalOpen(true);
+      return;
+    }
+
     const totalStake = items.reduce((sum, item) => sum + (item.stake || 0), 0);
+    if (totalStake > (currentUser.availableCredit || 0)) {
+      alert(`Insufficient funds. Your available balance is ₹${currentUser.availableCredit?.toFixed(2)}.`);
+      return;
+    }
 
     // Update user balance locally
     setCurrentUser((prev: any) =>
@@ -511,6 +512,7 @@ export const App: React.FC = () => {
     }));
 
     setCashOutBets((prev) => [...newCashOutBets, ...prev]);
+    await fetchUserData();
   };
 
   // Execute Dynamic Early Cash Out
@@ -555,103 +557,6 @@ export const App: React.FC = () => {
     );
   };
 
-  // Login view
-  if (!currentUser) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-[#060911] relative overflow-hidden">
-        <div className="absolute top-1/3 left-1/3 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-1/3 right-1/3 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-3xl p-8 shadow-2xl backdrop-blur-xl relative z-10 space-y-6">
-          <div className="text-center space-y-2">
-            <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-emerald-400 flex items-center justify-center shadow-xl shadow-blue-500/25">
-              <Zap className="w-8 h-8 text-white" />
-            </div>
-            <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-blue-400 via-sky-200 to-emerald-300 bg-clip-text text-transparent">
-              NEXUS SPORTSBOOK
-            </h1>
-            <p className="text-xs text-slate-400 font-medium">
-              Live In-Play Betting • SGP Parlays • Dynamic Cash-Out
-            </p>
-          </div>
-
-          {loginError && (
-            <div className="p-3 text-xs rounded-xl bg-red-950/60 border border-red-800/80 text-red-200">
-              {loginError}
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block text-center">
-              Quick Trader Login (Pre-funded)
-            </span>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => handleLogin('player_rahul')}
-                className="p-3 rounded-xl text-xs font-bold bg-blue-950/40 hover:bg-blue-900/60 border border-blue-800/60 text-blue-200 transition-all text-left flex flex-col"
-              >
-                <span>Rahul (Player)</span>
-                <span className="text-[10px] text-blue-400 font-normal">₹10,000 Balance</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleLogin('player_amit')}
-                className="p-3 rounded-xl text-xs font-bold bg-emerald-950/40 hover:bg-emerald-900/60 border border-emerald-800/60 text-emerald-200 transition-all text-left flex flex-col"
-              >
-                <span>Amit (Player)</span>
-                <span className="text-[10px] text-emerald-400 font-normal">₹10,000 Balance</span>
-              </button>
-            </div>
-          </div>
-
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleLogin();
-            }}
-            className="space-y-4"
-          >
-            <div>
-              <label className="text-xs font-semibold uppercase text-slate-300">Username</label>
-              <div className="relative mt-1">
-                <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                <input
-                  type="text"
-                  value={loginUsername}
-                  onChange={(e) => setLoginUsername(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-xs font-semibold uppercase text-slate-300">Password</label>
-              <div className="relative mt-1">
-                <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-                <input
-                  type="password"
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500"
-                />
-              </div>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 text-sm font-bold rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg shadow-blue-600/25 transition-all disabled:opacity-50"
-            >
-              {loading ? 'Authenticating...' : 'Enter Sportsbook Terminal'}
-            </button>
-          </form>
-        </div>
-      </div>
-    );
-  }
-
   const selectedMatch = liveMatches.find((m) => m.id === selectedMatchId);
   const activeExchangeMarket =
     exchangeMarkets.find((m) => m.id === selectedExchangeMarketId) || exchangeMarkets[0];
@@ -671,9 +576,14 @@ export const App: React.FC = () => {
         betSlipCount={betSlipItems.length}
         onToggleSlip={() => setIsSlipOpen(!isSlipOpen)}
         onOpenCashier={(tab) => {
+          if (!currentUser) {
+            setIsLoginModalOpen(true);
+            return;
+          }
           setCashierTab(tab || 'DEPOSIT');
           setIsCashierOpen(true);
         }}
+        onOpenLogin={() => setIsLoginModalOpen(true)}
         onLogout={handleLogout}
         onRefresh={() => {
           fetchUserData();
@@ -802,7 +712,7 @@ export const App: React.FC = () => {
       {isSlipOpen && (
         <EnhancedBetSlip
           items={betSlipItems}
-          availableCredit={currentUser.availableCredit}
+          availableCredit={currentUser ? currentUser.availableCredit : 0}
           oddsFormat={oddsFormat}
           onRemoveItem={(id) => setBetSlipItems((prev) => prev.filter((i) => i.id !== id))}
           onClearAll={() => setBetSlipItems([])}
@@ -815,12 +725,27 @@ export const App: React.FC = () => {
       )}
 
       {/* Cashier & Banking Modal */}
-      <CashierModal
-        isOpen={isCashierOpen}
-        onClose={() => setIsCashierOpen(false)}
-        user={currentUser}
-        onBalanceUpdate={fetchUserData}
-        defaultTab={cashierTab}
+      {currentUser && (
+        <CashierModal
+          isOpen={isCashierOpen}
+          onClose={() => setIsCashierOpen(false)}
+          user={currentUser}
+          onBalanceUpdate={fetchUserData}
+          defaultTab={cashierTab}
+        />
+      )}
+
+      {/* Authentication / Sign In Modal */}
+      <LoginModal
+        isOpen={isLoginModalOpen}
+        onClose={() => setIsLoginModalOpen(false)}
+        onLogin={handleLogin}
+        onLoginSuccess={(user) => {
+          setCurrentUser(user);
+          setIsLoginModalOpen(false);
+        }}
+        loading={loading}
+        error={loginError}
       />
     </div>
   );
