@@ -11,6 +11,7 @@ interface PlayerHeaderProps {
   } | null;
   selectedSport: string;
   setSelectedSport: (sport: string) => void;
+  onOpenCashier?: (tab?: 'DEPOSIT' | 'WITHDRAW' | 'HISTORY') => void;
   onLogout: () => void;
   onRefresh: () => void;
 }
@@ -19,6 +20,7 @@ export const PlayerHeader: React.FC<PlayerHeaderProps> = ({
   user,
   selectedSport,
   setSelectedSport,
+  onOpenCashier,
   onLogout,
   onRefresh
 }) => {
@@ -58,7 +60,11 @@ export const PlayerHeader: React.FC<PlayerHeaderProps> = ({
           {user && (
             <div className="flex items-center space-x-3">
               {/* Balance Widget */}
-              <div className="flex items-center space-x-3 bg-slate-900/90 px-3.5 py-1.5 rounded-xl border border-slate-800 shadow-inner">
+              <div
+                onClick={() => onOpenCashier && onOpenCashier('HISTORY')}
+                className="flex items-center space-x-3 bg-slate-900/90 px-3.5 py-1.5 rounded-xl border border-slate-800 hover:border-emerald-500/50 cursor-pointer shadow-inner transition-all"
+                title="Click to view Ledger Statement"
+              >
                 <div className="flex flex-col text-right">
                   <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
                     Available Balance
@@ -77,6 +83,18 @@ export const PlayerHeader: React.FC<PlayerHeaderProps> = ({
                   </span>
                 </div>
               </div>
+
+              {/* Deposit Button */}
+              {onOpenCashier && (
+                <button
+                  type="button"
+                  onClick={() => onOpenCashier('DEPOSIT')}
+                  className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-600/30 flex items-center space-x-1.5 transition-all"
+                >
+                  <Wallet className="w-3.5 h-3.5" />
+                  <span>Deposit</span>
+                </button>
+              )}
 
               {/* Account Pill */}
               <div className="flex items-center space-x-2 bg-slate-800/80 px-2.5 py-1.5 rounded-xl border border-slate-700">

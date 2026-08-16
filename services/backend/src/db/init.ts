@@ -103,6 +103,20 @@ CREATE TABLE IF NOT EXISTS ledger_entries (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS withdrawals (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    amount NUMERIC(15, 2) NOT NULL CHECK (amount > 0.00),
+    payout_method VARCHAR(50) NOT NULL,
+    account_details JSONB NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    processed_by UUID REFERENCES users(id),
+    reference_id VARCHAR(100),
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    processed_at TIMESTAMP WITH TIME ZONE
+);
+
 CREATE INDEX IF NOT EXISTS idx_users_parent_id ON users(parent_id);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
@@ -113,6 +127,8 @@ CREATE INDEX IF NOT EXISTS idx_bets_created_at ON bets(created_at);
 CREATE INDEX IF NOT EXISTS idx_ledger_sender ON ledger_entries(sender_id);
 CREATE INDEX IF NOT EXISTS idx_ledger_receiver ON ledger_entries(receiver_id);
 CREATE INDEX IF NOT EXISTS idx_ledger_type ON ledger_entries(transaction_type);
+CREATE INDEX IF NOT EXISTS idx_withdrawals_user_id ON withdrawals(user_id);
+CREATE INDEX IF NOT EXISTS idx_withdrawals_status ON withdrawals(status);
 CREATE INDEX IF NOT EXISTS idx_market_selections_market ON market_selections(market_id);
 CREATE INDEX IF NOT EXISTS idx_trades_market ON trades(market_id);
 `;

@@ -637,3 +637,333 @@ export async function settleMarketAtomic(
     };
   });
 }
+
+/**
+ * Atomically deposits funds into a user's wallet with immutable double-entry ledger auditing.
+ */
+export async function depositFundsAtomic(
+  userId: string,
+  amount: number,
+  paymentMethod: string = 'INSTANT_UPI',
+  referenceId?: string,
+  notes?: string
+): Promise<{
+  transactionId: string;
+  amount: number;
+  availableCredit: number;
+  creditLimit: number;
+  paymentMethod: string;
+  referenceId: string;
+}> {
+  if (amount <= 0 || isNaN(amount)) {
+    throw new Error('Deposit amount must be greater than zero');
+  }
+
+  const roundedAmount = Math.round(amount * 100) / 100;
+  const refId = referenceId || `DEP_${Date.now()}_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+  return await withTransaction(async (client) => {
+    // 1. Fetch and lock user row
+    const userRes = await client.query(
+      `SELECT id, username, role, credit_limit, available_credit, is_active FROM users WHERE id = $1 FOR UPDATE`,
+      [userId]
+    );
+
+    if (userRes.rows.length === 0) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+
+    const user = userRes.rows[0];
+    if (!user.is_active) {
+      throw new Error(`User account ${user.username} is deactivated`);
+    }
+
+    const newAvailable = Math.round((parseFloat(user.available_credit) + roundedAmount) * 100) / 100;
+    const newCreditLimit = Math.round((parseFloat(user.credit_limit) + roundedAmount) * 100) / 100;
+
+    // 2. Update user balances
+    await client.query(
+      `UPDATE users SET available_credit = $1, credit_limit = $2, updated_at = NOW() WHERE id = $3`,
+      [newAvailable, newCreditLimit, userId]
+    );
+
+    // 3. Insert immutable double-entry ledger entry
+    const ledgerRes = await client.query(
+      `INSERT INTO ledger_entries (sender_id, receiver_id, amount, transaction_type, reference_id, notes)
+       VALUES ($1, $2, $3, 'DEPOSIT', $4, $5)
+       RETURNING id, created_at`,
+      [null, userId, roundedAmount, refId, notes || `Direct Deposit via ${paymentMethod}`]
+    );
+
+    return {
+      transactionId: ledgerRes.rows[0].id,
+      amount: roundedAmount,
+      availableCredit: newAvailable,
+      creditLimit: newCreditLimit,
+      paymentMethod,
+      referenceId: refId
+    };
+  });
+}
+
+/**
+ * Atomically requests a withdrawal: verifies balance, locks funds, and logs request.
+ */
+export async function requestWithdrawalAtomic(
+  userId: string,
+  amount: number,
+  payoutMethod: string,
+  accountDetails: Record<string, any>,
+  notes?: string
+): Promise<{
+  withdrawalId: string;
+  amount: number;
+  payoutMethod: string;
+  status: string;
+  availableCredit: number;
+  exposure: number;
+}> {
+  if (amount <= 0 || isNaN(amount)) {
+    throw new Error('Withdrawal amount must be greater than zero');
+  }
+
+  const roundedAmount = Math.round(amount * 100) / 100;
+
+  return await withTransaction(async (client) => {
+    // 1. Lock user row
+    const userRes = await client.query(
+      `SELECT id, username, available_credit, exposure, is_active FROM users WHERE id = $1 FOR UPDATE`,
+      [userId]
+    );
+
+    if (userRes.rows.length === 0) {
+      throw new Error(`User with ID ${userId} not found`);
+    }
+
+    const user = userRes.rows[0];
+    if (!user.is_active) {
+      throw new Error(`User account is deactivated`);
+    }
+
+    const currentAvail = parseFloat(user.available_credit);
+    if (currentAvail < roundedAmount) {
+      throw new Error(`Insufficient available balance (Available: ₹${currentAvail.toFixed(2)}, Requested: ₹${roundedAmount.toFixed(2)})`);
+    }
+
+    const newAvail = Math.round((currentAvail - roundedAmount) * 100) / 100;
+
+    // 2. Lock requested amount from available credit
+    await client.query(
+      `UPDATE users SET available_credit = $1, updated_at = NOW() WHERE id = $2`,
+      [newAvail, userId]
+    );
+
+    // 3. Create withdrawal request record
+    const withdrawRes = await client.query(
+      `INSERT INTO withdrawals (user_id, amount, payout_method, account_details, status, notes)
+       VALUES ($1, $2, $3, $4, 'PENDING', $5)
+       RETURNING id, status, created_at`,
+      [userId, roundedAmount, payoutMethod, JSON.stringify(accountDetails), notes || `Withdrawal request to ${payoutMethod}`]
+    );
+
+    const withdrawalId = withdrawRes.rows[0].id;
+
+    // 4. Record ledger entry
+    await client.query(
+      `INSERT INTO ledger_entries (sender_id, receiver_id, amount, transaction_type, reference_id, notes)
+       VALUES ($1, $2, $3, 'WITHDRAWAL_PENDING', $4, $5)`,
+      [userId, null, roundedAmount, withdrawalId, `Withdrawal request pending admin approval (${payoutMethod})`]
+    );
+
+    return {
+      withdrawalId,
+      amount: roundedAmount,
+      payoutMethod,
+      status: 'PENDING',
+      availableCredit: newAvail,
+      exposure: parseFloat(user.exposure)
+    };
+  });
+}
+
+/**
+ * Approves or rejects a withdrawal request atomically.
+ */
+export async function processWithdrawalAtomic(
+  withdrawalId: string,
+  processorId: string,
+  action: 'APPROVE' | 'REJECT',
+  txReference?: string,
+  notes?: string
+): Promise<{
+  withdrawalId: string;
+  status: string;
+  amount: number;
+  userId: string;
+}> {
+  return await withTransaction(async (client) => {
+    // 1. Lock withdrawal row
+    const wRes = await client.query(
+      `SELECT id, user_id, amount, payout_method, status FROM withdrawals WHERE id = $1 FOR UPDATE`,
+      [withdrawalId]
+    );
+
+    if (wRes.rows.length === 0) {
+      throw new Error(`Withdrawal request with ID ${withdrawalId} not found`);
+    }
+
+    const withdrawal = wRes.rows[0];
+    if (withdrawal.status !== 'PENDING') {
+      throw new Error(`Withdrawal has already been ${withdrawal.status.toLowerCase()}`);
+    }
+
+    const amount = parseFloat(withdrawal.amount);
+    const targetUserId = withdrawal.user_id;
+
+    if (action === 'APPROVE') {
+      // Finalize withdrawal
+      await client.query(
+        `UPDATE withdrawals
+         SET status = 'APPROVED', processed_by = $1, reference_id = $2, notes = $3, processed_at = NOW()
+         WHERE id = $4`,
+        [processorId, txReference || `TX_${Date.now()}`, notes || 'Approved & Dispatched', withdrawalId]
+      );
+
+      // Reduce user credit_limit to reflect permanent fund outflow
+      await client.query(
+        `UPDATE users SET credit_limit = GREATEST(0, credit_limit - $1), updated_at = NOW() WHERE id = $2`,
+        [amount, targetUserId]
+      );
+
+      // Ledger entry for completed payout
+      await client.query(
+        `INSERT INTO ledger_entries (sender_id, receiver_id, amount, transaction_type, reference_id, notes)
+         VALUES ($1, $2, $3, 'WITHDRAWAL_COMPLETED', $4, $5)`,
+        [targetUserId, null, amount, withdrawalId, `Withdrawal approved & dispatched via ${withdrawal.payout_method}`]
+      );
+
+      return {
+        withdrawalId,
+        status: 'APPROVED',
+        amount,
+        userId: targetUserId
+      };
+    } else {
+      // REJECT: Refund amount back to user's available balance
+      await client.query(
+        `UPDATE withdrawals
+         SET status = 'REJECTED', processed_by = $1, notes = $2, processed_at = NOW()
+         WHERE id = $3`,
+        [processorId, notes || 'Rejected by operator', withdrawalId]
+      );
+
+      await client.query(
+        `UPDATE users SET available_credit = available_credit + $1, updated_at = NOW() WHERE id = $2`,
+        [amount, targetUserId]
+      );
+
+      // Ledger entry for refund
+      await client.query(
+        `INSERT INTO ledger_entries (sender_id, receiver_id, amount, transaction_type, reference_id, notes)
+         VALUES ($1, $2, $3, 'WITHDRAWAL_REFUND', $4, $5)`,
+        [null, targetUserId, amount, withdrawalId, `Withdrawal rejected: funds returned to available balance (${notes || 'Operator rejection'})`]
+      );
+
+      return {
+        withdrawalId,
+        status: 'REJECTED',
+        amount,
+        userId: targetUserId
+      };
+    }
+  });
+}
+
+/**
+ * Fetches user transaction history across all ledger activity.
+ */
+export async function getUserTransactions(
+  userId: string,
+  limit: number = 50,
+  offset: number = 0
+): Promise<{
+  transactions: any[];
+  total: number;
+}> {
+  const countRes = await pool.query(
+    `SELECT COUNT(*) as count FROM ledger_entries WHERE sender_id = $1 OR receiver_id = $1`,
+    [userId]
+  );
+  const total = parseInt(countRes.rows[0].count, 10);
+
+  const txRes = await pool.query(
+    `SELECT l.id, l.sender_id, l.receiver_id, l.amount, l.transaction_type, l.reference_id, l.notes, l.created_at,
+            su.username as sender_username, ru.username as receiver_username
+     FROM ledger_entries l
+     LEFT JOIN users su ON l.sender_id = su.id
+     LEFT JOIN users ru ON l.receiver_id = ru.id
+     WHERE l.sender_id = $1 OR l.receiver_id = $1
+     ORDER BY l.created_at DESC
+     LIMIT $2 OFFSET $3`,
+    [userId, limit, offset]
+  );
+
+  return {
+    transactions: txRes.rows,
+    total
+  };
+}
+
+/**
+ * Fetches withdrawals list for admin/agent oversight or player audit.
+ */
+export async function getWithdrawalsList(
+  status?: string,
+  userId?: string,
+  limit: number = 50,
+  offset: number = 0
+): Promise<{
+  withdrawals: any[];
+  total: number;
+}> {
+  let whereClauses: string[] = [];
+  let params: any[] = [];
+  let pIdx = 1;
+
+  if (status) {
+    whereClauses.push(`w.status = $${pIdx++}`);
+    params.push(status);
+  }
+
+  if (userId) {
+    whereClauses.push(`w.user_id = $${pIdx++}`);
+    params.push(userId);
+  }
+
+  const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+
+  const countRes = await pool.query(
+    `SELECT COUNT(*) as count FROM withdrawals w ${whereSql}`,
+    params
+  );
+  const total = parseInt(countRes.rows[0].count, 10);
+
+  const listRes = await pool.query(
+    `SELECT w.id, w.user_id, w.amount, w.payout_method, w.account_details, w.status,
+            w.processed_by, w.reference_id, w.notes, w.created_at, w.processed_at,
+            u.username, u.role, pu.username as processor_username
+     FROM withdrawals w
+     JOIN users u ON w.user_id = u.id
+     LEFT JOIN users pu ON w.processed_by = pu.id
+     ${whereSql}
+     ORDER BY w.created_at DESC
+     LIMIT $${pIdx++} OFFSET $${pIdx++}`,
+    [...params, limit, offset]
+  );
+
+  return {
+    withdrawals: listRes.rows,
+    total
+  };
+}
+

@@ -30,6 +30,7 @@ interface SportsbookHeaderProps {
   cashOutCount: number;
   betSlipCount: number;
   onToggleSlip: () => void;
+  onOpenCashier: (tab?: 'DEPOSIT' | 'WITHDRAW' | 'HISTORY') => void;
   onLogout: () => void;
   onRefresh: () => void;
 }
@@ -45,6 +46,7 @@ export const SportsbookHeader: React.FC<SportsbookHeaderProps> = ({
   cashOutCount,
   betSlipCount,
   onToggleSlip,
+  onOpenCashier,
   onLogout,
   onRefresh
 }) => {
@@ -167,21 +169,37 @@ export const SportsbookHeader: React.FC<SportsbookHeaderProps> = ({
               ))}
             </div>
 
-            {/* Wallet Widget */}
+            {/* Wallet Widget with Cashier Trigger */}
             {user && (
-              <div className="flex items-center space-x-2.5 bg-slate-950/90 px-3.5 py-2 rounded-2xl border border-slate-800 shadow-inner">
-                <div className="flex flex-col text-right">
-                  <span className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Available</span>
-                  <span className="mono-num text-xs sm:text-sm font-black text-emerald-400">
-                    ₹{user.availableCredit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </span>
-                </div>
-                <button
-                  onClick={onRefresh}
-                  title="Refresh Balance"
-                  className="p-1 text-slate-500 hover:text-blue-400 rounded-lg transition-colors"
+              <div className="flex items-center space-x-2">
+                <div
+                  onClick={() => onOpenCashier('HISTORY')}
+                  className="flex items-center space-x-2.5 bg-slate-950/90 px-3.5 py-2 rounded-2xl border border-slate-800 hover:border-emerald-500/50 shadow-inner cursor-pointer transition-all"
+                  title="Click to view full Ledger Statement"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" />
+                  <div className="flex flex-col text-right">
+                    <span className="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Available</span>
+                    <span className="mono-num text-xs sm:text-sm font-black text-emerald-400">
+                      ₹{user.availableCredit.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onRefresh(); }}
+                    title="Refresh Balance"
+                    className="p-1 text-slate-500 hover:text-blue-400 rounded-lg transition-colors"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                {/* Direct Deposit / Cashier Button */}
+                <button
+                  type="button"
+                  onClick={() => onOpenCashier('DEPOSIT')}
+                  className="px-3 sm:px-3.5 py-2 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/30 flex items-center space-x-1.5 transition-all"
+                >
+                  <Wallet className="w-3.5 h-3.5" />
+                  <span>Deposit</span>
                 </button>
               </div>
             )}

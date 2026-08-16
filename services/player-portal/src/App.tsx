@@ -7,6 +7,7 @@ import { PositionMatrix } from './components/PositionMatrix';
 import { CashOutManager } from './components/CashOutManager';
 import { EnhancedBetSlip } from './components/EnhancedBetSlip';
 import { MyBets, UserBet } from './components/MyBets';
+import { CashierModal } from './components/CashierModal';
 import { api, setAuthToken, removeAuthToken, getAuthToken } from './services/api';
 import { playerSocket } from './services/socket';
 import {
@@ -158,6 +159,10 @@ export const App: React.FC = () => {
   // Universal Bet Slip State
   const [betSlipItems, setBetSlipItems] = useState<BetSlipItem[]>([]);
   const [isSlipOpen, setIsSlipOpen] = useState<boolean>(false);
+
+  // Cashier & Banking Modal State
+  const [isCashierOpen, setIsCashierOpen] = useState<boolean>(false);
+  const [cashierTab, setCashierTab] = useState<'DEPOSIT' | 'WITHDRAW' | 'HISTORY'>('DEPOSIT');
 
   // Exchange Ladder State (for P2P mode)
   const [exchangeMarkets, setExchangeMarkets] = useState<Market[]>([]);
@@ -665,6 +670,10 @@ export const App: React.FC = () => {
         cashOutCount={cashOutBets.filter((b) => b.status === 'OPEN').length}
         betSlipCount={betSlipItems.length}
         onToggleSlip={() => setIsSlipOpen(!isSlipOpen)}
+        onOpenCashier={(tab) => {
+          setCashierTab(tab || 'DEPOSIT');
+          setIsCashierOpen(true);
+        }}
         onLogout={handleLogout}
         onRefresh={() => {
           fetchUserData();
@@ -804,6 +813,15 @@ export const App: React.FC = () => {
           onClose={() => setIsSlipOpen(false)}
         />
       )}
+
+      {/* Cashier & Banking Modal */}
+      <CashierModal
+        isOpen={isCashierOpen}
+        onClose={() => setIsCashierOpen(false)}
+        user={currentUser}
+        onBalanceUpdate={fetchUserData}
+        defaultTab={cashierTab}
+      />
     </div>
   );
 };
