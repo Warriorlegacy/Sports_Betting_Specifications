@@ -15,6 +15,8 @@ import {
 import { LiveMatch, BettingMarket, SelectionOdds, OddsFormat, SGPTicket } from '../types/sportsbook';
 import { LiveVisualizerHub } from './LiveVisualizerHub';
 import { SGPBuilder } from './SGPBuilder';
+import { CricketMatchCenter } from './CricketMatchCenter';
+import { FootballMatchCenter } from './FootballMatchCenter';
 import { formatOdds } from '../services/oddsFormatter';
 
 interface MatchDetailHubProps {
@@ -157,6 +159,10 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
           </div>
         )}
       </div>
+
+      {/* Live In-Play Match Center (Cricket Ball-by-ball / Football Possession Attack) */}
+      <CricketMatchCenter match={match} />
+      <FootballMatchCenter match={match} />
 
       {/* Main Mode Navigation Bar */}
       <div className="flex items-center justify-between border-b border-slate-800 pb-3">

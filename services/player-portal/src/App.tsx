@@ -9,6 +9,7 @@ import { EnhancedBetSlip } from './components/EnhancedBetSlip';
 import { MyBets, UserBet } from './components/MyBets';
 import { CashierModal } from './components/CashierModal';
 import { LoginModal } from './components/LoginModal';
+import { ThemeCustomizerModal } from './components/ThemeCustomizerModal';
 import { api, setAuthToken, removeAuthToken, getAuthToken } from './services/api';
 import { playerSocket } from './services/socket';
 import {
@@ -167,6 +168,9 @@ export const App: React.FC = () => {
 
   // Sign In / Auth Modal State
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
+
+  // Theme & Brand Customizer Modal State
+  const [isThemeModalOpen, setIsThemeModalOpen] = useState<boolean>(false);
 
   // Exchange Ladder State (for P2P mode)
   const [exchangeMarkets, setExchangeMarkets] = useState<Market[]>([]);
@@ -584,6 +588,7 @@ export const App: React.FC = () => {
           setIsCashierOpen(true);
         }}
         onOpenLogin={() => setIsLoginModalOpen(true)}
+        onOpenThemeCustomizer={() => setIsThemeModalOpen(true)}
         onLogout={handleLogout}
         onRefresh={() => {
           fetchUserData();
@@ -746,6 +751,12 @@ export const App: React.FC = () => {
         }}
         loading={loading}
         error={loginError}
+      />
+
+      {/* Theme & Brand Customizer Modal */}
+      <ThemeCustomizerModal
+        isOpen={isThemeModalOpen}
+        onClose={() => setIsThemeModalOpen(false)}
       />
     </div>
   );

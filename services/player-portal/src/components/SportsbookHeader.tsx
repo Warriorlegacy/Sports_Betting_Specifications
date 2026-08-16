@@ -11,9 +11,11 @@ import {
   TrendingUp,
   Sliders,
   History,
-  User
+  User,
+  Palette
 } from 'lucide-react';
 import { OddsFormat, SportCategory } from '../types/sportsbook';
+import { useTheme } from '../context/ThemeContext';
 
 interface SportsbookHeaderProps {
   user: {
@@ -21,6 +23,7 @@ interface SportsbookHeaderProps {
     username: string;
     availableCredit: number;
     exposure: number;
+    creditLimit: number;
   } | null;
   activeView: 'SPORTSBOOK' | 'EXCHANGE' | 'CASHOUT' | 'MY_BETS';
   setActiveView: (view: 'SPORTSBOOK' | 'EXCHANGE' | 'CASHOUT' | 'MY_BETS') => void;
@@ -33,6 +36,7 @@ interface SportsbookHeaderProps {
   onToggleSlip: () => void;
   onOpenCashier: (tab?: 'DEPOSIT' | 'WITHDRAW' | 'HISTORY') => void;
   onOpenLogin?: () => void;
+  onOpenThemeCustomizer?: () => void;
   onLogout: () => void;
   onRefresh: () => void;
 }
@@ -50,9 +54,12 @@ export const SportsbookHeader: React.FC<SportsbookHeaderProps> = ({
   onToggleSlip,
   onOpenCashier,
   onOpenLogin,
+  onOpenThemeCustomizer,
   onLogout,
   onRefresh
 }) => {
+  const { brand } = useTheme();
+
   const sports: { id: SportCategory; label: string }[] = [
     { id: 'All', label: '🔥 All In-Play' },
     { id: 'Football', label: '⚽ Football' },
@@ -63,7 +70,6 @@ export const SportsbookHeader: React.FC<SportsbookHeaderProps> = ({
     { id: 'American Football', label: '🏈 NFL' },
     { id: 'Esports', label: '🎮 Esports' }
   ];
-
 
   return (
     <header className="sticky top-0 z-40 w-full bg-[#060911]/95 backdrop-blur-xl border-b border-slate-800 shadow-2xl">
@@ -79,7 +85,7 @@ export const SportsbookHeader: React.FC<SportsbookHeaderProps> = ({
               <div>
                 <div className="flex items-center space-x-2">
                   <span className="font-black text-base sm:text-lg tracking-tight bg-gradient-to-r from-white via-slate-100 to-blue-200 bg-clip-text text-transparent">
-                    NEXUS SPORTSBOOK
+                    {brand.brandName}
                   </span>
                   <span className="hidden sm:flex items-center space-x-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -87,7 +93,7 @@ export const SportsbookHeader: React.FC<SportsbookHeaderProps> = ({
                   </span>
                 </div>
                 <p className="text-[10px] sm:text-[11px] text-slate-400 font-medium hidden md:block">
-                  Live In-Play Odds • Same-Game Parlays • Dynamic Cash-Out
+                  {brand.tagline}
                 </p>
               </div>
             </div>
@@ -233,6 +239,18 @@ export const SportsbookHeader: React.FC<SportsbookHeaderProps> = ({
                 </span>
               )}
             </button>
+
+            {/* Theme & Brand Palette Customizer */}
+            {onOpenThemeCustomizer && (
+              <button
+                type="button"
+                onClick={onOpenThemeCustomizer}
+                title="Switch Color Theme & Customize Branding"
+                className="p-2 text-slate-400 hover:text-purple-400 bg-slate-950/80 rounded-2xl border border-slate-800 transition-colors"
+              >
+                <Palette className="w-4 h-4" />
+              </button>
+            )}
 
             {/* Logout if Logged In */}
             {user && (

@@ -15,6 +15,7 @@ import { ledgerRouter } from './modules/ledger/ledgerRoutes';
 import { marketRouter } from './modules/markets/marketRoutes';
 import { betRouter } from './modules/bets/betRoutes';
 import { reportRouter } from './modules/reports/reportRoutes';
+import { paymentWebhookRouter } from './modules/ledger/paymentWebhookRoutes';
 
 export const app = express();
 const server = http.createServer(app);
@@ -24,6 +25,10 @@ app.use(cors({ origin: '*' }));
 app.use(express.json());
 app.use(inactivityMonitor.middleware());
 
+// Real-Time Socket Gateway
+realTimeGateway.initialize(server);
+app.set('io', realTimeGateway.getIO());
+
 // API Routes
 app.use('/api/auth', authRouter);
 app.use('/api/hierarchy', hierarchyRouter);
@@ -31,6 +36,7 @@ app.use('/api/ledger', ledgerRouter);
 app.use('/api/markets', marketRouter);
 app.use('/api/bets', betRouter);
 app.use('/api/reports', reportRouter);
+app.use('/api/webhooks/payment', paymentWebhookRouter);
 
 // Health Check
 app.get('/api/health', (_req, res) => {
@@ -57,9 +63,6 @@ app.post('/api/inactivity/sleep', async (_req, res) => {
   await inactivityMonitor.putToSleep();
   res.json({ message: 'Sleep mode initiated', status: inactivityMonitor.getStatus() });
 });
-
-// Real-Time Socket Gateway
-realTimeGateway.initialize(server);
 
 // Start server if not running in test mode
 if (process.env.NODE_ENV !== 'test') {

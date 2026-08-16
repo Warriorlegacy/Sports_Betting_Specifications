@@ -175,6 +175,10 @@ export class RealTimeGateway {
       winningSelectionId
     });
   }
+
+  public getIO(): Server | null {
+    return this.io;
+  }
 }
 
 export const realTimeGateway = new RealTimeGateway();
