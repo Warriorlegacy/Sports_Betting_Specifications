@@ -25,16 +25,17 @@ function verifyWebhookSignature(payload: any, signatureHeader?: string): boolean
 }
 
 /**
- * Helper to resolve user UUID from username, ID, or phone
+ * Helper to resolve user UUID from username or ID
  */
 async function resolveUserId(userIdentifier: string): Promise<string | null> {
   try {
     const res = await query(
-      'SELECT id FROM users WHERE id::text = $1 OR username = $1 OR phone = $1 LIMIT 1',
+      'SELECT id FROM users WHERE id::text = $1 OR username = $1 LIMIT 1',
       [userIdentifier]
     );
     return res.rows.length > 0 ? res.rows[0].id : null;
-  } catch {
+  } catch (err) {
+    console.error('[resolveUserId] Error querying user:', err);
     return null;
   }
 }
