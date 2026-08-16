@@ -24,6 +24,7 @@ import { SportmonksProvider } from './providers/SportmonksProvider';
 import { CricApiProvider } from './providers/CricApiProvider';
 import { LiveMatchTelemetry } from './types';
 import { config } from '../config';
+import { query } from '../db/pool';
 
 interface ProviderHealthRecord {
   name: string;
@@ -173,14 +174,87 @@ export class FailoverFeedOrchestrator {
       }
     }
 
-    // Update persistent cache
+    // Update persistent cache and database/engine
     for (const [id, { telemetry }] of mergeMap) {
       this.mergedCache.set(id, telemetry);
+
+      // 1. Upsert to PostgreSQL
+      query(
+        `INSERT INTO markets (id, event_name, market_type, sport, is_locked, in_play, status)
+         VALUES ($1, $2, 'MATCH_ODDS', $3, FALSE, $4, $5)
+         ON CONFLICT (id) DO UPDATE 
+         SET in_play = EXCLUDED.in_play,
+             status = CASE WHEN markets.status = 'SETTLED' THEN 'SETTLED' ELSE EXCLUDED.status END,
+             updated_at = NOW()`,
+        [telemetry.marketId, telemetry.eventName, telemetry.sport, telemetry.inPlay, telemetry.status === 'COMPLETED' ? 'SETTLED' : 'OPEN']
+      ).catch(() => {});
+
+      // 2. Upsert selections
+      query(
+        `INSERT INTO market_selections (market_id, selection_id, selection_name)
+         VALUES ($1, 1, $2), ($1, 2, $3)
+         ON CONFLICT (market_id, selection_id) DO NOTHING`,
+        [telemetry.marketId, telemetry.homeTeam, telemetry.awayTeam]
+      ).catch(() => {});
+
+      // 3. Seed matching engine with real odds if available
+      if (telemetry.realOdds?.selections) {
+        const botUserId = '00000000-0000-0000-0000-000000000000';
+        for (const runner of telemetry.realOdds.selections) {
+          import('../realtime/matchingEngineService').then(({ matchingEngineService }) => {
+            matchingEngineService.submitOrder({
+              betId: `ODDS_B_${telemetry.marketId}_${runner.selectionId}_${runner.backPrice}`,
+              userId: botUserId,
+              marketId: telemetry.marketId,
+              selectionId: runner.selectionId,
+              type: 'BACK',
+              price: runner.backPrice,
+              stake: runner.backVolume || 2500
+            }).catch(() => {});
+
+            matchingEngineService.submitOrder({
+              betId: `ODDS_L_${telemetry.marketId}_${runner.selectionId}_${runner.layPrice}`,
+              userId: botUserId,
+              marketId: telemetry.marketId,
+              selectionId: runner.selectionId,
+              type: 'LAY',
+              price: runner.layPrice,
+              stake: runner.layVolume || 2500
+            }).catch(() => {});
+          });
+        }
+      }
     }
 
     const allMatches = Array.from(this.mergedCache.values());
     console.log(`[FailoverOrchestrator] Total third-party matches cached: ${allMatches.length}`);
     return allMatches;
+  }
+
+  /**
+   * Updates an API key at runtime and resets circuit breaker
+   */
+  public updateProviderKey(providerType: 'odds' | 'sportmonks' | 'cricapi', newKey: string): boolean {
+    let target = this.providers.find(p => {
+      if (providerType === 'odds') return p.getProviderName().includes('Odds');
+      if (providerType === 'sportmonks') return p.getProviderName().includes('Sportmonks');
+      if (providerType === 'cricapi') return p.getProviderName().includes('Cric');
+      return false;
+    });
+
+    if (target && typeof (target as any).setApiKey === 'function') {
+      (target as any).setApiKey(newKey);
+      const rec = this.healthRecords.get(target.getProviderName());
+      if (rec) {
+        rec.healthy = Boolean(newKey);
+        rec.keyConfigured = Boolean(newKey);
+        rec.consecutiveFailures = 0;
+        rec.nextProbeAt = null;
+      }
+      console.log(`[FailoverOrchestrator] Updated API key for ${target.getProviderName()}`);
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -257,3 +331,4 @@ export class FailoverFeedOrchestrator {
 }
 
 export const failoverFeedOrchestrator = new FailoverFeedOrchestrator();
+

@@ -45,6 +45,12 @@ export class CricApiProvider implements IExternalProvider {
     this.apiKey = apiKey;
   }
 
+  setApiKey(newKey: string): void {
+    this.apiKey = newKey;
+    this.healthy = Boolean(newKey);
+    this.consecutiveFailures = 0;
+  }
+
   getProviderName(): string { return 'CricAPI (Tier 3)'; }
   getPriority(): number     { return 3; }
   isHealthy(): boolean      { return this.healthy && Boolean(this.apiKey); }
@@ -189,6 +195,57 @@ export class CricApiProvider implements IExternalProvider {
         lastEventDescription: summaryScore
       };
 
+      // Compute dynamic cricket odds
+      let homeMid = 1.95;
+      let awayMid = 1.95;
+
+      if (inPlay) {
+        // Dynamic in-play odds based on batting team and run rate
+        if (isHomeBatting) {
+          const projectedDiff = (crr - 7.5) * 0.1;
+          homeMid = Math.max(1.15, Math.min(6.5, parseFloat((1.90 - projectedDiff).toFixed(2))));
+          awayMid = Math.max(1.15, Math.min(6.5, parseFloat((2.00 + projectedDiff).toFixed(2))));
+        } else {
+          const projectedDiff = (crr - 7.5) * 0.1;
+          awayMid = Math.max(1.15, Math.min(6.5, parseFloat((1.90 - projectedDiff).toFixed(2))));
+          homeMid = Math.max(1.15, Math.min(6.5, parseFloat((2.00 + projectedDiff).toFixed(2))));
+        }
+      }
+
+      const bestHomeBack = Math.max(1.01, parseFloat((homeMid - 0.02).toFixed(2)));
+      const bestHomeLay = parseFloat((homeMid + 0.02).toFixed(2));
+      const bestAwayBack = Math.max(1.01, parseFloat((awayMid - 0.02).toFixed(2)));
+      const bestAwayLay = parseFloat((awayMid + 0.02).toFixed(2));
+
+      const selections = [
+        {
+          selectionId: 1,
+          name: homeTeam,
+          backPrice: bestHomeBack,
+          layPrice: bestHomeLay,
+          backVolume: 5000,
+          layVolume: 5000,
+          depth: [
+            { price: bestHomeBack, size: 5000 },
+            { price: Math.max(1.01, +(bestHomeBack - 0.02).toFixed(2)), size: 8500 },
+            { price: Math.max(1.01, +(bestHomeBack - 0.04).toFixed(2)), size: 15000 }
+          ]
+        },
+        {
+          selectionId: 2,
+          name: awayTeam,
+          backPrice: bestAwayBack,
+          layPrice: bestAwayLay,
+          backVolume: 5000,
+          layVolume: 5000,
+          depth: [
+            { price: bestAwayBack, size: 5000 },
+            { price: Math.max(1.01, +(bestAwayBack - 0.02).toFixed(2)), size: 8500 },
+            { price: Math.max(1.01, +(bestAwayBack - 0.04).toFixed(2)), size: 15000 }
+          ]
+        }
+      ];
+
       const telemetry: LiveMatchTelemetry = {
         marketId,
         eventName: m.name || `${homeTeam} vs ${awayTeam}`,
@@ -201,6 +258,10 @@ export class CricApiProvider implements IExternalProvider {
         homeTeam,
         awayTeam,
         summaryScore,
+        realOdds: {
+          marketName: 'Match Winner / Moneyline',
+          selections
+        },
         updatedAt: Date.now(),
         cricket
       };
@@ -211,3 +272,4 @@ export class CricApiProvider implements IExternalProvider {
     }
   }
 }
+

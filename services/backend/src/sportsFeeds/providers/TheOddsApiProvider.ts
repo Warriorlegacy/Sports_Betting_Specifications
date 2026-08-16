@@ -74,6 +74,12 @@ export class TheOddsApiProvider implements IExternalProvider {
     this.apiKey = apiKey;
   }
 
+  setApiKey(newKey: string): void {
+    this.apiKey = newKey;
+    this.healthy = Boolean(newKey);
+    this.consecutiveFailures = 0;
+  }
+
   getProviderName(): string { return 'The-Odds-API (Tier 1)'; }
   getPriority(): number     { return 1; }
   isHealthy(): boolean      { return this.healthy && Boolean(this.apiKey); }
@@ -96,42 +102,63 @@ export class TheOddsApiProvider implements IExternalProvider {
     try {
       const results: LiveMatchTelemetry[] = [];
 
-      // Fetch scores for each sport key group (batched to save quota)
+      // Query active sports for live scores and bookmaker odds
       for (const sportKey of SCORE_SPORT_KEYS) {
         try {
-          const url = `${this.baseUrl}/sports/${sportKey}/scores?apiKey=${this.apiKey}&daysFrom=1&dateFormat=iso`;
-          const res = await fetch(url, {
+          // 1. Fetch scores & in-play status
+          const scoreUrl = `${this.baseUrl}/sports/${sportKey}/scores?apiKey=${this.apiKey}&daysFrom=1&dateFormat=iso`;
+          const scoreRes = await fetch(scoreUrl, {
             headers: { 'User-Agent': 'NexusSportsExchange/1.0' },
             signal: AbortSignal.timeout(8000)
           });
 
           // Track quota
-          const remaining = res.headers.get('x-requests-remaining');
+          const remaining = scoreRes.headers.get('x-requests-remaining');
           if (remaining) this.requestsRemaining = parseInt(remaining, 10);
 
-          if (!res.ok) {
-            if (res.status === 422 || res.status === 401) {
-              console.warn(`[TheOddsApiProvider] API key invalid or sport unavailable: ${sportKey}`);
+          if (!scoreRes.ok) {
+            if (scoreRes.status === 422 || scoreRes.status === 401) {
               continue;
             }
-            if (res.status === 429) {
+            if (scoreRes.status === 429) {
               console.warn('[TheOddsApiProvider] Rate limit hit — quota exhausted.');
-              this.consecutiveFailures = 3; // Force circuit open
+              this.consecutiveFailures = 3;
               break;
             }
             continue;
           }
 
-          const scores: OddsApiScore[] = await res.json() as OddsApiScore[];
+          const scores: OddsApiScore[] = await scoreRes.json() as OddsApiScore[];
           const meta = ODDS_API_SPORT_MAP[sportKey];
-          if (!meta) continue;
+          if (!meta || !Array.isArray(scores)) continue;
+
+          // 2. Fetch live odds for these events (h2h / match winner)
+          let oddsMap = new Map<string, OddsApiOddsEvent>();
+          try {
+            const oddsUrl = `${this.baseUrl}/sports/${sportKey}/odds?apiKey=${this.apiKey}&regions=us,uk,eu&markets=h2h&oddsFormat=decimal`;
+            const oddsRes = await fetch(oddsUrl, {
+              headers: { 'User-Agent': 'NexusSportsExchange/1.0' },
+              signal: AbortSignal.timeout(8000)
+            });
+            if (oddsRes.ok) {
+              const oddsData: OddsApiOddsEvent[] = await oddsRes.json() as OddsApiOddsEvent[];
+              if (Array.isArray(oddsData)) {
+                for (const evOdds of oddsData) {
+                  oddsMap.set(evOdds.id, evOdds);
+                }
+              }
+            }
+          } catch {
+            // Odds fetch is non-blocking, fallback to scores
+          }
 
           for (const ev of scores) {
-            const telemetry = this.normalizeScore(ev, meta.sport, meta.league);
+            const evOdds = oddsMap.get(ev.id);
+            const telemetry = this.normalizeScoreAndOdds(ev, evOdds, meta.sport, meta.league);
             if (telemetry) results.push(telemetry);
           }
-        } catch (sportErr: any) {
-          // Individual sport failure — continue to next
+        } catch {
+          // Sport iteration error, proceed to next
         }
       }
 
@@ -140,7 +167,7 @@ export class TheOddsApiProvider implements IExternalProvider {
       this.lastFetch = Date.now();
       this.cachedMatches = results;
 
-      console.log(`[TheOddsApiProvider] ✅ Fetched ${results.length} matches. Quota remaining: ${this.requestsRemaining}`);
+      console.log(`[TheOddsApiProvider] ✅ Fetched ${results.length} matches with real odds. Quota remaining: ${this.requestsRemaining}`);
       return results;
 
     } catch (err: any) {
@@ -151,11 +178,16 @@ export class TheOddsApiProvider implements IExternalProvider {
       } else {
         console.warn(`[TheOddsApiProvider] ⚠️ Failure ${this.consecutiveFailures}/3: ${err.message}`);
       }
-      return this.cachedMatches; // Return stale cache on failure
+      return this.cachedMatches;
     }
   }
 
-  private normalizeScore(ev: OddsApiScore, sport: SportType, league: string): LiveMatchTelemetry | null {
+  private normalizeScoreAndOdds(
+    ev: OddsApiScore,
+    oddsEvent: OddsApiOddsEvent | undefined,
+    sport: SportType,
+    league: string
+  ): LiveMatchTelemetry | null {
     try {
       const homeScore = ev.scores?.find(s => s.name === ev.home_team)?.score;
       const awayScore = ev.scores?.find(s => s.name === ev.away_team)?.score;
@@ -165,7 +197,7 @@ export class TheOddsApiProvider implements IExternalProvider {
 
       const now = Date.now();
       const startMs = new Date(ev.commence_time).getTime();
-      const inPlay = !ev.completed && startMs <= now && (now - startMs) < 3 * 60 * 60 * 1000; // within 3h
+      const inPlay = !ev.completed && startMs <= now && (now - startMs) < 4 * 60 * 60 * 1000;
       const isSettled = ev.completed;
 
       const marketId = `MKT_ODDS_${sport}_${ev.id.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30)}`;
@@ -175,6 +207,79 @@ export class TheOddsApiProvider implements IExternalProvider {
         : isSettled
           ? `FT: ${ev.home_team} ${homeGoals} - ${awayGoals} ${ev.away_team}`
           : `${ev.home_team} vs ${ev.away_team} • ${new Date(ev.commence_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
+      // Derive best market odds from bookmakers if available
+      let homeOdds = 1.95;
+      let awayOdds = 1.95;
+      let drawOdds = 3.40;
+
+      if (oddsEvent?.bookmakers?.length) {
+        // Collect prices from top bookmakers (Pinnacle, DraftKings, Betfair, etc.)
+        for (const bm of oddsEvent.bookmakers) {
+          const h2h = bm.markets.find(m => m.key === 'h2h');
+          if (h2h) {
+            const hOut = h2h.outcomes.find(o => o.name === ev.home_team);
+            const aOut = h2h.outcomes.find(o => o.name === ev.away_team);
+            const dOut = h2h.outcomes.find(o => o.name.toLowerCase() === 'draw');
+            if (hOut?.price) homeOdds = Math.round(hOut.price * 100) / 100;
+            if (aOut?.price) awayOdds = Math.round(aOut.price * 100) / 100;
+            if (dOut?.price) drawOdds = Math.round(dOut.price * 100) / 100;
+            break; // Use best primary bookmaker
+          }
+        }
+      }
+
+      const bestHomeBack = Math.max(1.01, Math.round((homeOdds - 0.02) * 100) / 100);
+      const bestHomeLay = Math.round((homeOdds + 0.02) * 100) / 100;
+      const bestAwayBack = Math.max(1.01, Math.round((awayOdds - 0.02) * 100) / 100);
+      const bestAwayLay = Math.round((awayOdds + 0.02) * 100) / 100;
+
+      const selections = [
+        {
+          selectionId: 1,
+          name: ev.home_team,
+          backPrice: bestHomeBack,
+          layPrice: bestHomeLay,
+          backVolume: 2500,
+          layVolume: 2500,
+          depth: [
+            { price: bestHomeBack, size: 2500 },
+            { price: Math.max(1.01, +(bestHomeBack - 0.02).toFixed(2)), size: 4000 },
+            { price: Math.max(1.01, +(bestHomeBack - 0.04).toFixed(2)), size: 7500 }
+          ]
+        },
+        {
+          selectionId: 2,
+          name: ev.away_team,
+          backPrice: bestAwayBack,
+          layPrice: bestAwayLay,
+          backVolume: 2500,
+          layVolume: 2500,
+          depth: [
+            { price: bestAwayBack, size: 2500 },
+            { price: Math.max(1.01, +(bestAwayBack - 0.02).toFixed(2)), size: 4000 },
+            { price: Math.max(1.01, +(bestAwayBack - 0.04).toFixed(2)), size: 7500 }
+          ]
+        }
+      ];
+
+      if (sport === 'FOOTBALL') {
+        const bestDrawBack = Math.max(1.01, Math.round((drawOdds - 0.03) * 100) / 100);
+        const bestDrawLay = Math.round((drawOdds + 0.03) * 100) / 100;
+        selections.push({
+          selectionId: 3,
+          name: 'Draw',
+          backPrice: bestDrawBack,
+          layPrice: bestDrawLay,
+          backVolume: 1800,
+          layVolume: 1800,
+          depth: [
+            { price: bestDrawBack, size: 1800 },
+            { price: Math.max(1.01, +(bestDrawBack - 0.03).toFixed(2)), size: 3000 },
+            { price: Math.max(1.01, +(bestDrawBack - 0.06).toFixed(2)), size: 5000 }
+          ]
+        });
+      }
 
       const telemetry: LiveMatchTelemetry = {
         marketId,
@@ -188,6 +293,10 @@ export class TheOddsApiProvider implements IExternalProvider {
         homeTeam: ev.home_team,
         awayTeam: ev.away_team,
         summaryScore,
+        realOdds: {
+          marketName: 'Match Winner / Moneyline',
+          selections
+        },
         updatedAt: now
       };
 
@@ -226,3 +335,4 @@ export class TheOddsApiProvider implements IExternalProvider {
     }
   }
 }
+

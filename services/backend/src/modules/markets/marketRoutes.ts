@@ -150,6 +150,53 @@ marketRouter.post('/providers/test', async (req, res: Response) => {
 });
 
 /**
+ * GET /api/markets/providers/keys
+ * Returns status of configured provider API keys (masked).
+ */
+marketRouter.get('/providers/keys', (_req, res: Response) => {
+  const { config } = require('../../config');
+  const mask = (k: string) => k ? `${k.substring(0, 3)}••••${k.slice(-3)}` : null;
+
+  res.json({
+    keys: {
+      theOddsApi: { configured: Boolean(config.theOddsApiKey), preview: mask(config.theOddsApiKey) },
+      sportmonks: { configured: Boolean(config.sportmonksApiKey), preview: mask(config.sportmonksApiKey) },
+      cricApi: { configured: Boolean(config.cricApiKey), preview: mask(config.cricApiKey) },
+      espnFree: { configured: true, preview: 'Free (No Key Needed)' }
+    }
+  });
+});
+
+/**
+ * POST /api/markets/providers/keys
+ * Dynamically updates an API key at runtime and resets the circuit breaker.
+ * Body: { "provider": "odds" | "sportmonks" | "cricapi", "apiKey": "..." }
+ */
+marketRouter.post('/providers/keys', async (req, res: Response) => {
+  const { provider, apiKey } = req.body;
+
+  if (!provider || typeof provider !== 'string') {
+    return res.status(400).json({ error: 'provider (odds|sportmonks|cricapi) and apiKey required' });
+  }
+
+  try {
+    const updated = failoverFeedOrchestrator.updateProviderKey(provider as any, apiKey || '');
+    if (updated) {
+      // Trigger an immediate sync with the new key
+      const matches = await failoverFeedOrchestrator.fetchAll();
+      return res.json({
+        success: true,
+        message: `API key updated and provider synced successfully.`,
+        cachedMatches: matches.length
+      });
+    }
+    res.status(400).json({ error: `Could not update key for provider: ${provider}` });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/**
  * POST /api/markets/telemetry/ingest
  * Webhook endpoint for third-party push providers.
  * Accepts a normalized LiveMatchTelemetry payload.
@@ -158,6 +205,7 @@ marketRouter.post('/providers/test', async (req, res: Response) => {
  * Auth: X-Webhook-Secret header must match WEBHOOK_SECRET env var (if configured)
  */
 marketRouter.post('/telemetry/ingest', async (req, res: Response) => {
+
   try {
     const webhookSecret = process.env.WEBHOOK_SECRET;
     if (webhookSecret) {

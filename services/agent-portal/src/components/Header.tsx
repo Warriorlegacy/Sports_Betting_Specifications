@@ -83,6 +83,16 @@ export const Header: React.FC<HeaderProps> = ({
               Market Kill-Switch
             </button>
             <button
+              onClick={() => setActiveTab('providers')}
+              className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
+                activeTab === 'providers'
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+              }`}
+            >
+              Data Feeds & APIs
+            </button>
+            <button
               onClick={() => setActiveTab('ledger')}
               className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${
                 activeTab === 'ledger'

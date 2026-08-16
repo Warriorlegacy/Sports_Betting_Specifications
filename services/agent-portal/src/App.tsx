@@ -5,6 +5,7 @@ import { CreditModal } from './components/CreditModal';
 import { CreateUserModal } from './components/CreateUserModal';
 import { MarketControls } from './components/MarketControls';
 import { LedgerTable, LedgerEntry } from './components/LedgerTable';
+import { ProvidersHub } from './components/ProvidersHub';
 import { api, setAuthToken, removeAuthToken, getAuthToken } from './services/api';
 import { socketService } from './services/socket';
 import { Shield, Zap, Lock, User, RefreshCw, KeyRound, ChevronRight } from 'lucide-react';
@@ -324,6 +325,10 @@ export const App: React.FC = () => {
             onSettleMarket={handleSettleMarket}
             onCreateMarket={handleCreateMarket}
           />
+        )}
+
+        {activeTab === 'providers' && (
+          <ProvidersHub />
         )}
 
         {activeTab === 'ledger' && (

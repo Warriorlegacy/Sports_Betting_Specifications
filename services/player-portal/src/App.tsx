@@ -17,7 +17,6 @@ import {
   SGPTicket,
   CashOutBet
 } from './types/sportsbook';
-import { INITIAL_CASHOUT_BETS } from './services/mockSportsbookData';
 import { Zap, User, Lock, ArrowRight, Shield } from 'lucide-react';
 
 function convertTelemetryToMatch(t: any): LiveMatch {
@@ -116,12 +115,23 @@ function convertTelemetryToMatch(t: any): LiveMatch {
     markets: [
       {
         id: `MKT_MAIN_${t.marketId}`,
-        name: 'Match Winner / Moneyline',
+        name: t.realOdds?.marketName || 'Match Winner / Moneyline',
         category: 'MAIN',
-        selections: [
-          { id: '1', name: t.homeTeam || 'Home', price: 1.95 },
-          { id: '2', name: t.awayTeam || 'Away', price: 1.95 }
-        ]
+        selections: t.realOdds?.selections?.length
+          ? t.realOdds.selections.map((s: any) => ({
+              id: String(s.selectionId),
+              name: s.name,
+              price: s.backPrice || 1.95,
+              backPrice: s.backPrice,
+              layPrice: s.layPrice,
+              backVolume: s.backVolume,
+              layVolume: s.layVolume,
+              depth: s.depth
+            }))
+          : [
+              { id: '1', name: t.homeTeam || 'Home', price: 1.95 },
+              { id: '2', name: t.awayTeam || 'Away', price: 1.95 }
+            ]
       }
     ]
   };
@@ -139,11 +149,11 @@ export const App: React.FC = () => {
   const [selectedSport, setSelectedSport] = useState<SportCategory>('All');
   const [oddsFormat, setOddsFormat] = useState<OddsFormat>('DECIMAL');
 
-  // Sportsbook & Live Match State — starts EMPTY, filled by real ESPN data
+  // Sportsbook & Live Match State — starts EMPTY, filled by real live match data
   const [liveMatches, setLiveMatches] = useState<LiveMatch[]>([]);
   const [matchesLoading, setMatchesLoading] = useState<boolean>(true);
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
-  const [cashOutBets, setCashOutBets] = useState<CashOutBet[]>(INITIAL_CASHOUT_BETS);
+  const [cashOutBets, setCashOutBets] = useState<CashOutBet[]>([]);
 
   // Universal Bet Slip State
   const [betSlipItems, setBetSlipItems] = useState<BetSlipItem[]>([]);
@@ -304,6 +314,26 @@ export const App: React.FC = () => {
               updated.homeTeam = { ...m.homeTeam, score: t.football.homeGoals };
               updated.awayTeam = { ...m.awayTeam, score: t.football.awayGoals };
               updated.clock = `${t.football.minute}'`;
+            }
+
+            if (t.realOdds?.selections?.length) {
+              updated.markets = [
+                {
+                  id: `MKT_MAIN_${t.marketId}`,
+                  name: t.realOdds.marketName || 'Match Winner / Moneyline',
+                  category: 'MAIN',
+                  selections: t.realOdds.selections.map((s: any) => ({
+                    id: String(s.selectionId),
+                    name: s.name,
+                    price: s.backPrice || 1.95,
+                    backPrice: s.backPrice,
+                    layPrice: s.layPrice,
+                    backVolume: s.backVolume,
+                    layVolume: s.layVolume,
+                    depth: s.depth
+                  }))
+                }
+              ];
             }
             return updated;
           }

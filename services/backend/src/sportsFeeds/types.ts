@@ -58,6 +58,21 @@ export interface FootballScoreDetails {
   lastEventDescription: string;
 }
 
+export interface RealRunnerOdds {
+  selectionId: number;
+  name: string;
+  backPrice: number;
+  layPrice: number;
+  backVolume: number;
+  layVolume: number;
+  depth?: Array<{ price: number; size: number }>;
+}
+
+export interface RealMarketOdds {
+  marketName: string;
+  selections: RealRunnerOdds[];
+}
+
 export interface LiveMatchTelemetry {
   marketId: string;
   eventName: string;
@@ -74,5 +89,7 @@ export interface LiveMatchTelemetry {
   basketball?: BasketballScoreDetails;
   football?: FootballScoreDetails;
   summaryScore: string; // Short display text, e.g. "148/3 (16.2 ov)" or "6-4, 4-3 (30-40)"
+  realOdds?: RealMarketOdds;
   updatedAt: number;
 }
+
