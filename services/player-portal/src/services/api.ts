@@ -1,6 +1,18 @@
 const DEFAULT_BACKEND_URL = 'https://sports-exchange-backend-j1aj.onrender.com';
-const API_BASE = ((import.meta.env.VITE_API_URL || (typeof window !== 'undefined' && window.location.hostname.includes('vercel.app') ? DEFAULT_BACKEND_URL : DEFAULT_BACKEND_URL))).replace(/\/$/, '') + '/api';
 
+const getApiBase = (): string => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL.replace(/\/$/, '') + '/api';
+  }
+  if (typeof window !== 'undefined') {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+      return 'http://localhost:5000/api';
+    }
+  }
+  return `${DEFAULT_BACKEND_URL}/api`;
+};
+
+const API_BASE = getApiBase();
 
 export function getAuthToken(): string | null {
   return localStorage.getItem('exchange_player_token');
@@ -25,18 +37,28 @@ async function request(endpoint: string, options: RequestInit = {}) {
     headers['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(`${API_BASE}${endpoint}`, {
-    ...options,
-    headers
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
 
-  const data = await response.json().catch(() => ({}));
+  try {
+    const response = await fetch(`${API_BASE}${endpoint}`, {
+      ...options,
+      signal: options.signal || controller.signal,
+      headers
+    });
 
-  if (!response.ok) {
-    throw new Error(data.error || `HTTP error ${response.status}`);
+    clearTimeout(timeoutId);
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(data.error || `HTTP error ${response.status}`);
+    }
+
+    return data;
+  } catch (err: any) {
+    clearTimeout(timeoutId);
+    throw err;
   }
-
-  return data;
 }
 
 export const api = {

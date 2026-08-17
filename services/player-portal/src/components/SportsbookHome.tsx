@@ -38,8 +38,8 @@ export const SportsbookHome: React.FC<SportsbookHomeProps> = ({
   onSelectOdds,
   onOpenSGP
 }) => {
-  const todayStr = new Date().toISOString().split('T')[0]; // '2026-08-14'
-  const [selectedDate, setSelectedDate] = useState<string>(todayStr); // Defaults to 'Today'
+  const todayStr = new Date().toISOString().split('T')[0];
+  const [selectedDate, setSelectedDate] = useState<string>('ALL'); // Defaults to 'ALL' so all real sports are shown
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'LIVE' | 'UPCOMING' | 'SETTLED'>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
