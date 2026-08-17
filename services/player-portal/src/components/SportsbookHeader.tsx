@@ -25,8 +25,8 @@ interface SportsbookHeaderProps {
     exposure: number;
     creditLimit: number;
   } | null;
-  activeView: 'SPORTSBOOK' | 'EXCHANGE' | 'CASHOUT' | 'MY_BETS';
-  setActiveView: (view: 'SPORTSBOOK' | 'EXCHANGE' | 'CASHOUT' | 'MY_BETS') => void;
+  activeView: 'SPORTSBOOK' | 'EXCHANGE' | 'MATKA' | 'CASHOUT' | 'MY_BETS';
+  setActiveView: (view: 'SPORTSBOOK' | 'EXCHANGE' | 'MATKA' | 'CASHOUT' | 'MY_BETS') => void;
   selectedSport: SportCategory;
   setSelectedSport: (sport: SportCategory) => void;
   oddsFormat: OddsFormat;
@@ -62,11 +62,12 @@ export const SportsbookHeader: React.FC<SportsbookHeaderProps> = ({
 
   const sports: { id: SportCategory; label: string }[] = [
     { id: 'All', label: '🔥 All In-Play' },
-    { id: 'Football', label: '⚽ Football' },
     { id: 'Cricket', label: '🏏 Cricket' },
-    { id: 'Basketball', label: '🏀 Basketball' },
+    { id: 'Football', label: '⚽ Football' },
     { id: 'Tennis', label: '🎾 Tennis' },
+    { id: 'Basketball', label: '🏀 Basketball' },
     { id: 'Baseball', label: '⚾ Baseball' },
+    { id: 'Table Tennis', label: '🏓 Table Tennis' },
     { id: 'American Football', label: '🏈 NFL' },
     { id: 'Esports', label: '🎮 Esports' }
   ];
@@ -123,7 +124,19 @@ export const SportsbookHeader: React.FC<SportsbookHeaderProps> = ({
                 }`}
               >
                 <Layers className="w-3.5 h-3.5" />
-                <span>P2P Ladder</span>
+                <span>P2P Exchange</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveView('MATKA')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all flex items-center space-x-1.5 ${
+                  activeView === 'MATKA'
+                    ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-black shadow-md font-black'
+                    : 'text-amber-400/90 hover:text-amber-300'
+                }`}
+              >
+                <span>🎰 Matka Bazar</span>
               </button>
 
               <button

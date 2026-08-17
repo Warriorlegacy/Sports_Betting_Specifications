@@ -15,6 +15,8 @@ import { playerSocket } from './services/socket';
 import { SportsbookEngine } from './services/sportsbookEngine';
 import { INITIAL_LIVE_MATCHES, INITIAL_CASHOUT_BETS } from './services/mockSportsbookData';
 import { fetchRealWorldSports } from './services/realSportsClient';
+import { fetchFairplayExchangeMatches } from './services/fairplayFeedClient';
+import { MatkaHub } from './components/MatkaHub';
 import {
   LiveMatch,
   SportCategory,
@@ -218,7 +220,7 @@ export const App: React.FC = () => {
   // Navigation & User State
   const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [activeView, setActiveView] = useState<'SPORTSBOOK' | 'EXCHANGE' | 'CASHOUT' | 'MY_BETS'>(
+  const [activeView, setActiveView] = useState<'SPORTSBOOK' | 'EXCHANGE' | 'MATKA' | 'CASHOUT' | 'MY_BETS'>(
     'SPORTSBOOK'
   );
   const [selectedSport, setSelectedSport] = useState<SportCategory>('All');
@@ -301,10 +303,27 @@ export const App: React.FC = () => {
     }
   }, [selectedExchangeMarketId, currentUser]);
 
-  // Fetch 100% Real World Live Matches and Odds (Zero Mock Data)
+  // Fetch 100% Real World Live Matches and Odds (348+ Fairplay/ZPlay & Global Feeds)
   const fetchLiveTelemetry = useCallback(async () => {
     try {
-      // 1. Try real backend telemetry first
+      // 1. Fetch live matches from Fairplay / ZPlay Exchange (348+ matches with Betfair odds)
+      const fpMatches = await fetchFairplayExchangeMatches().catch(() => []);
+      const espnMatches = await fetchRealWorldSports().catch(() => []);
+
+      const combined = [...fpMatches];
+      for (const em of espnMatches) {
+        if (!combined.some(c => c.sport === em.sport && c.homeTeam.name === em.homeTeam.name)) {
+          combined.push(em);
+        }
+      }
+
+      if (combined.length > 0) {
+        setLiveMatches(combined);
+        setMatchesLoading(false);
+        return;
+      }
+
+      // 2. Fallback to backend telemetry
       const res = await api.markets.getLiveTelemetry().catch(() => null);
       const tels: any[] = (res && (res.telemetry || res.liveMatches)) || [];
       if (tels.length > 0) {
@@ -313,24 +332,10 @@ export const App: React.FC = () => {
           .filter((m: LiveMatch) => Boolean(m.homeTeam?.name && m.awayTeam?.name));
         if (realMatches.length > 0) {
           setLiveMatches(realMatches);
-          setMatchesLoading(false);
-          return;
         }
-      }
-
-      // 2. Fetch directly from verified global sports live scoreboards
-      const directRealMatches = await fetchRealWorldSports();
-      if (directRealMatches.length > 0) {
-        setLiveMatches(directRealMatches);
       }
     } catch (e) {
       console.warn('[LiveTelemetry] Querying global live sports feeds...');
-      try {
-        const directRealMatches = await fetchRealWorldSports();
-        if (directRealMatches.length > 0) {
-          setLiveMatches(directRealMatches);
-        }
-      } catch {}
     } finally {
       setMatchesLoading(false);
     }
@@ -783,6 +788,30 @@ export const App: React.FC = () => {
               />
             )}
           </div>
+        )}
+
+        {/* VIEW 2.5: LIVE WORLI MATKA BAZAR */}
+        {activeView === 'MATKA' && (
+          <MatkaHub
+            user={currentUser}
+            onOpenLogin={() => setIsLoginModalOpen(true)}
+            onBetPlaced={(bet) => {
+              const newItem: BetSlipItem = {
+                id: `${bet.marketId}_${Date.now()}`,
+                matchId: bet.marketId,
+                eventName: bet.eventName,
+                marketId: bet.marketId,
+                marketName: 'Matka Bazar',
+                selectionId: bet.selectionName,
+                selectionName: bet.selectionName,
+                type: 'BACK',
+                price: bet.odds,
+                stake: bet.stake
+              };
+              setBetSlipItems((prev) => [...prev, newItem]);
+              setIsSlipOpen(true);
+            }}
+          />
         )}
 
         {/* VIEW 3: EARLY CASH-OUT TERMINAL */}

@@ -19,6 +19,7 @@
  */
 
 import { IExternalProvider } from './providers/IExternalProvider';
+import { FairplayProvider } from './providers/FairplayProvider';
 import { TheOddsApiProvider } from './providers/TheOddsApiProvider';
 import { SportmonksProvider } from './providers/SportmonksProvider';
 import { CricApiProvider } from './providers/CricApiProvider';
@@ -57,11 +58,10 @@ export class FailoverFeedOrchestrator {
     const cricApiKey   = config.cricApiKey;
 
     const providerList: IExternalProvider[] = [
+      new FairplayProvider(), // Tier 0: 348 live betting exchange matches (unlimited, free)
       new TheOddsApiProvider(oddsApiKey),
       new SportmonksProvider(sportmonksKey),
       new CricApiProvider(cricApiKey)
-      // ESPN is handled by RealSportsFeedService (Tier 4)
-      // Simulator adapters are handled by LiveFeedManager (Tier 5)
     ];
 
     this.providers = providerList;
