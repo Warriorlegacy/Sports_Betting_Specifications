@@ -95,39 +95,17 @@ export class InactivityMonitor {
   }
 
   /**
-   * Puts the server into sleep / suspended state after 1 minute of inactivity.
+   * Puts background intensive workers to sleep during idle periods to preserve CPU,
+   * while keeping the HTTP/WebSocket API server responsive 24/7.
    */
   public async putToSleep(): Promise<void> {
     if (this.isSleeping) return;
     this.isSleeping = true;
 
-    console.log(`[InactivityMonitor] 🌙 1 minute of zero activity detected! Transitioning server to SLEEP mode.`);
+    console.log(`[InactivityMonitor] Idle period detected. Pausing background CPU simulator workers while keeping API online.`);
 
-    // 1. Pause background odds ticker / CPU simulator
+    // Pause background odds ticker / CPU simulator to save compute
     oddsFeedSimulator.stop();
-
-    // 2. If Render API credentials are provided, call Render's suspend endpoint
-    if (config.renderApiKey && config.renderServiceId) {
-      try {
-        console.log(`[InactivityMonitor] Calling Render API to suspend service ${config.renderServiceId}...`);
-        const response = await fetch(`https://api.render.com/v1/services/${config.renderServiceId}/suspend`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${config.renderApiKey}`,
-            'Accept': 'application/json'
-          }
-        });
-
-        if (response.ok) {
-          console.log(`[InactivityMonitor] Successfully requested Render suspension.`);
-        } else {
-          const errText = await response.text();
-          console.warn(`[InactivityMonitor] Render suspend API responded with status ${response.status}: ${errText}`);
-        }
-      } catch (err: any) {
-        console.error(`[InactivityMonitor] Failed to trigger Render API suspend:`, err.message);
-      }
-    }
   }
 
   /**
