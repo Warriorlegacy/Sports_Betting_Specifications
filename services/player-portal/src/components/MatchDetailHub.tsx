@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Activity,
   Sparkles,
@@ -10,13 +10,18 @@ import {
   Flame,
   Zap,
   Lock,
-  ArrowRight
+  ArrowRight,
+  Tv,
+  Radio
 } from 'lucide-react';
 import { LiveMatch, BettingMarket, SelectionOdds, OddsFormat, SGPTicket } from '../types/sportsbook';
 import { LiveVisualizerHub } from './LiveVisualizerHub';
 import { SGPBuilder } from './SGPBuilder';
 import { CricketMatchCenter } from './CricketMatchCenter';
 import { FootballMatchCenter } from './FootballMatchCenter';
+import { CricketFancyHub } from './CricketFancyHub';
+import { LiveMatchStreamPlayer } from './LiveMatchStreamPlayer';
+import { fairplaySocket } from '../services/fairplaySocket';
 import { formatOdds } from '../services/oddsFormatter';
 
 interface MatchDetailHubProps {
@@ -40,8 +45,19 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
   onSelectOdds,
   onAddSGPToSlip
 }) => {
-  const [activeTab, setActiveTab] = useState<'MARKETS' | 'SGP' | 'VISUALIZER'>('MARKETS');
+  const [activeTab, setActiveTab] = useState<'MARKETS' | 'FANCY' | 'STREAM' | 'SGP' | 'VISUALIZER'>('MARKETS');
   const [selectedMarketCategory, setSelectedMarketCategory] = useState<string>('ALL');
+
+  // Real-time WebSocket connection to Fairplay / ZPlay broadcast
+  useEffect(() => {
+    const rawId = match.id.replace(/^FP_|^ZPLAY_|^MKT_/, '');
+    fairplaySocket.connect();
+    fairplaySocket.subscribe(rawId);
+
+    return () => {
+      fairplaySocket.unsubscribe(rawId);
+    };
+  }, [match.id]);
 
   const categories = [
     { id: 'ALL', label: 'All Markets' },
@@ -165,25 +181,53 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
       <FootballMatchCenter match={match} />
 
       {/* Main Mode Navigation Bar */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+      <div className="flex items-center justify-between border-b border-slate-800 pb-3 overflow-x-auto no-scrollbar">
         <div className="flex items-center space-x-2">
           <button
             type="button"
             onClick={() => setActiveTab('MARKETS')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center space-x-2 ${
+            className={`px-4 py-2.5 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center space-x-2 ${
               activeTab === 'MARKETS'
                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
                 : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
             }`}
           >
             <Layers className="w-4 h-4" />
-            <span>Live Betting Markets ({match.markets.length})</span>
+            <span>Live Markets ({match.markets.length})</span>
+          </button>
+
+          {match.sport === 'Cricket' && (
+            <button
+              type="button"
+              onClick={() => setActiveTab('FANCY')}
+              className={`px-4 py-2.5 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center space-x-2 ${
+                activeTab === 'FANCY'
+                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-black shadow-lg shadow-amber-500/30 font-black'
+                  : 'bg-slate-900 text-amber-400/90 hover:text-amber-300 border border-slate-800'
+              }`}
+            >
+              <Zap className="w-4 h-4" />
+              <span>⚡ Cricket Fancy & Sessions</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('STREAM')}
+            className={`px-4 py-2.5 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center space-x-2 ${
+              activeTab === 'STREAM'
+                ? 'bg-red-600 text-white shadow-lg shadow-red-600/30'
+                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
+            }`}
+          >
+            <Tv className="w-4 h-4" />
+            <span>📺 Live TV & Radar</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveTab('SGP')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center space-x-2 ${
+            className={`px-4 py-2.5 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center space-x-2 ${
               activeTab === 'SGP'
                 ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
                 : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
@@ -196,14 +240,14 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
           <button
             type="button"
             onClick={() => setActiveTab('VISUALIZER')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center space-x-2 ${
+            className={`px-4 py-2.5 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center space-x-2 ${
               activeTab === 'VISUALIZER'
                 ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
                 : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
             }`}
           >
             <Activity className="w-4 h-4 text-emerald-400" />
-            <span>Live Visualizer & Stats Hub</span>
+            <span>Visualizer & Stats Hub</span>
           </button>
         </div>
       </div>
@@ -297,12 +341,31 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
         </div>
       )}
 
-      {/* Mode 2: Same-Game Parlay (SGP) Builder */}
+      {/* Mode 2: Cricket Fancy & Session Markets */}
+      {activeTab === 'FANCY' && (
+        <CricketFancyHub
+          match={match}
+          onSelectFancy={(fancyName, type, runs, rate) => {
+            onSelectOdds(
+              `FANCY_${match.id}_${fancyName}`,
+              fancyName,
+              type,
+              `${fancyName} (${type} ${runs} Runs)`,
+              rate > 10 ? +(rate / 100).toFixed(2) + 1 : 1.95
+            );
+          }}
+        />
+      )}
+
+      {/* Mode 3: Live TV Video Stream & Radar Scorecard */}
+      {activeTab === 'STREAM' && <LiveMatchStreamPlayer match={match} />}
+
+      {/* Mode 4: Same-Game Parlay (SGP) Builder */}
       {activeTab === 'SGP' && (
         <SGPBuilder match={match} oddsFormat={oddsFormat} onAddSGPToSlip={onAddSGPToSlip} />
       )}
 
-      {/* Mode 3: Live Visualizer & Stats Hub */}
+      {/* Mode 5: Live Visualizer & Stats Hub */}
       {activeTab === 'VISUALIZER' && <LiveVisualizerHub match={match} />}
     </div>
   );
