@@ -25,8 +25,8 @@ interface SportsbookHeaderProps {
     exposure: number;
     creditLimit: number;
   } | null;
-  activeView: 'SPORTSBOOK' | 'EXCHANGE' | 'MATKA' | 'CASHOUT' | 'MY_BETS';
-  setActiveView: (view: 'SPORTSBOOK' | 'EXCHANGE' | 'MATKA' | 'CASHOUT' | 'MY_BETS') => void;
+  activeView: 'SPORTSBOOK' | 'EXCHANGE' | 'MATKA' | 'CASINO' | 'CASHOUT' | 'MY_BETS';
+  setActiveView: (view: 'SPORTSBOOK' | 'EXCHANGE' | 'MATKA' | 'CASINO' | 'CASHOUT' | 'MY_BETS') => void;
   selectedSport: SportCategory;
   setSelectedSport: (sport: SportCategory) => void;
   oddsFormat: OddsFormat;
@@ -136,7 +136,19 @@ export const SportsbookHeader: React.FC<SportsbookHeaderProps> = ({
                     : 'text-amber-400/90 hover:text-amber-300'
                 }`}
               >
-                <span>🎰 Matka Bazar</span>
+                <span>🎰 Matka</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveView('CASINO')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all flex items-center space-x-1.5 ${
+                  activeView === 'CASINO'
+                    ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md font-black'
+                    : 'text-purple-400/90 hover:text-purple-300'
+                }`}
+              >
+                <span>🎲 Live Casino</span>
               </button>
 
               <button

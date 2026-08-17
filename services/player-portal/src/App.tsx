@@ -17,6 +17,7 @@ import { INITIAL_LIVE_MATCHES, INITIAL_CASHOUT_BETS } from './services/mockSport
 import { fetchRealWorldSports } from './services/realSportsClient';
 import { fetchFairplayExchangeMatches } from './services/fairplayFeedClient';
 import { MatkaHub } from './components/MatkaHub';
+import { LiveCasinoHub } from './components/LiveCasinoHub';
 import {
   LiveMatch,
   SportCategory,
@@ -220,7 +221,7 @@ export const App: React.FC = () => {
   // Navigation & User State
   const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [activeView, setActiveView] = useState<'SPORTSBOOK' | 'EXCHANGE' | 'MATKA' | 'CASHOUT' | 'MY_BETS'>(
+  const [activeView, setActiveView] = useState<'SPORTSBOOK' | 'EXCHANGE' | 'MATKA' | 'CASINO' | 'CASHOUT' | 'MY_BETS'>(
     'SPORTSBOOK'
   );
   const [selectedSport, setSelectedSport] = useState<SportCategory>('All');
@@ -810,6 +811,18 @@ export const App: React.FC = () => {
               };
               setBetSlipItems((prev) => [...prev, newItem]);
               setIsSlipOpen(true);
+            }}
+          />
+        )}
+
+        {/* VIEW 2.8: LIVE CASINO & DESI GAMES HUB */}
+        {activeView === 'CASINO' && (
+          <LiveCasinoHub
+            user={currentUser}
+            onOpenLogin={() => setIsLoginModalOpen(true)}
+            onOpenCashier={() => {
+              setCashierTab('DEPOSIT');
+              setIsCashierOpen(true);
             }}
           />
         )}
