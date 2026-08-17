@@ -43,28 +43,28 @@ export const SportsbookHome: React.FC<SportsbookHomeProps> = ({
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'LIVE' | 'UPCOMING' | 'SETTLED'>('ALL');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  // 1. Calculate match counts by date for the calendar strip
+  const relevantMatches = useMemo(() => {
+    if (selectedSport === 'All') return matches;
+    return matches.filter((m) => m.sport.toLowerCase() === selectedSport.toLowerCase());
+  }, [matches, selectedSport]);
+
+  // 1. Calculate match counts by date for the calendar strip (filtered for currently selected sport)
   const matchCountsByDate = useMemo(() => {
     const counts: Record<string, number> = {};
-    matches.forEach((m) => {
+    relevantMatches.forEach((m) => {
       const d = m.matchDate || todayStr;
       counts[d] = (counts[d] || 0) + 1;
     });
     return counts;
-  }, [matches, todayStr]);
+  }, [relevantMatches, todayStr]);
 
   const liveMatchCount = useMemo(() => {
-    return matches.filter((m) => m.inPlay).length;
-  }, [matches]);
+    return relevantMatches.filter((m) => m.inPlay).length;
+  }, [relevantMatches]);
 
   // 2. Multi-Tier Filtering (Sport, Date, Status, Search)
   const filteredMatches = useMemo(() => {
-    return matches.filter((m) => {
-      // Sport filter
-      if (selectedSport !== 'All' && m.sport.toLowerCase() !== selectedSport.toLowerCase()) {
-        return false;
-      }
-
+    const result = relevantMatches.filter((m) => {
       // Date filter
       if (selectedDate === 'LIVE') {
         if (!m.inPlay) return false;
@@ -91,7 +91,14 @@ export const SportsbookHome: React.FC<SportsbookHomeProps> = ({
 
       return true;
     });
-  }, [matches, selectedSport, selectedDate, statusFilter, searchQuery, todayStr]);
+
+    // If date filter yielded 0 matches for this sport, but sport has matches on other dates, show all matches for this sport
+    if (result.length === 0 && relevantMatches.length > 0 && selectedDate !== 'ALL' && selectedDate !== 'LIVE' && !searchQuery) {
+      return relevantMatches;
+    }
+
+    return result;
+  }, [relevantMatches, selectedDate, statusFilter, searchQuery, todayStr]);
 
   // 3. Group filtered matches by League
   const groupedByLeague = useMemo(() => {

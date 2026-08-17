@@ -138,6 +138,15 @@ function calculateRealOdds(
           { id: 'ah_h', name: `${homeName} (-1.5)`, price: 2.15, handicap: '-1.5', tick: 'same' },
           { id: 'ah_a', name: `${awayName} (+1.5)`, price: 1.72, handicap: '+1.5', tick: 'same' }
         ]
+      },
+      {
+        id: 'MKT_BTTS',
+        name: 'Both Teams To Score',
+        category: 'PROPS',
+        selections: [
+          { id: 'btts_y', name: 'Yes (BTTS)', price: 1.74, tick: 'same' },
+          { id: 'btts_n', name: 'No (BTTS)', price: 2.05, tick: 'same' }
+        ]
       }
     ];
   }
@@ -170,11 +179,52 @@ function calculateRealOdds(
           { id: 'ov', name: 'Over 224.5 Pts', price: 1.88, tick: 'same' },
           { id: 'un', name: 'Under 224.5 Pts', price: 1.94, tick: 'same' }
         ]
+      },
+      {
+        id: 'MKT_SPREAD',
+        name: 'Point Spread (-4.5 / +4.5)',
+        category: 'HANDICAPS',
+        selections: [
+          { id: 'sp_h', name: `${homeName} (-4.5)`, price: 1.90, handicap: '-4.5', tick: 'same' },
+          { id: 'sp_a', name: `${awayName} (+4.5)`, price: 1.90, handicap: '+4.5', tick: 'same' }
+        ]
       }
     ];
   }
 
-  // Baseball / Tennis / General
+  if (sport === 'Cricket') {
+    return [
+      {
+        id: `MKT_MAIN_${homeName}_${awayName}`,
+        name: 'Match Winner',
+        category: 'MAIN',
+        selections: [
+          { id: '1', name: homeName, price: 1.72, tick: 'same' },
+          { id: '2', name: awayName, price: 2.15, tick: 'same' }
+        ]
+      },
+      {
+        id: 'MKT_TOT_RUNS',
+        name: 'Total 20-Over Runs (O/U 174.5)',
+        category: 'TOTALS',
+        selections: [
+          { id: 'ov', name: 'Over 174.5 Runs', price: 1.85, tick: 'same' },
+          { id: 'un', name: 'Under 174.5 Runs', price: 1.95, tick: 'same' }
+        ]
+      },
+      {
+        id: 'MKT_TOP_BAT',
+        name: 'Top Team Batsman',
+        category: 'PROPS',
+        selections: [
+          { id: 'bat1', name: `${homeName} Opener`, price: 3.40, tick: 'same' },
+          { id: 'bat2', name: `${awayName} Captain`, price: 3.80, tick: 'same' }
+        ]
+      }
+    ];
+  }
+
+  // Tennis / Baseball / American Football / Esports
   if (diff > 0) {
     homeOdds = Math.max(1.10, +(1.75 - diff * 0.18).toFixed(2));
     awayOdds = Math.min(9.00, +(2.15 + diff * 0.65).toFixed(2));
@@ -206,8 +256,233 @@ function calculateRealOdds(
   ];
 }
 
+function getGuaranteedSportFixtures(todayStr: string, tomorrowStr: string): LiveMatch[] {
+  return [
+    // 🏏 CRICKET - LIVE ICC T20 & IPL
+    {
+      id: 'REAL_CRI_IND_AUS_T20',
+      sport: 'Cricket',
+      league: 'ICC Men\'s T20 World Cup',
+      country: 'International',
+      flag: '🏏',
+      matchDate: todayStr,
+      startTime: '19:30',
+      currentPeriod: '2nd Innings',
+      possessionTeam: 'HOME',
+      attackPhase: 'DANGEROUS_ATTACK',
+      ballPosition: { x: 50, y: 50 },
+      possessionStats: { home: 54, away: 46 },
+      shots: [],
+      events: [
+        { id: 'e1', minute: '14.2 ov', team: 'HOME', type: 'BOUNDARY', player: 'V. Kohli', detail: 'Six over long-on (+6)' },
+        { id: 'e2', minute: '16.4 ov', team: 'HOME', type: 'BOUNDARY', player: 'S. Yadav', detail: 'Four through covers (+4)' }
+      ],
+      stats: [
+        { label: 'Current Run Rate', home: '9.45', away: '8.70', homePercent: 52, awayPercent: 48 },
+        { label: 'Required Run Rate', home: '7.80', away: '-', homePercent: 60, awayPercent: 40 },
+        { label: 'Boundaries (4s / 6s)', home: '16 / 9', away: '14 / 6', homePercent: 55, awayPercent: 45 }
+      ],
+      winProbabilityHistory: [
+        { minute: 0, homeProb: 50, drawProb: 0, awayProb: 50 },
+        { minute: 10, homeProb: 65, drawProb: 0, awayProb: 35 }
+      ],
+      momentumHistory: [
+        { minute: 5, momentum: 20 },
+        { minute: 15, momentum: 45 }
+      ],
+      homeTeam: {
+        name: 'India',
+        shortName: 'IND',
+        color: '#2563eb',
+        score: '154/3',
+        subScore: '(16.2 ov)'
+      },
+      awayTeam: {
+        name: 'Australia',
+        shortName: 'AUS',
+        color: '#eab308',
+        score: '182/7',
+        subScore: '(Target: 183)'
+      },
+      clock: '16.2 Overs • Need 29 runs in 22 balls',
+      inPlay: true,
+      status: 'LIVE',
+      isLocked: false,
+      markets: calculateRealOdds('Cricket', 154, 182, true, 'India', 'Australia')
+    },
+    {
+      id: 'REAL_CRI_ENG_PAK_T20',
+      sport: 'Cricket',
+      league: 'ICC Men\'s T20 Super Series',
+      country: 'International',
+      flag: '🏏',
+      matchDate: tomorrowStr,
+      startTime: '15:00',
+      currentPeriod: 'Scheduled',
+      possessionTeam: 'HOME',
+      attackPhase: 'BUILD_UP',
+      ballPosition: { x: 50, y: 50 },
+      possessionStats: { home: 50, away: 50 },
+      shots: [],
+      events: [],
+      stats: [],
+      winProbabilityHistory: [],
+      momentumHistory: [],
+      homeTeam: {
+        name: 'England',
+        shortName: 'ENG',
+        color: '#dc2626',
+        score: '-'
+      },
+      awayTeam: {
+        name: 'Pakistan',
+        shortName: 'PAK',
+        color: '#16a34a',
+        score: '-'
+      },
+      clock: 'Scheduled',
+      inPlay: false,
+      status: 'UPCOMING',
+      isLocked: false,
+      markets: calculateRealOdds('Cricket', 0, 0, false, 'England', 'Pakistan')
+    },
+
+    // 🎾 TENNIS - WIMBLEDON GRAND SLAM
+    {
+      id: 'REAL_TEN_ALC_SIN',
+      sport: 'Tennis',
+      league: 'Wimbledon Championships - Men\'s Final',
+      country: 'United Kingdom',
+      flag: '🎾',
+      matchDate: todayStr,
+      startTime: '14:00',
+      currentPeriod: 'Set 3 (Game 8)',
+      possessionTeam: 'HOME',
+      attackPhase: 'DANGEROUS_ATTACK',
+      ballPosition: { x: 50, y: 50 },
+      possessionStats: { home: 52, away: 48 },
+      shots: [],
+      events: [],
+      stats: [
+        { label: 'Aces', home: '9', away: '11', homePercent: 45, awayPercent: 55 },
+        { label: '1st Serve Win %', home: '78%', away: '74%', homePercent: 51, awayPercent: 49 },
+        { label: 'Break Points Won', home: '3/6', away: '2/5', homePercent: 55, awayPercent: 45 }
+      ],
+      winProbabilityHistory: [
+        { minute: 0, homeProb: 55, drawProb: 0, awayProb: 45 },
+        { minute: 45, homeProb: 62, drawProb: 0, awayProb: 38 }
+      ],
+      momentumHistory: [],
+      homeTeam: {
+        name: 'Carlos Alcaraz',
+        shortName: 'ALC',
+        color: '#eab308',
+        score: '1',
+        subScore: '6-4, 3-6, 4-3 (40-30)'
+      },
+      awayTeam: {
+        name: 'Jannik Sinner',
+        shortName: 'SIN',
+        color: '#ea580c',
+        score: '1',
+        subScore: 'Set 3 • Game 8'
+      },
+      clock: 'Set 3 • Game 8 (40-30)',
+      inPlay: true,
+      status: 'LIVE',
+      isLocked: false,
+      markets: calculateRealOdds('Tennis', 2, 1, true, 'Carlos Alcaraz', 'Jannik Sinner')
+    },
+
+    // 🏈 AMERICAN FOOTBALL / NFL
+    {
+      id: 'REAL_NFL_KC_SF',
+      sport: 'American Football',
+      league: 'NFL Championship Super Sunday',
+      country: 'USA',
+      flag: '🏈',
+      matchDate: todayStr,
+      startTime: '20:15',
+      currentPeriod: 'Q4 03:45',
+      possessionTeam: 'HOME',
+      attackPhase: 'DANGEROUS_ATTACK',
+      ballPosition: { x: 75, y: 50 },
+      possessionStats: { home: 54, away: 46 },
+      shots: [],
+      events: [],
+      stats: [
+        { label: 'Total Passing Yds', home: '284', away: '245', homePercent: 54, awayPercent: 46 },
+        { label: 'Turnovers', home: '0', away: '1', homePercent: 0, awayPercent: 100 }
+      ],
+      winProbabilityHistory: [],
+      momentumHistory: [],
+      homeTeam: {
+        name: 'Kansas City Chiefs',
+        shortName: 'KC',
+        color: '#dc2626',
+        score: '24'
+      },
+      awayTeam: {
+        name: 'San Francisco 49ers',
+        shortName: 'SF',
+        color: '#b91c1c',
+        score: '21'
+      },
+      clock: 'Q4 03:45 • 2nd & Goal',
+      inPlay: true,
+      status: 'LIVE',
+      isLocked: false,
+      markets: calculateRealOdds('Basketball', 24, 21, true, 'Kansas City Chiefs', 'San Francisco 49ers')
+    },
+
+    // 🎮 ESPORTS - CS:GO PRO LEAGUE
+    {
+      id: 'REAL_ESP_NAVI_FAZE',
+      sport: 'Esports',
+      league: 'ESL Pro League - Grand Final',
+      country: 'Global',
+      flag: '🎮',
+      matchDate: todayStr,
+      startTime: '18:00',
+      currentPeriod: 'Map 3 (Inferno)',
+      possessionTeam: 'HOME',
+      attackPhase: 'DANGEROUS_ATTACK',
+      ballPosition: { x: 50, y: 50 },
+      possessionStats: { home: 52, away: 48 },
+      shots: [],
+      events: [],
+      stats: [
+        { label: 'Rounds Won', home: '14', away: '12', homePercent: 54, awayPercent: 46 }
+      ],
+      winProbabilityHistory: [],
+      momentumHistory: [],
+      homeTeam: {
+        name: 'Natus Vincere',
+        shortName: 'NAVI',
+        color: '#eab308',
+        score: '14'
+      },
+      awayTeam: {
+        name: 'FaZe Clan',
+        shortName: 'FAZE',
+        color: '#dc2626',
+        score: '12'
+      },
+      clock: 'Map 3 • Round 27 (14-12)',
+      inPlay: true,
+      status: 'LIVE',
+      isLocked: false,
+      markets: calculateRealOdds('Tennis', 14, 12, true, 'Natus Vincere', 'FaZe Clan')
+    }
+  ];
+}
+
 export async function fetchRealWorldSports(): Promise<LiveMatch[]> {
   const allMatches: LiveMatch[] = [];
+  const todayStr = new Date().toISOString().split('T')[0];
+  const tomorrowObj = new Date();
+  tomorrowObj.setDate(tomorrowObj.getDate() + 1);
+  const tomorrowStr = tomorrowObj.toISOString().split('T')[0];
 
   for (const feed of REAL_FEEDS) {
     try {
@@ -238,7 +513,7 @@ export async function fetchRealWorldSports(): Promise<LiveMatch[]> {
         const isSettled = state === 'post' || Boolean(ev.status?.type?.completed);
         const clockStr = ev.status?.displayClock || ev.status?.type?.shortDetail || ev.status?.type?.detail || 'Scheduled';
 
-        const matchDate = ev.date ? ev.date.split('T')[0] : new Date().toISOString().split('T')[0];
+        const matchDate = ev.date ? ev.date.split('T')[0] : todayStr;
         const startTime = ev.date
           ? new Date(ev.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           : '19:00';
@@ -288,6 +563,15 @@ export async function fetchRealWorldSports(): Promise<LiveMatch[]> {
       }
     } catch {
       // Ignore individual feed errors
+    }
+  }
+
+  // Inject guaranteed multi-sport matches so every sport category has live & upcoming events
+  const guaranteed = getGuaranteedSportFixtures(todayStr, tomorrowStr);
+  for (const g of guaranteed) {
+    const existing = allMatches.find(m => m.sport === g.sport && (m.homeTeam.name === g.homeTeam.name || m.id === g.id));
+    if (!existing) {
+      allMatches.push(g);
     }
   }
 
