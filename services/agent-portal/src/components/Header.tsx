@@ -12,7 +12,8 @@ import {
   ListFilter,
   FileSpreadsheet,
   Award,
-  Sparkles
+  Sparkles,
+  KeyRound
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -30,6 +31,7 @@ interface HeaderProps {
   setActiveTab: (tab: string) => void;
   onOpenRolesMatrix: () => void;
   onOpenCredits: () => void;
+  onOpenChangePassword?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -39,7 +41,8 @@ export const Header: React.FC<HeaderProps> = ({
   activeTab,
   setActiveTab,
   onOpenRolesMatrix,
-  onOpenCredits
+  onOpenCredits,
+  onOpenChangePassword
 }) => {
   const getRoleBadge = (role: string) => {
     switch (role) {
@@ -154,6 +157,15 @@ export const Header: React.FC<HeaderProps> = ({
                   <span className="text-xs font-bold text-slate-100">{user.username}</span>
                   {getRoleBadge(user.role)}
                 </div>
+                {onOpenChangePassword && (
+                  <button
+                    onClick={onOpenChangePassword}
+                    title="Change My Password"
+                    className="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-slate-700/50 rounded-lg transition-colors"
+                  >
+                    <KeyRound className="w-3.5 h-3.5" />
+                  </button>
+                )}
                 <button
                   onClick={onRefresh}
                   title="Refresh Data"

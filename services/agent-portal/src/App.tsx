@@ -363,6 +363,7 @@ export const App: React.FC = () => {
         setActiveTab={setActiveTab}
         onOpenRolesMatrix={() => setRolesModalOpen(true)}
         onOpenCredits={() => setCreditsModalOpen(true)}
+        onOpenChangePassword={() => handleOpenResetPassword(currentUser)}
       />
 
       {/* DEALER BROADCAST TICKER */}
