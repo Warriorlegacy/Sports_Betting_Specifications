@@ -2,7 +2,7 @@ $ErrorActionPreference = "Stop"
 
 $BUILD_TOOLS = "C:\Users\Piyush\AppData\Local\Android\Sdk\build-tools\34.0.0"
 $PLATFORM = "C:\Users\Piyush\AppData\Local\Android\Sdk\platforms\android-34"
-$ANDROID_JAR = "$PLATFORM\android.jar"
+$ANDROID_JAR = if (Test-Path "$PSScriptRoot\libs\android.jar") { "$PSScriptRoot\libs\android.jar" } else { "$PLATFORM\android.jar" }
 $APP_DIR = "d:\Sports_Betting_Specifications\android-app"
 $OUT_APK = "d:\Sports_Betting_Specifications\services\player-portal\public\apk\nexusvip-exchange.apk"
 

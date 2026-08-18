@@ -1,0 +1,11 @@
+{
+  "java.project.referencedLibraries": [
+    "android-app/libs/android.jar",
+    "android-app/libs/**/*.jar"
+  ],
+  "java.project.sourcePaths": [
+    "android-app/src"
+  ],
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.compile.nullAnalysis.mode": "automatic"
+}
