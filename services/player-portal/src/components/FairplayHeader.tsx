@@ -108,16 +108,27 @@ export const FairplayHeader: React.FC<FairplayHeaderProps> = ({
             <span>Download App</span>
           </a>
 
-          {/* WhatsApp Support */}
-          <a
-            href="https://wa.me/+919038629155"
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center space-x-1 hover:opacity-90"
-          >
-            <img src="/assets/whatsapp-DAYLN6oX.webp" alt="WhatsApp" className="w-4 h-4 object-contain" />
-            <span className="text-[#27AE60] font-bold">WhatsApp Support</span>
-          </a>
+          {/* WhatsApp Support Buttons */}
+          <div className="flex items-center space-x-2">
+            <a
+              href="https://wa.me/916202442690"
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center space-x-1 hover:opacity-90 bg-[#27AE60]/20 px-2 py-0.5 rounded border border-[#27AE60]/40 text-[#27AE60] font-bold text-[10px]"
+            >
+              <img src="/assets/whatsapp-DAYLN6oX.webp" alt="WhatsApp" className="w-3.5 h-3.5 object-contain" />
+              <span>WA: +91 62024 42690</span>
+            </a>
+            <a
+              href="https://wa.me/918789868764"
+              target="_blank"
+              rel="noreferrer"
+              className="hidden sm:flex items-center space-x-1 hover:opacity-90 bg-[#27AE60]/20 px-2 py-0.5 rounded border border-[#27AE60]/40 text-[#27AE60] font-bold text-[10px]"
+            >
+              <img src="/assets/whatsapp-DAYLN6oX.webp" alt="WhatsApp" className="w-3.5 h-3.5 object-contain" />
+              <span>+91 87898 68764</span>
+            </a>
+          </div>
 
           {/* Dark / Light Mode Toggle */}
           <button

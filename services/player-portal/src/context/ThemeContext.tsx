@@ -13,12 +13,12 @@ export interface BrandConfig {
 }
 
 const DEFAULT_BRAND: BrandConfig = {
-  brandName: 'NEXUS SPORTSBOOK',
+  brandName: 'NEXUSVIP SPORTSBOOK',
   tagline: 'Live Exchange & Multi-Tier Sportsbook',
-  supportTelegram: 'https://t.me/nexus_support',
-  supportWhatsApp: 'https://wa.me/919999999999',
-  primaryColor: '#3b82f6',
-  accentColor: '#10b981',
+  supportTelegram: 'https://t.me/nexusvip_support',
+  supportWhatsApp: 'https://wa.me/916202442690',
+  primaryColor: '#f36c21',
+  accentColor: '#27AE60',
   theme: 'CYBER_ONYX'
 };
 

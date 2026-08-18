@@ -82,16 +82,27 @@ export const FairplayFooter: React.FC = () => {
         {/* 24/7 Support */}
         <div className="space-y-2">
           <h4 className="font-black text-white uppercase text-xs">24/7 Customer Support</h4>
-          <p className="text-[11px] text-[#8e8e8e]">Need help with deposits, bets, or withdrawals? Contact our dedicated support team on WhatsApp.</p>
-          <a
-            href="https://wa.me/+919038629155"
-            target="_blank"
-            rel="noreferrer"
-            className="p-2.5 rounded bg-[#27AE60]/20 hover:bg-[#27AE60]/30 text-[#27AE60] border border-[#27AE60]/40 flex items-center space-x-2 font-bold text-xs transition-colors"
-          >
-            <img src="/assets/whatsapp-DAYLN6oX.webp" alt="WhatsApp" className="w-4 h-4 object-contain" />
-            <span>Connect on WhatsApp (+91 90386 29155)</span>
-          </a>
+          <p className="text-[11px] text-[#8e8e8e]">Need help with deposits, bets, or withdrawals? Contact our dedicated support desk on WhatsApp.</p>
+          <div className="flex flex-col gap-1.5 pt-1">
+            <a
+              href="https://wa.me/916202442690"
+              target="_blank"
+              rel="noreferrer"
+              className="p-2 rounded bg-[#27AE60]/20 hover:bg-[#27AE60]/30 text-[#27AE60] border border-[#27AE60]/40 flex items-center space-x-2 font-bold text-xs transition-colors"
+            >
+              <img src="/assets/whatsapp-DAYLN6oX.webp" alt="WhatsApp" className="w-4 h-4 object-contain" />
+              <span>Desk 1: +91 62024 42690</span>
+            </a>
+            <a
+              href="https://wa.me/918789868764"
+              target="_blank"
+              rel="noreferrer"
+              className="p-2 rounded bg-[#27AE60]/20 hover:bg-[#27AE60]/30 text-[#27AE60] border border-[#27AE60]/40 flex items-center space-x-2 font-bold text-xs transition-colors"
+            >
+              <img src="/assets/whatsapp-DAYLN6oX.webp" alt="WhatsApp" className="w-4 h-4 object-contain" />
+              <span>Desk 2: +91 87898 68764</span>
+            </a>
+          </div>
         </div>
       </div>
 

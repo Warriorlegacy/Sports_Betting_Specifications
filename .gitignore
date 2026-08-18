@@ -21,6 +21,8 @@ Thumbs.db
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.pem
+deploy_vercel.js
 
 # Kilocode & Gemini IDE Temp
 .kilo/
