@@ -3,15 +3,41 @@
 @tailwind utilities;
 
 :root {
+  --bo-primary: #f36c21;
+  --bo-red: #FF4148;
+  --bo-green: #27AE60;
+  --bo-black: #212121;
+  --bo-white: #ffffff;
+  --bo-warning: #ffc107;
+  --bo-card-bg: #1e1e1e;
+  --bo-header-bg: #272727;
+  --bo-dark-bg: #141414;
+  --bo-teal-grad: linear-gradient(90deg, #135C63 0%, #107A85 50%, #135C63 100%);
+  --bo-red-grad: linear-gradient(90deg, #C7332A 0%, #E05048 37%, #9E1421 100%);
+  --back-1: #0d6efd;
+  --back-2: #70a5f8;
+  --back-3: #a5d8ff;
+  --lay-1: #dc3545;
+  --lay-2: #f78da7;
+  --lay-3: #ffc2d1;
   color-scheme: dark;
+}
+
+:root.light {
+  --bo-white: #000000;
+  --bo-dark-bg: #eeeeee;
+  --bo-card-bg: #ffffff;
+  --bo-header-bg: #dedede;
+  color-scheme: light;
 }
 
 body {
   margin: 0;
-  background-color: #060911;
-  color: #f8fafc;
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--bo-dark-bg);
+  color: var(--bo-white);
+  font-family: 'Lato', Helvetica, Arial, sans-serif;
   overflow-x: hidden;
+  font-size: 13px;
 }
 
 .mono-num {
@@ -24,25 +50,99 @@ body {
   height: 5px;
 }
 ::-webkit-scrollbar-track {
-  background: #090e1a;
+  background: #141414;
 }
 ::-webkit-scrollbar-thumb {
-  background: #1e293b;
+  background: #2e2e2e;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+  background: #444444;
 }
 
-/* Odds Cell Pulsing effect when price changes */
+/* Buttons from fairplay UI spec */
+.login-btn {
+  background-color: var(--bo-primary);
+  color: #ffffff;
+  border-radius: 30px;
+  padding: 6px 18px;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+.login-btn:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 0 10px rgba(243, 108, 33, 0.4);
+}
+
+.register-btn {
+  background-color: #27AE60;
+  color: #ffffff;
+  border-radius: 30px;
+  padding: 6px 16px;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+.register-btn:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 0 10px rgba(39, 174, 96, 0.4);
+}
+
+.demo-login-btn {
+  background-color: #0d6efd;
+  color: #ffffff;
+  border-radius: 30px;
+  padding: 6px 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 12px;
+  border: none;
+  cursor: pointer;
+}
+
+/* 6-Odds Column Styling */
+.odds-box-back-1 {
+  background-color: #72bbef;
+  color: #000000;
+}
+.odds-box-back-2 {
+  background-color: #9cd4f8;
+  color: #222222;
+}
+.odds-box-back-3 {
+  background-color: #c7e7fc;
+  color: #333333;
+}
+
+.odds-box-lay-1 {
+  background-color: #faa9ba;
+  color: #000000;
+}
+.odds-box-lay-2 {
+  background-color: #fcc3ce;
+  color: #222222;
+}
+.odds-box-lay-3 {
+  background-color: #fedce3;
+  color: #333333;
+}
+
+/* Odds Pulse Animation */
 @keyframes flash-blue {
-  0% { background-color: rgba(37, 99, 235, 0.6); }
-  100% { background-color: transparent; }
+  0% { background-color: rgba(37, 99, 235, 0.8); }
+  100% { background-color: #72bbef; }
 }
 
 @keyframes flash-pink {
-  0% { background-color: rgba(236, 72, 153, 0.6); }
-  100% { background-color: transparent; }
+  0% { background-color: rgba(236, 72, 153, 0.8); }
+  100% { background-color: #faa9ba; }
 }
 
 .flash-back {

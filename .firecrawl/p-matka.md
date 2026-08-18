@@ -1,0 +1,979 @@
+[![menu](https://click22frnt.hurry2.com/templates/fairplayexch/assets/menu-B422YLHN.webp)](https://www.fairplayvip.in/matka#offcanvasExample)
+
+- [![logo](https://assets3.hurry2.com/site_logo/fairplayvip8252.png)](https://www.fairplayvip.in/)
+- [![refresh](https://click22frnt.hurry2.com/templates/fairplayexch/assets/reload-VrXOTgKP.svg)\\
+Refresh](https://www.fairplayvip.in/matka# "Refresh")
+
+EnglishHindiKannadaTamilTeluguGujratiMarathiUrduRussian
+
+IN
+
+[Login](https://www.fairplayvip.in/login)
+
+[Register](https://www.fairplayvip.in/sign-up)
+
+![logo](https://assets3.hurry2.com/site_logo/fairplayvip8252.png)
+
+[Register](https://www.fairplayvip.in/sign-up)
+
+![light](https://click22frnt.hurry2.com/templates/fairplayexch/assets/light-mode-DgcBPrMx.svg)
+
+Light Mode
+
+![dark](https://click22frnt.hurry2.com/templates/fairplayexch/assets/dark-mode-BmqJVb2n.svg)
+
+Dark Mode
+
+[![market-image](https://click22frnt.hurry2.com/templates/fairplayexch/assets/market-BBtpt5fr.webp)Market](https://www.fairplayvip.in/markets)
+
+[![about-us-image](https://click22frnt.hurry2.com/templates/fairplayexch/assets/about-us-icons-ZvEYXeJC.webp)About Us](https://www.fairplayvip.in/static/ABOUT_US)
+
+[![privacy-policy](https://click22frnt.hurry2.com/templates/fairplayexch/assets/privacy-policy-BglyuZF_.webp)Privacy Policy](https://www.fairplayvip.in/static/PRIVACY_POLICY)
+
+[![faqs](https://click22frnt.hurry2.com/templates/fairplayexch/assets/faqs-B5NL0HY-.webp)FAQ](https://www.fairplayvip.in/faqs)
+
+[![terms-and-conditions](https://click22frnt.hurry2.com/templates/fairplayexch/assets/blog-icon-new-Bw1Tf0b3.webp)T&C](https://www.fairplayvip.in/static/TERM_CONDITIONS)
+
+[![language](https://click22frnt.hurry2.com/templates/fairplayexch/assets/world-BcbIijKx.webp)English](https://www.fairplayvip.in/matka#language_selection_pop_up)
+
+[Download App](https://assets3.hurry2.com/site_apk/4516fairplayvip.apk)
+
+#### Social Link
+
+- [![whatsapp](https://click22frnt.hurry2.com/templates/fairplayexch/assets/whatsapp-DAYLN6oX.webp)](https://wa.me/+919038629155)
+
+Select Language
+
+![search](https://click22frnt.hurry2.com/templates/fairplayexch/assets/search-grey-icon-WNDRHZKM.webp)
+
+- English
+
+- Hindi
+
+- Kannada
+
+- Tamil
+
+- Telugu
+
+- Gujrati
+
+- Marathi
+
+- Urdu
+
+- Russian
+
+
+Close
+
+- One Click Bet
+
+- Display name :
+
+- Wallet Amount
+
+Inclusive bonus
+
+
+
+
+
+0.00
+
+- Net Exposure
+
+
+
+NaN
+
+- Deposit
+
+
+
+Withdraw
+
+
+Welcome Bonus
+
+0.00
+
+Play With Bonus
+
+![refer-icon](https://click22frnt.hurry2.com/templates/fairplayexch/assets/referal_icon-ByiGe1GL.png)Refer and Earn
+
+- ![affiliate](https://click22frnt.hurry2.com/templates/fairplayexch/assets/menu-icon-2fa-BQZoQb6K.svg)2FA
+
+- [![affiliate](https://click22frnt.hurry2.com/templates/fairplayexch/assets/affiliate-Myuz2yd-.svg)Affiliate](https://www.fairplayvip.in/affiliate/dashboard)
+
+- [![favorites](https://click22frnt.hurry2.com/templates/fairplayexch/assets/favorites-C_gfrvJH.webp)Favorites](https://www.fairplayvip.in/favourites)
+
+- [![open bets](https://click22frnt.hurry2.com/templates/fairplayexch/assets/open_bets-Bl-K8zeR.webp)Open Bets\\
+\\
+0](https://www.fairplayvip.in/bets)
+
+- [![settled-bets](https://click22frnt.hurry2.com/templates/fairplayexch/assets/settled-icon-BL7KnRW8.svg)Settled Bets](https://www.fairplayvip.in/settled-bets)
+
+- [![completed-events-icon](https://click22frnt.hurry2.com/templates/fairplayexch/assets/completed-events-icon-3Arz6eXm.svg)Completed Events](https://www.fairplayvip.in/completed-events)
+
+- [![statements](https://click22frnt.hurry2.com/templates/fairplayexch/assets/statements-icon-ZiF5b8Er.svg)Statements](https://www.fairplayvip.in/account-statements)
+
+- [![betting-pl](https://click22frnt.hurry2.com/templates/fairplayexch/assets/rupi-DsFXNfD-.webp)Betting P&L](https://www.fairplayvip.in/profit-loss)
+
+- ![transactions](https://click22frnt.hurry2.com/templates/fairplayexch/assets/transactions-DJDD5huZ.webp)My Transactions
+
+- ![user-wallet](https://click22frnt.hurry2.com/templates/fairplayexch/assets/user-wallet-icon-CTOHSvqj.webp)My Wallet
+
+- [![settings](https://click22frnt.hurry2.com/templates/fairplayexch/assets/settings-B4ppVq3H.webp)Stake Settings](https://www.fairplayvip.in/stake-settings)
+
+- [![notification](https://click22frnt.hurry2.com/templates/fairplayexch/assets/notification-DykF3NI_.webp)Notification](https://www.fairplayvip.in/notifications)
+
+- [![update-phone-number](https://click22frnt.hurry2.com/templates/fairplayexch/assets/update-phone-8vKpgrrx.svg)Add Mobile Number](https://www.fairplayvip.in/update-phone)
+
+- [![reset-password](https://click22frnt.hurry2.com/templates/fairplayexch/assets/reset_password-BE95Lq8X.webp)Reset Password](https://www.fairplayvip.in/reset-password)
+
+- [![rules](https://click22frnt.hurry2.com/templates/fairplayexch/assets/rules-wD3-dUmU.webp)Rules & Regulations](https://www.fairplayvip.in/rules-regulations)
+
+- [Connect with us on![whatsapp](https://click22frnt.hurry2.com/templates/fairplayexch/assets/whatsapp-QsJUDxbC.png)whatsapp](https://wa.me/+919038629155)
+
+- Logout
+
+
+Click Bet Value
+
+Min : 100![min-max-icon](https://click22frnt.hurry2.com/templates/fairplayexch/assets/min-max-icon-BIsl0oNE.svg)Max : 2000
+
+CancelSave
+
+Bonus Rules
+
+Exit
+
+![exit](https://click22frnt.hurry2.com/templates/fairplayexch/assets/exit-clickbet-icon-DWFUq10c.webp)
+
+Exit fairplayvip?
+
+Are you sure you want to quit?
+
+NoYes
+
+How to Install APK
+
+- Android
+- iOS
+
+![android](https://click22frnt.hurry2.com/templates/fairplayexch/assets/android-BtbTyQac.jpg)
+
+![ios](https://click22frnt.hurry2.com/templates/fairplayexch/assets/ios_img-7VWyREcL.jpg)
+
+Close
+
+Display Name
+
+Save
+
+- [![inplay](https://click22frnt.hurry2.com/templates/fairplayexch/assets/inplay.a7c4dae-C8xV8pYh.webp)inplay](https://www.fairplayvip.in/)
+- ![fantasy book](https://click22frnt.hurry2.com/templates/fairplayexch/assets/fantasybookicon.225b8cb-Cjpd3wag.webp)Fantasy Pro
+- ![sportsbook](https://click22frnt.hurry2.com/templates/fairplayexch/assets/sports-rdWIvwEH.webp)Sportbook
+- [![live casino](https://click22frnt.hurry2.com/templates/fairplayexch/assets/live-casino.761f895-BNzi9kZU.webp)Live Casino](https://www.fairplayvip.in/games/live-casino)
+- [![crash games](https://click22frnt.hurry2.com/templates/fairplayexch/assets/crash-img-d4T8ANqx.webp)crash games](https://www.fairplayvip.in/games/crash-games)
+- [![live card](https://click22frnt.hurry2.com/templates/fairplayexch/assets/live-card.c981209-CS5ln-mD.webp)Live Card](https://www.fairplayvip.in/games/live-card)
+- [![slot](https://click22frnt.hurry2.com/templates/fairplayexch/assets/slot-games.ccf3217-BhEA8a54.webp)slot games](https://www.fairplayvip.in/games/slot-games)
+- [![matka](https://click22frnt.hurry2.com/templates/fairplayexch/assets/gold-pot-B7mS4MfM.webp)Matka](https://www.fairplayvip.in/matka)
+
+- [![inplay.a7c4dae](https://click22frnt.hurry2.com/templates/fairplayexch/assets/inplay_icon12-C-AzeerO.webp)![inplay](https://click22frnt.hurry2.com/templates/fairplayexch/assets/inplay_icon12-C-AzeerO.webp)Inplay](https://www.fairplayvip.in/)
+- [![sports book](https://click22frnt.hurry2.com/templates/fairplayexch/assets/sportexch_icon-5KliwU5u.svg)![sports book](https://click22frnt.hurry2.com/templates/fairplayexch/assets/sportexch_icon_light--Ua2fVTP.svg)Sports Exch](https://www.fairplayvip.in/sports/cricket/4)
+- ![Sportsbook](https://click22frnt.hurry2.com/templates/fairplayexch/assets/sportbook_icon-CaAh8qoq.svg)![Sportsbook](https://click22frnt.hurry2.com/templates/fairplayexch/assets/sportbook_icon_light-p5rFJEKF.svg)Sportsbook
+- [![More ](https://click22frnt.hurry2.com/templates/fairplayexch/assets/more_icon-CY7hsN93.svg)![More](https://click22frnt.hurry2.com/templates/fairplayexch/assets/more_icon_light-B0WVj5zW.svg)MORE](https://www.fairplayvip.in/matka#more-item-tabs)
+
+- [![cricket](https://click22frnt.hurry2.com/templates/fairplayexch/assets/sports-cricket-Qf1NmI1h.png)\\
+cricket](https://www.fairplayvip.in/sports/cricket/4)
+- [![soccer](https://click22frnt.hurry2.com/templates/fairplayexch/assets/sports-soccer-CaiOK3CT.png)\\
+Soccer](https://www.fairplayvip.in/sports/soccer/1)
+- [![tennis](https://click22frnt.hurry2.com/templates/fairplayexch/assets/sports-tennis-DzBamNaA.png)\\
+tennis](https://www.fairplayvip.in/sports/tennis/2)
+- [![matka Layer](https://click22frnt.hurry2.com/templates/fairplayexch/assets/matka_icon-AlgWdyZf.svg)\\
+\\
+Matka](https://www.fairplayvip.in/matka)
+- [![cricket bat](https://click22frnt.hurry2.com/templates/fairplayexch/assets/cricket-bat-SP0vYd8q.svg)\\
+Cricket Fight](https://www.fairplayvip.in/cricket-fight)
+- [![FIFA CUP WINNER](https://click22frnt.hurry2.com/templates/fairplayexch/assets/fifa_cup-Bg_B0u7G.png)\\
+FIFA CUP WINNER](https://www.fairplayvip.in/sports/fifa-cup-winner/4343)
+- [![WINNER CUP](https://click22frnt.hurry2.com/templates/fairplayexch/assets/winner_cup-BBlE921h.png)\\
+WINNER CUP](https://www.fairplayvip.in/sports/winner-cup/4344)
+- [![ELECTION](https://click22frnt.hurry2.com/templates/fairplayexch/assets/election_icon-CpUMjIYd.png)\\
+ELECTION](https://www.fairplayvip.in/sports/election/4345)
+- [![Kabaddi ](https://click22frnt.hurry2.com/templates/fairplayexch/assets/sports-no-YhxjmpH9.png)\\
+Kabaddi](https://www.fairplayvip.in/sports/kabaddi/27454572)
+- [![Election](https://click22frnt.hurry2.com/templates/fairplayexch/assets/sports-no-YhxjmpH9.png)\\
+Election](https://www.fairplayvip.in/sports/27454577-election/27454577)
+- [![Esports](https://click22frnt.hurry2.com/templates/fairplayexch/assets/ipl-logo-Baa7ATtS.svg)\\
+Esports](https://www.fairplayvip.in/sports/esports/27454571)
+- [![Mixed Martial Arts](https://click22frnt.hurry2.com/templates/fairplayexch/assets/ipl-logo-Baa7ATtS.svg)\\
+Mixed Martial Arts](https://www.fairplayvip.in/sports/mixed-martial-arts/26420387)
+- [![Gaelic Games](https://click22frnt.hurry2.com/templates/fairplayexch/assets/ipl-logo-Baa7ATtS.svg)\\
+Gaelic Games](https://www.fairplayvip.in/sports/gaelic-games/2152880)
+- [![Volleyball](https://click22frnt.hurry2.com/templates/fairplayexch/assets/ipl-logo-Baa7ATtS.svg)\\
+Volleyball](https://www.fairplayvip.in/sports/volleyball/998917)
+- [![Handball](https://click22frnt.hurry2.com/templates/fairplayexch/assets/ipl-logo-Baa7ATtS.svg)\\
+Handball](https://www.fairplayvip.in/sports/handball/468328)
+- [![Australian Rules](https://click22frnt.hurry2.com/templates/fairplayexch/assets/ipl-logo-Baa7ATtS.svg)\\
+Australian Rules](https://www.fairplayvip.in/sports/australian-rules/61420)
+- [![Ice Hockey](https://click22frnt.hurry2.com/templates/fairplayexch/assets/ipl-logo-Baa7ATtS.svg)\\
+Ice Hockey](https://www.fairplayvip.in/sports/ice-hockey/7524)
+- [![Basketball](https://click22frnt.hurry2.com/templates/fairplayexch/assets/ipl-logo-Baa7ATtS.svg)\\
+Basketball](https://www.fairplayvip.in/sports/basketball/7522)
+- [![Baseball](https://click22frnt.hurry2.com/templates/fairplayexch/assets/ipl-logo-Baa7ATtS.svg)\\
+Baseball](https://www.fairplayvip.in/sports/baseball/7511)
+- [![American Football](https://click22frnt.hurry2.com/templates/fairplayexch/assets/ipl-logo-Baa7ATtS.svg)\\
+American Football](https://www.fairplayvip.in/sports/american-football/6423)
+- [![Snooker](https://click22frnt.hurry2.com/templates/fairplayexch/assets/ipl-logo-Baa7ATtS.svg)\\
+Snooker](https://www.fairplayvip.in/sports/snooker/6422)
+- [![Table tennis](https://click22frnt.hurry2.com/templates/fairplayexch/assets/ipl-logo-Baa7ATtS.svg)\\
+Table tennis](https://www.fairplayvip.in/sports/table-tennis/27454574)
+- [![Horse racing](https://click22frnt.hurry2.com/templates/fairplayexch/assets/ipl-logo-Baa7ATtS.svg)\\
+Horse racing](https://www.fairplayvip.in/sports/horse-racing/7)
+- [![Greyhound racing](https://click22frnt.hurry2.com/templates/fairplayexch/assets/ipl-logo-Baa7ATtS.svg)\\
+Greyhound racing](https://www.fairplayvip.in/sports/greyhound-racing/4339)
+
+All Sports
+
+[![cricket](https://click22frnt.hurry2.com/templates/fairplayexch/assets/cricket.5c05f66-CIAswLw2.webp)\\
+\\
+cricket\\
+\\
+0](https://www.fairplayvip.in/sports/cricket/4)
+
+[![soccer](https://click22frnt.hurry2.com/templates/fairplayexch/assets/soccer.9f718cc-CuG5LU6J.webp)\\
+\\
+soccer\\
+\\
+0](https://www.fairplayvip.in/sports/soccer/1)
+
+[![tennis](https://click22frnt.hurry2.com/templates/fairplayexch/assets/tennis.fc30791-tQO0tAGr.webp)\\
+\\
+tennis\\
+\\
+0](https://www.fairplayvip.in/sports/tennis/2)
+
+[Horse racing\\
+\\
+0](https://www.fairplayvip.in/sports/horse-racing/7)
+
+![rubgy](https://click22frnt.hurry2.com/templates/fairplayexch/assets/rubgy-DEIFbicF.webp)
+
+Sportsbook
+
+[![gold](https://click22frnt.hurry2.com/templates/fairplayexch/assets/gold-pot-B7mS4MfM.webp)\\
+\\
+Matka](https://www.fairplayvip.in/matka)
+
+[![cricket](https://click22frnt.hurry2.com/templates/fairplayexch/assets/cricket-DQt4hqpq.webp)\\
+\\
+fantasy cricket](https://www.fairplayvip.in/cricket-fight)
+
+[![casino](https://click22frnt.hurry2.com/templates/fairplayexch/assets/casino-BnBk6FL5.webp)\\
+\\
+Casino](https://www.fairplayvip.in/games/live-casino)
+
+[![live-card](https://click22frnt.hurry2.com/templates/fairplayexch/assets/live-card.c981209-CS5ln-mD.webp)\\
+\\
+Live Card](https://www.fairplayvip.in/games/live-card)
+
+[![slot](https://click22frnt.hurry2.com/templates/fairplayexch/assets/slot-games.ccf3217-BhEA8a54.webp)\\
+\\
+Slot Games](https://www.fairplayvip.in/games/slot-games)
+
+[![virtual-sports-icon](https://click22frnt.hurry2.com/templates/fairplayexch/assets/virtual-DN0Kn2Ku.webp)\\
+\\
+Virtual Sports](https://www.fairplayvip.in/matka#)
+
+[![FIFA CUP WINNER](https://click22frnt.hurry2.com/templates/fairplayexch/assets/fifa_cup-Bg_B0u7G.png)\\
+\\
+FIFA CUP WINNER\\
+\\
+0](https://www.fairplayvip.in/sports-event-detail/1780651370125)
+
+[![WINNER CUP](https://click22frnt.hurry2.com/templates/fairplayexch/assets/winner_cup-BBlE921h.png)\\
+\\
+WINNER CUP\\
+\\
+0](https://www.fairplayvip.in/sports/winner-cup/4344)
+
+[![ELECTION](https://click22frnt.hurry2.com/templates/fairplayexch/assets/election_icon-CpUMjIYd.png)\\
+\\
+ELECTION\\
+\\
+0](https://www.fairplayvip.in/sports/election/4345)
+
+[![Kabaddi ](https://click22frnt.hurry2.com/templates/fairplayexch/assets/sports-no-YhxjmpH9.png)\\
+\\
+Kabaddi \\
+\\
+0](https://www.fairplayvip.in/sports/kabaddi/27454572)
+
+[![Election](https://click22frnt.hurry2.com/templates/fairplayexch/assets/sports-no-YhxjmpH9.png)\\
+\\
+Election\\
+\\
+0](https://www.fairplayvip.in/sports/27454577-election/27454577)
+
+[![Esports](https://click22frnt.hurry2.com/templates/fairplayexch/assets/sports-esports-CpaH_TFr.png)\\
+\\
+Esports\\
+\\
+0](https://www.fairplayvip.in/sports/esports/27454571)
+
+[![Mixed Martial Arts](https://click22frnt.hurry2.com/templates/fairplayexch/assets/sports-mixed-martial-arts-Cneq7OfF.png)\\
+\\
+Mixed Martial Arts\\
+\\
+0](https://www.fairplayvip.in/sports/mixed-martial-arts/26420387)
+
+[![Gaelic Games](https://click22frnt.hurry2.com/templates/fairplayexch/assets/sports-gaelic-football-Jft0M_Xo.png)\\
+\\
+Gaelic Games\\
+\\
+0](https://www.fairplayvip.in/sports/gaelic-games/2152880)
+
+[![Volleyball](https://click22frnt.hurry2.com/templates/fairplayexch/assets/sports-volleyball-B-Aro6nv.png)\\
+\\
+Volleyball\\
+\\
+0](https://www.fairplayvip.in/sports/volleyball/998917)
+
+[![Handball](https://click22frnt.hurry2.com/templates/fairplayexch/assets/sports-handball-BXRZ4Rh8.png)\\
+\\
+Handball\\
+\\
+0](https://www.fairplayvip.in/sports/handball/468328)
+
+[![Australian Rules](https://click22frnt.hurry2.com/templates/fairplayexch/assets/sports-australian-rules--7ROFjmy.png)\\
+\\
+Australian Rules\\
+\\
+0](https://www.fairplayvip.in/sports/australian-rules/61420)
+
+[![Ice Hockey](https://click22frnt.hurry2.com/templates/fairplayexch/assets/sports-ice-hockey-D5SxRPuR.png)\\
+\\
+Ice Hockey\\
+\\
+0](https://www.fairplayvip.in/sports/ice-hockey/7524)
+
+[![Basketball](https://click22frnt.hurry2.com/templates/fairplayexch/assets/sports-basketball-D8I6c545.png)\\
+\\
+Basketball\\
+\\
+0](https://www.fairplayvip.in/sports/basketball/7522)
+
+[![Baseball](https://click22frnt.hurry2.com/templates/fairplayexch/assets/sports-baseball-BIfs7vQf.png)\\
+\\
+Baseball\\
+\\
+0](https://www.fairplayvip.in/sports/baseball/7511)
+
+[![American Football](https://click22frnt.hurry2.com/templates/fairplayexch/assets/sports-american-football-D9RZuEeA.png)\\
+\\
+American Football\\
+\\
+0](https://www.fairplayvip.in/sports/american-football/6423)
+
+[![Snooker](https://click22frnt.hurry2.com/templates/fairplayexch/assets/sports-snooker-C9CUGumV.png)\\
+\\
+Snooker\\
+\\
+0](https://www.fairplayvip.in/sports/snooker/6422)
+
+[![Table tennis](https://click22frnt.hurry2.com/templates/fairplayexch/assets/kabaddi_icon-BcnsHPmM.png)\\
+\\
+Table tennis\\
+\\
+0](https://www.fairplayvip.in/sports/table-tennis/27454574)
+
+[![Greyhound racing](https://click22frnt.hurry2.com/templates/fairplayexch/assets/sports-greyhound-racing-C5tbCXV-.png)\\
+\\
+Greyhound racing\\
+\\
+0](https://www.fairplayvip.in/sports/greyhound-racing/4339)
+
+Matka
+
+- Matka
+- Matka Result
+
+## Matka Market
+
+![matka-icon](https://click22frnt.hurry2.com/templates/fairplayexch/assets/matka_icon-AlgWdyZf.svg)
+
+### KARNATAKA DAY
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Open :18 Aug 09:30 AM
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Close :18 Aug 10:30 AM
+
+Play Now
+
+0D: 22H: 33M: 17S
+
+Open
+
+![matka-icon](https://click22frnt.hurry2.com/templates/fairplayexch/assets/matka_icon-AlgWdyZf.svg)
+
+### SRIDEVI
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Open :18 Aug 11:05 AM
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Close :18 Aug 12:05 PM
+
+Play Now
+
+1D: 0H: 8M: 17S
+
+Open
+
+![matka-icon](https://click22frnt.hurry2.com/templates/fairplayexch/assets/matka_icon-AlgWdyZf.svg)
+
+### KALYAN MORNING
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Open :18 Aug 11:10 AM
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Close :18 Aug 12:10 PM
+
+Play Now
+
+1D: 0H: 13M: 17S
+
+Open
+
+![matka-icon](https://click22frnt.hurry2.com/templates/fairplayexch/assets/matka_icon-AlgWdyZf.svg)
+
+### TIME BAZAR
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Open :18 Aug 12:30 PM
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Close :18 Aug 01:30 PM
+
+Play Now
+
+1D: 1H: 33M: 17S
+
+Open
+
+![matka-icon](https://click22frnt.hurry2.com/templates/fairplayexch/assets/matka_icon-AlgWdyZf.svg)
+
+### MADHUR DAY
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Open :18 Aug 01:00 PM
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Close :18 Aug 02:00 PM
+
+Play Now
+
+1D: 2H: 3M: 17S
+
+Open
+
+![matka-icon](https://click22frnt.hurry2.com/templates/fairplayexch/assets/matka_icon-AlgWdyZf.svg)
+
+### PRABHAT
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Open :18 Aug 01:15 PM
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Close :18 Aug 02:45 PM
+
+Play Now
+
+1D: 2H: 18M: 17S
+
+Open
+
+![matka-icon](https://click22frnt.hurry2.com/templates/fairplayexch/assets/matka_icon-AlgWdyZf.svg)
+
+### MILAN DAY
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Open :18 Aug 02:30 PM
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Close :18 Aug 04:30 PM
+
+Play Now
+
+1D: 3H: 33M: 17S
+
+Open
+
+![matka-icon](https://click22frnt.hurry2.com/templates/fairplayexch/assets/matka_icon-AlgWdyZf.svg)
+
+### KALYAN
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Open :18 Aug 03:30 PM
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Close :18 Aug 05:30 PM
+
+Play Now
+
+1D: 4H: 33M: 17S
+
+Open
+
+![matka-icon](https://click22frnt.hurry2.com/templates/fairplayexch/assets/matka_icon-AlgWdyZf.svg)
+
+### SRIDEVI NIGHT
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Open :17 Aug 06:45 PM
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Close :17 Aug 07:45 PM
+
+Play Now
+
+0D: 7H: 48M: 17S
+
+Close
+
+![matka-icon](https://click22frnt.hurry2.com/templates/fairplayexch/assets/matka_icon-AlgWdyZf.svg)
+
+### PRABHAT NIGHT
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Open :17 Aug 08:00 PM
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Close :17 Aug 10:00 PM
+
+Play Now
+
+0D: 9H: 3M: 17S
+
+Close
+
+![matka-icon](https://click22frnt.hurry2.com/templates/fairplayexch/assets/matka_icon-AlgWdyZf.svg)
+
+### MADHUR NIGHT
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Open :17 Aug 08:00 PM
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Close :17 Aug 10:00 PM
+
+Play Now
+
+0D: 9H: 3M: 17S
+
+Close
+
+![matka-icon](https://click22frnt.hurry2.com/templates/fairplayexch/assets/matka_icon-AlgWdyZf.svg)
+
+### MILAN NIGHT
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Open :17 Aug 08:35 PM
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Close :17 Aug 10:35 PM
+
+Play Now
+
+0D: 9H: 38M: 17S
+
+Open
+
+![matka-icon](https://click22frnt.hurry2.com/templates/fairplayexch/assets/matka_icon-AlgWdyZf.svg)
+
+### KALYAN NIGHT
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Open :17 Aug 09:00 PM
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Close :17 Aug 11:00 PM
+
+Play Now
+
+0D: 10H: 3M: 17S
+
+Open
+
+![matka-icon](https://click22frnt.hurry2.com/templates/fairplayexch/assets/matka_icon-AlgWdyZf.svg)
+
+### RAJDHANI NIGHT
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Open :17 Aug 09:05 PM
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Close :17 Aug 11:15 PM
+
+Play Now
+
+0D: 10H: 8M: 17S
+
+Open
+
+![matka-icon](https://click22frnt.hurry2.com/templates/fairplayexch/assets/matka_icon-AlgWdyZf.svg)
+
+### MAIN BAZAR
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Open :17 Aug 09:30 PM
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Close :17 Aug 11:40 PM
+
+Play Now
+
+0D: 10H: 33M: 17S
+
+Open
+
+## Delhi Market
+
+![matka-icon](https://click22frnt.hurry2.com/templates/fairplayexch/assets/matka_icon-AlgWdyZf.svg)
+
+### DESAWAR
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Open :18 Aug 04:30 AM
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Close :18 Aug 04:30 AM
+
+Play Now
+
+0D: 0H: 0M: 0S
+
+Open
+
+![matka-icon](https://click22frnt.hurry2.com/templates/fairplayexch/assets/matka_icon-AlgWdyZf.svg)
+
+### GAZIABAD
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Open :17 Aug 08:55 PM
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Close :17 Aug 08:55 PM
+
+Play Now
+
+0D: 9H: 58M: 17S
+
+Open
+
+![matka-icon](https://click22frnt.hurry2.com/templates/fairplayexch/assets/matka_icon-AlgWdyZf.svg)
+
+### GALI
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Open :17 Aug 10:55 PM
+
+###### ![clock](https://click22frnt.hurry2.com/templates/fairplayexch/assets/clock-BJzF3_sR.webp)Close :17 Aug 10:55 PM
+
+Play Now
+
+0D: 11H: 58M: 17S
+
+Open
+
+- DESAWAR
+- Open
+- Close
+- Jodi
+
+- Today
+- NYD
+- NYD
+- NYD
+
+- Yesterday
+- 400
+- 0
+- NYD
+
+- KARNATAKA DAY
+- Open
+- Close
+- Jodi
+
+- Today
+- 468
+- 120
+- 8 3
+
+- Yesterday
+- 556
+- 189
+- 6 8
+
+- SRIDEVI
+- Open
+- Close
+- Jodi
+
+- Today
+- 466
+- 249
+- 6 5
+
+- Yesterday
+- 567
+- 590
+- 8 4
+
+- KALYAN MORNING
+- Open
+- Close
+- Jodi
+
+- Today
+- 244
+- 170
+- 0 8
+
+- Yesterday
+- 139
+- 359
+- 3 7
+
+- TIME BAZAR
+- Open
+- Close
+- Jodi
+
+- Today
+- 127
+- 148
+- 0 3
+
+- Yesterday
+- NYD
+- NYD
+- NYD
+
+- MADHUR DAY
+- Open
+- Close
+- Jodi
+
+- Today
+- 689
+- 288
+- 3 8
+
+- Yesterday
+- 356
+- 147
+- 4 2
+
+- PRABHAT
+- Open
+- Close
+- Jodi
+
+- Today
+- 147
+- 135
+- 2 9
+
+- Yesterday
+- NYD
+- NYD
+- NYD
+
+- MILAN DAY
+- Open
+- Close
+- Jodi
+
+- Today
+- 125
+- 170
+- 8 8
+
+- Yesterday
+- NYD
+- NYD
+- NYD
+
+- KALYAN
+- Open
+- Close
+- Jodi
+
+- Today
+- 157
+- 689
+- 3 3
+
+- Yesterday
+- NYD
+- NYD
+- NYD
+
+- SRIDEVI NIGHT
+- Open
+- Close
+- Jodi
+
+- Today
+- 379
+- NYD
+- NYD
+
+- Yesterday
+- 889
+- 259
+- 5 6
+
+- PRABHAT NIGHT
+- Open
+- Close
+- Jodi
+
+- Today
+- NYD
+- NYD
+- NYD
+
+- Yesterday
+- NYD
+- NYD
+- NYD
+
+- MADHUR NIGHT
+- Open
+- Close
+- Jodi
+
+- Today
+- NYD
+- NYD
+- NYD
+
+- Yesterday
+- NYD
+- NYD
+- NYD
+
+- MILAN NIGHT
+- Open
+- Close
+- Jodi
+
+- Today
+- NYD
+- NYD
+- NYD
+
+- Yesterday
+- NYD
+- NYD
+- NYD
+
+- GAZIABAD
+- Open
+- Close
+- Jodi
+
+- Today
+- NYD
+- NYD
+- NYD
+
+- Yesterday
+- 900
+- 900
+- 9 9
+
+- KALYAN NIGHT
+- Open
+- Close
+- Jodi
+
+- Today
+- NYD
+- NYD
+- NYD
+
+- Yesterday
+- NYD
+- NYD
+- NYD
+
+- RAJDHANI NIGHT
+- Open
+- Close
+- Jodi
+
+- Today
+- NYD
+- NYD
+- NYD
+
+- Yesterday
+- NYD
+- NYD
+- NYD
+
+- MAIN BAZAR
+- Open
+- Close
+- Jodi
+
+- Today
+- NYD
+- NYD
+- NYD
+
+- Yesterday
+- NYD
+- NYD
+- NYD
+
+- GALI
+- Open
+- Close
+- Jodi
+
+- Today
+- NYD
+- NYD
+- NYD
+
+- Yesterday
+- 500
+- 900
+- 5 9
+
+## Language
+
+![modal-info-icon](https://click22frnt.hurry2.com/templates/fairplayexch/assets/modal-info-icon-Dal-yRIp.webp)
+
+- English
+- हिंदी
+- దయచేసి
+- অনুগ্রহ
+- ಬೇರೆ
+
+- Please only make deposits to the accounts listed on the next screen.
+- Deposits made to any other account may not be credited to yours.
+
+- कृपया अगली स्क्रीन पर सूचीबद्ध खातों में ही जमा करें।
+- किसी अन्य खाते में किए गए जमा को आपके खाते में जमा नहीं किया जा सकता है।
+
+- దయచేసి తదుపరి స్క్రీన్‌లో జాబితా చేయబడిన ఖాతాలకు మాత్రమే డిపాజిట్లు చేయండి.
+- మరే ఇతర ఖాతాకు చేసిన డిపాజిట్లు మీ ఖాతాకు జమ చేయబడవు.
+
+- অনুগ্রহ করে শুধুমাত্র পরবর্তী স্ক্রিনে তালিকাভুক্ত অ্যাকাউন্টে জমা করুন।
+- অন্য কোনো অ্যাকাউন্টে জমা করা আপনার অ্যাকাউন্টে জমা নাও হতে পারে।
+
+- దయచేసి తదుపరి స్క్రీన్‌లో జాబితా చేయబడిన ఖాతాలకు మాత్రమే డిపాజిట్లు చేయండి.
+- మరే ఇతర ఖాతాకు చేసిన డిపాజిట్లు మీ ఖాతాకు జమ చేయబడవు.
+
+Close
+
+- [![live-cards](https://click22frnt.hurry2.com/templates/fairplayexch/assets/live-cards-DYPFYvZ8.webp)Live Card](https://www.fairplayvip.in/games/live-card)
+- [![casino live](https://click22frnt.hurry2.com/templates/fairplayexch/assets/casino-live-CM-wC5zs.webp)Live Casino](https://www.fairplayvip.in/games/live-casino)
+- [![slot games](https://click22frnt.hurry2.com/templates/fairplayexch/assets/Slot-game-C7XW7c9F.webp)Slot games](https://www.fairplayvip.in/games/slot-games)
+- [![crash game](https://click22frnt.hurry2.com/templates/fairplayexch/assets/crash-img-d4T8ANqx.webp)Crash games](https://www.fairplayvip.in/games/crash-games)
+
+✖
+
+Customer Support
+
+[![whatsApp](https://click22frnt.hurry2.com/templates/fairplayexch/assets/whatsApp-icon-BPv9dwMg.webp)\\
++919038629155](https://wa.me/+919038629155)
+
+![notification alert](https://click22frnt.hurry2.com/templates/fairplayexch/assets/notification-alert-o2drZKzo.svg)
+
+Turn on the Notifications
+
+CancelAllow
+
+![light](https://click22frnt.hurry2.com/templates/fairplayexch/assets/spin-cross-Bl6NAM_t.png)
+
+### Spin Wheel Bonus Rules
+
+No Rules Available

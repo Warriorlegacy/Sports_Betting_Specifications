@@ -1,5 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { SportsbookHeader } from './components/SportsbookHeader';
+import { FairplayHeader } from './components/FairplayHeader';
+import { FairplaySidebar } from './components/FairplaySidebar';
+import { FairplayEventList } from './components/FairplayEventList';
+import { FairplayBetSlip } from './components/FairplayBetSlip';
+import { FairplayFooter } from './components/FairplayFooter';
 import { SportsbookHome } from './components/SportsbookHome';
 import { MatchDetailHub } from './components/MatchDetailHub';
 import { MarketLadder, Market, SelectionLadder } from './components/MarketLadder';
@@ -666,24 +670,51 @@ export const App: React.FC = () => {
     );
   };
 
+  const sportCounts: Record<string, number> = {
+    cricket: liveMatches.filter((m) => m.sport === 'Cricket').length,
+    soccer: liveMatches.filter((m) => m.sport === 'Football').length,
+    tennis: liveMatches.filter((m) => m.sport === 'Tennis').length,
+    basketball: liveMatches.filter((m) => m.sport === 'Basketball').length,
+    baseball: liveMatches.filter((m) => m.sport === 'Baseball').length,
+    table_tennis: liveMatches.filter((m) => m.sport === 'Table Tennis').length,
+    horse_racing: 4,
+    greyhound: 2,
+    kabaddi: 1,
+    election: 1,
+    esports: 3,
+    mma: 2,
+    volleyball: 2,
+    snooker: 1,
+    football: liveMatches.filter((m) => m.sport === 'American Football').length
+  };
+
   const selectedMatch = liveMatches.find((m) => m.id === selectedMatchId);
   const activeExchangeMarket =
     exchangeMarkets.find((m) => m.id === selectedExchangeMarketId) || exchangeMarkets[0];
 
   return (
-    <div className="min-h-screen bg-[#060911] text-slate-100 flex flex-col pb-20 sm:pb-8 selection:bg-blue-500 selection:text-white">
-      {/* Top Header */}
-      <SportsbookHeader
+    <div className="min-h-screen bg-[#141414] text-white flex flex-col selection:bg-[#f36c21] selection:text-white">
+      {/* 1. TOP FAIRPLAY VIP HEADER & NAV BAR */}
+      <FairplayHeader
         user={currentUser}
-        activeView={activeView}
-        setActiveView={setActiveView}
-        selectedSport={selectedSport}
-        setSelectedSport={setSelectedSport}
-        oddsFormat={oddsFormat}
-        setOddsFormat={setOddsFormat}
-        cashOutCount={cashOutBets.filter((b) => b.status === 'OPEN').length}
-        betSlipCount={betSlipItems.length}
-        onToggleSlip={() => setIsSlipOpen(!isSlipOpen)}
+        activeNavTab={activeView}
+        setActiveNavTab={(tab) => {
+          setSelectedMatchId(null);
+          setActiveView(tab as any);
+        }}
+        isDarkMode={isDarkMode}
+        setIsDarkMode={(dark) => {
+          setIsDarkMode(dark);
+          if (dark) {
+            document.documentElement.classList.add('dark');
+            document.documentElement.classList.remove('light');
+          } else {
+            document.documentElement.classList.add('light');
+            document.documentElement.classList.remove('dark');
+          }
+        }}
+        onOpenLogin={() => setIsLoginModalOpen(true)}
+        onOpenRegister={() => setIsLoginModalOpen(true)}
         onOpenCashier={(tab) => {
           if (!currentUser) {
             setIsLoginModalOpen(true);
@@ -692,182 +723,271 @@ export const App: React.FC = () => {
           setCashierTab(tab || 'DEPOSIT');
           setIsCashierOpen(true);
         }}
-        onOpenLogin={() => setIsLoginModalOpen(true)}
-        onOpenThemeCustomizer={() => setIsThemeModalOpen(true)}
         onLogout={handleLogout}
-        onRefresh={() => {
-          fetchUserData();
-          fetchExchangeMarketData();
-        }}
+        openBetsCount={myBets.filter((b) => b.status === 'UNMATCHED' || b.status === 'MATCHED').length}
+        oneClickBet={oneClickBet}
+        setOneClickBet={setOneClickBet}
       />
 
-      {/* Main View Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* VIEW 1: SPORTSBOOK (Live Matches & Match Hub) */}
-        {activeView === 'SPORTSBOOK' && (
-          <>
-            {selectedMatch ? (
-              <MatchDetailHub
-                match={selectedMatch}
-                oddsFormat={oddsFormat}
-                onBack={() => setSelectedMatchId(null)}
-                onSelectOdds={(marketId, marketName, selectionId, selectionName, price) =>
-                  handleSelectOdds(
-                    selectedMatch.id,
+      {/* 2. MAIN 3-COLUMN BODY LAYOUT */}
+      <div className="max-w-[1440px] w-full mx-auto px-2 sm:px-4 py-3 flex gap-3 flex-1">
+        {/* LEFT COLUMN: ALL SPORTS ACCORDION */}
+        <div className="hidden lg:block">
+          <FairplaySidebar
+            selectedSport={selectedSport}
+            onSelectSport={(sport) => {
+              setSelectedMatchId(null);
+              setSelectedSport(sport);
+              if (activeView !== 'SPORTSBOOK' && activeView !== 'INPLAY') {
+                setActiveView('INPLAY' as any);
+              }
+            }}
+            sportCounts={sportCounts}
+            onNavigateTab={(tab) => {
+              setSelectedMatchId(null);
+              setActiveView(tab as any);
+            }}
+          />
+        </div>
+
+        {/* CENTER COLUMN: MAIN EVENT FEED & HUBS */}
+        <main className="flex-1 min-w-0">
+          {/* Detailed Match Hub View */}
+          {selectedMatch ? (
+            <MatchDetailHub
+              match={selectedMatch}
+              oddsFormat={oddsFormat}
+              onBack={() => setSelectedMatchId(null)}
+              onSelectOdds={(marketId, marketName, selectionId, selectionName, price) =>
+                handleSelectOdds(
+                  selectedMatch.id,
+                  marketId,
+                  marketName,
+                  selectionId,
+                  selectionName,
+                  price
+                )
+              }
+              onAddSGPToSlip={handleAddSGPToSlip}
+            />
+          ) : (
+            <>
+              {/* IN-PLAY / SPORTSBOOK VIEW (Fairplay 6-Odds Matrix Cards) */}
+              {(activeView === 'INPLAY' || activeView === 'SPORTSBOOK') && (
+                <FairplayEventList
+                  matches={liveMatches}
+                  selectedSport={selectedSport}
+                  onSelectMatch={(matchId) => setSelectedMatchId(matchId)}
+                  onSelectOdds={(
+                    matchId,
                     marketId,
                     marketName,
                     selectionId,
                     selectionName,
-                    price
-                  )
-                }
-                onAddSGPToSlip={handleAddSGPToSlip}
-              />
-            ) : (
-              <SportsbookHome
-                matches={liveMatches}
-                selectedSport={selectedSport}
-                oddsFormat={oddsFormat}
-                onSelectMatch={(matchId) => setSelectedMatchId(matchId)}
-                onSelectOdds={handleSelectOdds}
-                onOpenSGP={(matchId) => setSelectedMatchId(matchId)}
-              />
-            )}
-          </>
-        )}
-
-        {/* VIEW 2: P2P EXCHANGE (Back/Lay Ladder & Exposure Matrix) */}
-        {activeView === 'EXCHANGE' && (
-          <div className="space-y-6">
-            {/* Exchange Market Selection Bar */}
-            <div className="flex items-center space-x-2 overflow-x-auto pb-1 no-scrollbar">
-              {exchangeMarkets.map((m) => (
-                <button
-                  key={m.id}
-                  onClick={() => setSelectedExchangeMarketId(m.id)}
-                  className={`px-4 py-2.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border flex items-center space-x-2 ${
-                    selectedExchangeMarketId === m.id
-                      ? 'bg-slate-800 border-blue-500 text-white shadow-lg shadow-blue-500/15'
-                      : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700'
-                  }`}
-                >
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span>{m.eventName}</span>
-                </button>
-              ))}
-            </div>
-
-            {activeExchangeMarket && (
-              <MarketLadder
-                market={activeExchangeMarket}
-                ladderData={ladderData}
-                pnlMatrix={pnlMatrix}
-                onSelectOdds={(selectionId, selectionName, type, price) => {
-                  const newItem: BetSlipItem = {
-                    id: `${activeExchangeMarket.id}_${selectionId}_${type}`,
-                    matchId: activeExchangeMarket.id,
-                    eventName: activeExchangeMarket.eventName,
-                    marketId: activeExchangeMarket.id,
-                    marketName: 'Match Odds',
-                    selectionId: selectionId.toString(),
-                    selectionName: `${selectionName} (${type})`,
-                    type,
                     price,
-                    stake: 500
-                  };
-                  setBetSlipItems((prev) => [...prev, newItem]);
-                  setIsSlipOpen(true);
-                }}
-              />
-            )}
+                    type
+                  ) => {
+                    handleSelectOdds(
+                      matchId,
+                      marketId,
+                      marketName,
+                      selectionId,
+                      selectionName,
+                      price,
+                      type || 'BACK'
+                    );
+                  }}
+                  selectedSelectionId={betSlipItems[0]?.selectionId}
+                  selectedOddsType={betSlipItems[0]?.type}
+                />
+              )}
 
-            {activeExchangeMarket && (
-              <PositionMatrix
-                selections={activeExchangeMarket.selections}
-                pnlMatrix={pnlMatrix}
-                netExposure={netExposure}
-              />
-            )}
-          </div>
-        )}
+              {/* MATKA VIEW (23 Indian Matka Bazars) */}
+              {activeView === 'MATKA' && (
+                <MatkaHub
+                  user={currentUser}
+                  onOpenLogin={() => setIsLoginModalOpen(true)}
+                  onBetPlaced={(bet) => {
+                    const newItem: BetSlipItem = {
+                      id: `${bet.marketId}_${Date.now()}`,
+                      matchId: bet.marketId,
+                      eventName: bet.eventName,
+                      marketId: bet.marketId,
+                      marketName: 'Matka Bazar',
+                      selectionId: bet.selectionName,
+                      selectionName: bet.selectionName,
+                      type: 'BACK',
+                      price: bet.odds,
+                      stake: bet.stake
+                    };
+                    setBetSlipItems((prev) => [...prev, newItem]);
+                  }}
+                />
+              )}
 
-        {/* VIEW 2.5: LIVE WORLI MATKA BAZAR */}
-        {activeView === 'MATKA' && (
-          <MatkaHub
-            user={currentUser}
-            onOpenLogin={() => setIsLoginModalOpen(true)}
-            onBetPlaced={(bet) => {
-              const newItem: BetSlipItem = {
-                id: `${bet.marketId}_${Date.now()}`,
-                matchId: bet.marketId,
-                eventName: bet.eventName,
-                marketId: bet.marketId,
-                marketName: 'Matka Bazar',
-                selectionId: bet.selectionName,
-                selectionName: bet.selectionName,
-                type: 'BACK',
-                price: bet.odds,
-                stake: bet.stake
-              };
-              setBetSlipItems((prev) => [...prev, newItem]);
-              setIsSlipOpen(true);
+              {/* CASINO VIEW (Evolution & Ezugi Live Dealer Tables) */}
+              {activeView === 'CASINO' && (
+                <LiveCasinoHub
+                  user={currentUser}
+                  onOpenLogin={() => setIsLoginModalOpen(true)}
+                  onOpenCashier={() => {
+                    setCashierTab('DEPOSIT');
+                    setIsCashierOpen(true);
+                  }}
+                />
+              )}
+
+              {/* CRASH GAMES VIEW */}
+              {activeView === 'CRASH' && (
+                <div className="bg-[#1e1e1e] p-8 rounded-md border border-[#2d2d2d] text-center space-y-4 shadow">
+                  <img src="/assets/crash-img-d4T8ANqx.webp" alt="Crash" className="w-16 h-16 mx-auto object-contain" />
+                  <h3 className="font-black text-lg text-white">Aviator & Crash Multiplier Arena</h3>
+                  <p className="text-xs text-[#adadad] max-w-md mx-auto">
+                    Experience real-time Provably Fair multipliers up to 10,000x with automated auto-cashout triggers.
+                  </p>
+                  <button
+                    onClick={() => setActiveView('CASINO' as any)}
+                    className="px-6 py-2.5 rounded-full bg-[#f36c21] hover:bg-[#e05b12] text-white font-bold text-xs uppercase tracking-wider transition-all"
+                  >
+                    Enter Live Casino Lobby
+                  </button>
+                </div>
+              )}
+
+              {/* LIVE CARD & FANTASY PRO VIEWS */}
+              {(activeView === 'LIVECARD' || activeView === 'FANTASY') && (
+                <div className="bg-[#1e1e1e] p-8 rounded-md border border-[#2d2d2d] text-center space-y-4 shadow">
+                  <img src="/assets/live-card.c981209-CS5ln-mD.webp" alt="Live Card" className="w-16 h-16 mx-auto object-contain" />
+                  <h3 className="font-black text-lg text-white">Live Teen Patti & 32 Cards Virtual Studio</h3>
+                  <p className="text-xs text-[#adadad] max-w-md mx-auto">
+                    Play Live 20-20 Teen Patti, Muflis, and Dragon Tiger with real interactive dealers.
+                  </p>
+                  <button
+                    onClick={() => setActiveView('CASINO' as any)}
+                    className="px-6 py-2.5 rounded-full bg-[#27AE60] hover:bg-[#219652] text-white font-bold text-xs uppercase tracking-wider transition-all"
+                  >
+                    Launch Live Card Table
+                  </button>
+                </div>
+              )}
+
+              {/* EARLY CASH OUT TERMINAL */}
+              {activeView === 'CASHOUT' && (
+                <CashOutManager
+                  bets={cashOutBets}
+                  oddsFormat={oddsFormat}
+                  onExecuteCashOut={handleExecuteCashOut}
+                  onSetAutoCashOut={(betId, threshold) => {
+                    setCashOutBets((prev) =>
+                      prev.map((b) => (b.id === betId ? { ...b, autoCashOutThreshold: threshold } : b))
+                    );
+                  }}
+                />
+              )}
+
+              {/* MY BETS / SETTLEMENT HISTORY */}
+              {activeView === 'MY_BETS' && (
+                <MyBets
+                  bets={myBets}
+                  onCancelBet={async (betId) => {
+                    await api.bets.cancelBet(betId);
+                    fetchExchangeMarketData();
+                  }}
+                  onRefresh={fetchExchangeMarketData}
+                />
+              )}
+            </>
+          )}
+        </main>
+
+        {/* RIGHT COLUMN: BET SLIP WIDGET */}
+        <div className="hidden lg:block">
+          <FairplayBetSlip
+            betItems={betSlipItems}
+            onUpdateStake={(index, stake) =>
+              setBetSlipItems((prev) =>
+                prev.map((item, i) => (i === index ? { ...item, stake } : item))
+              )
+            }
+            onUpdatePrice={(index, price) =>
+              setBetSlipItems((prev) =>
+                prev.map((item, i) => (i === index ? { ...item, price } : item))
+              )
+            }
+            onRemoveBet={(index) =>
+              setBetSlipItems((prev) => prev.filter((_, i) => i !== index))
+            }
+            onClearBets={() => setBetSlipItems([])}
+            onPlaceBets={() => handlePlaceBets(betSlipItems)}
+            isPlacing={isPlacingBet}
+            userBalance={currentUser ? currentUser.availableCredit : 0}
+            openBetsCount={myBets.filter((b) => b.status === 'UNMATCHED' || b.status === 'MATCHED').length}
+            onViewMyBets={() => {
+              setSelectedMatchId(null);
+              setActiveView('MY_BETS' as any);
             }}
+            oneClickBet={oneClickBet}
           />
-        )}
+        </div>
+      </div>
 
-        {/* VIEW 2.8: LIVE CASINO & DESI GAMES HUB */}
-        {activeView === 'CASINO' && (
-          <LiveCasinoHub
-            user={currentUser}
-            onOpenLogin={() => setIsLoginModalOpen(true)}
-            onOpenCashier={() => {
-              setCashierTab('DEPOSIT');
-              setIsCashierOpen(true);
-            }}
-          />
-        )}
+      {/* 3. FAIRPLAY FOOTER */}
+      <FairplayFooter />
 
-        {/* VIEW 3: EARLY CASH-OUT TERMINAL */}
-        {activeView === 'CASHOUT' && (
-          <CashOutManager
-            bets={cashOutBets}
-            oddsFormat={oddsFormat}
-            onExecuteCashOut={handleExecuteCashOut}
-            onSetAutoCashOut={(betId, threshold) => {
-              setCashOutBets((prev) =>
-                prev.map((b) => (b.id === betId ? { ...b, autoCashOutThreshold: threshold } : b))
-              );
-            }}
-          />
-        )}
+      {/* Floating Mobile Bet Slip Toggle */}
+      {betSlipItems.length > 0 && (
+        <div className="lg:hidden fixed bottom-3 right-3 z-40">
+          <button
+            onClick={() => setIsSlipOpen(true)}
+            className="px-4 py-2.5 rounded-full bg-[#f36c21] text-white font-black text-xs uppercase shadow-2xl flex items-center space-x-2 animate-bounce"
+          >
+            <span>Bet Slip ({betSlipItems.length})</span>
+          </button>
+        </div>
+      )}
 
-        {/* VIEW 4: MY BETS & SETTLEMENT HISTORY */}
-        {activeView === 'MY_BETS' && (
-          <MyBets
-            bets={myBets}
-            onCancelBet={async (betId) => {
-              await api.bets.cancelBet(betId);
-              fetchExchangeMarketData();
-            }}
-            onRefresh={fetchExchangeMarketData}
-          />
-        )}
-      </main>
-
-      {/* Interactive Universal Bet Slip */}
+      {/* Mobile Drawer Bet Slip Modal */}
       {isSlipOpen && (
-        <EnhancedBetSlip
-          items={betSlipItems}
-          availableCredit={currentUser ? currentUser.availableCredit : 0}
-          oddsFormat={oddsFormat}
-          onRemoveItem={(id) => setBetSlipItems((prev) => prev.filter((i) => i.id !== id))}
-          onClearAll={() => setBetSlipItems([])}
-          onUpdateStake={(id, stake) =>
-            setBetSlipItems((prev) => prev.map((i) => (i.id === id ? { ...i, stake } : i)))
-          }
-          onPlaceBets={handlePlaceBets}
-          onClose={() => setIsSlipOpen(false)}
-        />
+        <div className="lg:hidden fixed inset-0 z-50 bg-black/80 flex items-end justify-center p-2">
+          <div className="w-full max-w-lg">
+            <FairplayBetSlip
+              betItems={betSlipItems}
+              onUpdateStake={(index, stake) =>
+                setBetSlipItems((prev) =>
+                  prev.map((item, i) => (i === index ? { ...item, stake } : item))
+                )
+              }
+              onUpdatePrice={(index, price) =>
+                setBetSlipItems((prev) =>
+                  prev.map((item, i) => (i === index ? { ...item, price } : item))
+                )
+              }
+              onRemoveBet={(index) =>
+                setBetSlipItems((prev) => prev.filter((_, i) => i !== index))
+              }
+              onClearBets={() => setBetSlipItems([])}
+              onPlaceBets={() => {
+                handlePlaceBets(betSlipItems);
+                setIsSlipOpen(false);
+              }}
+              isPlacing={isPlacingBet}
+              userBalance={currentUser ? currentUser.availableCredit : 0}
+              openBetsCount={myBets.filter((b) => b.status === 'UNMATCHED' || b.status === 'MATCHED').length}
+              onViewMyBets={() => {
+                setSelectedMatchId(null);
+                setActiveView('MY_BETS' as any);
+                setIsSlipOpen(false);
+              }}
+              oneClickBet={oneClickBet}
+            />
+            <button
+              onClick={() => setIsSlipOpen(false)}
+              className="w-full mt-2 py-2 rounded bg-[#333] text-white font-bold text-xs"
+            >
+              Close Slip
+            </button>
+          </div>
+        </div>
       )}
 
       {/* Cashier & Banking Modal */}
@@ -892,12 +1012,6 @@ export const App: React.FC = () => {
         }}
         loading={loading}
         error={loginError}
-      />
-
-      {/* Theme & Brand Customizer Modal */}
-      <ThemeCustomizerModal
-        isOpen={isThemeModalOpen}
-        onClose={() => setIsThemeModalOpen(false)}
       />
     </div>
   );
