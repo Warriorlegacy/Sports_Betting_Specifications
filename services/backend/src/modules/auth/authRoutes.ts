@@ -103,3 +103,93 @@ authRouter.get('/me', authenticateToken, async (req: AuthenticatedRequest, res: 
     res.status(500).json({ error: 'Failed to fetch user profile' });
   }
 });
+
+/**
+ * POST /api/auth/register
+ * Public player self-registration with instant starter wallet credit.
+ */
+authRouter.post('/register', async (req, res: Response) => {
+  try {
+    const { username, password, phone, referralCode } = req.body;
+
+    if (!username || !username.trim()) {
+      return res.status(400).json({ error: 'Username is required' });
+    }
+
+    if (!password || password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+    }
+
+    const cleanUsername = username.trim().toLowerCase();
+
+    // Check if username already exists
+    const existing = await query(`SELECT id FROM users WHERE username = $1`, [cleanUsername]);
+    if (existing.rows.length > 0) {
+      return res.status(409).json({ error: `Username '${cleanUsername}' is already taken` });
+    }
+
+    // Find default agent or master to act as parent node
+    const parentRes = await query(
+      `SELECT id FROM users WHERE role = 'AGENT' AND is_active = TRUE ORDER BY created_at ASC LIMIT 1`
+    );
+    let parentId = parentRes.rows[0]?.id;
+
+    if (!parentId) {
+      const adminRes = await query(`SELECT id FROM users WHERE role = 'ADMIN' LIMIT 1`);
+      parentId = adminRes.rows[0]?.id;
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const welcomeBonus = 500.00; // Starter promotional balance
+
+    const insertRes = await query(
+      `INSERT INTO users (
+        username, password_hash, role, parent_id, credit_limit, available_credit, exposure, is_active
+      ) VALUES ($1, $2, 'USER', $3, 10000.00, $4, 0.00, TRUE)
+      RETURNING id, username, role, parent_id, credit_limit, available_credit, exposure, is_active, created_at`,
+      [cleanUsername, passwordHash, parentId, welcomeBonus]
+    );
+
+    const newUser = insertRes.rows[0];
+
+    // Log welcome bonus in ledger
+    await query(
+      `INSERT INTO ledger_entries (sender_id, receiver_id, amount, transaction_type, reference_id, notes)
+       VALUES ($1, $2, $3, 'WELCOME_BONUS', $4, $5)`,
+      [
+        parentId,
+        newUser.id,
+        welcomeBonus,
+        `BONUS_${newUser.id.substring(0, 8).toUpperCase()}`,
+        `Instant Welcome Bonus on registration (Ref: ${referralCode || 'NEXUS500'})`
+      ]
+    );
+
+    const tokenPayload = {
+      id: newUser.id,
+      username: newUser.username,
+      role: newUser.role,
+      parentId: newUser.parent_id
+    };
+
+    const token = jwt.sign(tokenPayload, config.jwtSecret, { expiresIn: '7d' });
+
+    res.status(201).json({
+      message: 'Account registered successfully! ₹500 welcome credit has been added to your wallet.',
+      token,
+      user: {
+        id: newUser.id,
+        username: newUser.username,
+        role: newUser.role,
+        parentId: newUser.parent_id,
+        creditLimit: parseFloat(newUser.credit_limit),
+        availableCredit: parseFloat(newUser.available_credit),
+        exposure: 0
+      }
+    });
+  } catch (error: any) {
+    console.error('Registration error:', error);
+    res.status(500).json({ error: error.message || 'Internal server error during registration' });
+  }
+});
+

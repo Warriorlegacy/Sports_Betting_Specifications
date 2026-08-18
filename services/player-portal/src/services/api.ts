@@ -65,7 +65,12 @@ export const api = {
   auth: {
     login: (credentials: { username: string; password: string }) =>
       request('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
+    register: (userData: { username: string; password: string; phone?: string; referralCode?: string }) =>
+      request('/auth/register', { method: 'POST', body: JSON.stringify(userData) }),
     getMe: () => request('/auth/me')
+  },
+  paymentMethods: {
+    getActive: () => request('/payment-methods')
   },
   markets: {
     getAll: () => request('/markets'),
@@ -74,8 +79,6 @@ export const api = {
     getTelemetry: (marketId: string) => request(`/markets/telemetry/${marketId}`),
     syncRealFeed: () => request('/markets/real-feed/sync', { method: 'POST' })
   },
-
-
   bets: {
     placeBet: (betData: { marketId: string; selectionId: number; type: 'BACK' | 'LAY'; price: number; stake: number }) =>
       request('/bets', { method: 'POST', body: JSON.stringify(betData) }),
@@ -91,6 +94,20 @@ export const api = {
       request(`/bets/market/${marketId}/exposure`)
   },
   ledger: {
-    getHistory: (limit: number = 20) => request(`/ledger/history?limit=${limit}`)
+    getHistory: (limit: number = 20) => request(`/ledger/history?limit=${limit}`),
+    submitDepositRequest: (payload: {
+      amount: number;
+      paymentMethod: string;
+      utrReference: string;
+      depositAccountId?: string;
+      proofUrl?: string;
+    }) => request('/ledger/deposit-request', { method: 'POST', body: JSON.stringify(payload) }),
+    requestWithdrawal: (payload: {
+      amount: number;
+      payoutMethod: 'BANK' | 'UPI' | 'CRYPTO';
+      accountDetails: Record<string, any>;
+    }) => request('/ledger/withdraw', { method: 'POST', body: JSON.stringify(payload) }),
+    getMyDeposits: () => request('/ledger/my-deposits'),
+    getMyWithdrawals: () => request('/ledger/my-withdrawals')
   }
 };

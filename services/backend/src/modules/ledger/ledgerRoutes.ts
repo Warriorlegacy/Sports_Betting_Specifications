@@ -5,6 +5,10 @@ import {
   allocateCreditAtomic,
   recallCreditAtomic,
   depositFundsAtomic,
+  submitDepositRequestAtomic,
+  processDepositAtomic,
+  getDepositsList,
+  getUserDeposits,
   requestWithdrawalAtomic,
   processWithdrawalAtomic,
   getUserTransactions,
@@ -14,8 +18,177 @@ import {
 export const ledgerRouter = Router();
 
 /**
+ * POST /api/ledger/deposit-request
+ * Player submits a deposit request with UTR / Reference after transferring funds to Admin's Bank or UPI/QR.
+ */
+ledgerRouter.post(
+  '/deposit-request',
+  authenticateToken,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const {
+        amount,
+        paymentMethod = 'UPI',
+        utrReference,
+        paymentMethodId,
+        depositAccountDetails,
+        proofImageUrl,
+        notes
+      } = req.body;
+
+      if (!amount || parseFloat(amount) <= 0) {
+        return res.status(400).json({ error: 'Valid positive deposit amount is required' });
+      }
+
+      if (!utrReference || !utrReference.trim()) {
+        return res.status(400).json({ error: '12-digit UTR or Transaction Reference number is required' });
+      }
+
+      const result = await submitDepositRequestAtomic({
+        userId,
+        amount: parseFloat(amount),
+        paymentMethod,
+        utrReference,
+        paymentMethodId,
+        depositAccountDetails,
+        proofImageUrl,
+        notes
+      });
+
+      // Broadcast to Admin / Master room for real-time notification
+      const io = (req.app as any).get('io');
+      if (io) {
+        io.emit('admin:deposit_request', {
+          depositId: result.depositId,
+          userId,
+          username: req.user!.username,
+          amount: result.amount,
+          paymentMethod: result.paymentMethod,
+          utrReference: result.utrReference,
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      res.status(201).json({
+        message: 'Deposit request submitted successfully. Awaiting operator confirmation.',
+        ...result
+      });
+    } catch (error: any) {
+      console.error('Error submitting deposit request:', error);
+      res.status(400).json({ error: error.message || 'Failed to submit deposit request' });
+    }
+  }
+);
+
+/**
+ * GET /api/ledger/deposits
+ * Admin / Master endpoint to view deposit requests queue.
+ */
+ledgerRouter.get(
+  '/deposits',
+  authenticateToken,
+  requireRoles(['ADMIN', 'SUPER_MASTER', 'MASTER', 'AGENT']),
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const status = req.query.status as string | undefined;
+      const search = req.query.search as string | undefined;
+      const limit = parseInt(req.query.limit as string || '50', 10);
+      const offset = parseInt(req.query.offset as string || '0', 10);
+
+      const result = await getDepositsList(status, undefined, limit, offset, search);
+      res.json(result);
+    } catch (error: any) {
+      console.error('Error fetching deposits queue:', error);
+      res.status(500).json({ error: 'Failed to fetch deposit requests' });
+    }
+  }
+);
+
+/**
+ * POST /api/ledger/deposits/:id/process
+ * Admin / Master approves or rejects a player deposit request.
+ */
+ledgerRouter.post(
+  '/deposits/:id/process',
+  authenticateToken,
+  requireRoles(['ADMIN', 'SUPER_MASTER', 'MASTER', 'AGENT']),
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const processorId = req.user!.id;
+      const depositId = req.params.id;
+      const { action, notes } = req.body;
+
+      if (action !== 'APPROVE' && action !== 'REJECT') {
+        return res.status(400).json({ error: "Action must be either 'APPROVE' or 'REJECT'" });
+      }
+
+      const result = await processDepositAtomic(
+        depositId,
+        processorId,
+        action,
+        notes
+      );
+
+      // Emit live WebSocket notification to target player
+      const io = (req.app as any).get('io');
+      if (io) {
+        if (action === 'APPROVE') {
+          io.to(`user:${result.userId}`).emit('deposit:success', {
+            amount: result.amount,
+            availableCredit: result.availableCredit,
+            creditLimit: result.creditLimit,
+            timestamp: new Date().toISOString()
+          });
+          io.to(`user:${result.userId}`).emit('user:balance', {
+            availableCredit: result.availableCredit,
+            creditLimit: result.creditLimit
+          });
+        } else {
+          io.to(`user:${result.userId}`).emit('deposit:rejected', {
+            depositId,
+            notes: notes || 'Deposit rejected by operator',
+            timestamp: new Date().toISOString()
+          });
+        }
+      }
+
+      res.json({
+        message: `Deposit request successfully ${action === 'APPROVE' ? 'approved & credited' : 'rejected'}`,
+        ...result
+      });
+    } catch (error: any) {
+      console.error('Error processing deposit:', error);
+      res.status(400).json({ error: error.message || 'Failed to process deposit request' });
+    }
+  }
+);
+
+/**
+ * GET /api/ledger/my-deposits
+ * Authenticated player views their own deposit requests history.
+ */
+ledgerRouter.get(
+  '/my-deposits',
+  authenticateToken,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const userId = req.user!.id;
+      const limit = parseInt(req.query.limit as string || '50', 10);
+      const offset = parseInt(req.query.offset as string || '0', 10);
+
+      const result = await getUserDeposits(userId, limit, offset);
+      res.json(result);
+    } catch (error: any) {
+      console.error('Error fetching my deposits:', error);
+      res.status(500).json({ error: 'Failed to fetch deposit history' });
+    }
+  }
+);
+
+/**
  * POST /api/ledger/deposit
- * Instant player deposit via UPI, USDT/Crypto, Bank Wire, or Card.
+ * Direct instant credit endpoint (for webhooks or manual testing).
  */
 ledgerRouter.post(
   '/deposit',
@@ -75,6 +248,19 @@ ledgerRouter.post(
         accountDetails,
         notes
       );
+
+      // Emit live WebSocket notification to Admin / Master desk
+      const io = (req.app as any).get('io');
+      if (io) {
+        io.emit('admin:withdrawal_request', {
+          withdrawalId: result.withdrawalId,
+          userId,
+          username: req.user!.username,
+          amount: result.amount,
+          payoutMethod: result.payoutMethod,
+          timestamp: new Date().toISOString()
+        });
+      }
 
       res.json({
         message: 'Withdrawal request submitted successfully',
@@ -179,6 +365,17 @@ ledgerRouter.post(
         referenceId,
         notes
       );
+
+      // Emit live WebSocket notification to target user
+      const io = (req.app as any).get('io');
+      if (io) {
+        io.to(`user:${result.userId}`).emit('withdrawal:processed', {
+          withdrawalId,
+          status: result.status,
+          amount: result.amount,
+          timestamp: new Date().toISOString()
+        });
+      }
 
       res.json({
         message: `Withdrawal request successfully ${action.toLowerCase()}d`,
@@ -315,4 +512,3 @@ ledgerRouter.get(
     }
   }
 );
-

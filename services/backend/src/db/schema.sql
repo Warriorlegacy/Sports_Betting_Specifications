@@ -110,6 +110,62 @@ CREATE TABLE ledger_entries (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 7. Admin Managed Deposit Accounts (Bank Accounts & UPI / QR Codes)
+CREATE TABLE deposit_accounts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    account_type VARCHAR(50) NOT NULL, -- 'BANK', 'UPI', 'QR', 'CRYPTO'
+    display_name VARCHAR(100) NOT NULL,
+    bank_name VARCHAR(100),
+    account_holder VARCHAR(100),
+    account_number VARCHAR(100),
+    ifsc_code VARCHAR(50),
+    branch VARCHAR(100),
+    upi_id VARCHAR(100),
+    qr_code_url TEXT,
+    crypto_network VARCHAR(50),
+    crypto_address VARCHAR(150),
+    min_deposit NUMERIC(15, 2) NOT NULL DEFAULT 100.00,
+    max_deposit NUMERIC(15, 2) NOT NULL DEFAULT 500000.00,
+    daily_limit NUMERIC(15, 2) NOT NULL DEFAULT 2000000.00,
+    instructions TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    is_primary BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 8. Player Deposit Requests Queue (Admin Controlled Approval/Rejection)
+CREATE TABLE deposits (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    payment_method_id UUID REFERENCES deposit_accounts(id) ON DELETE SET NULL,
+    payment_method VARCHAR(50) NOT NULL,
+    amount NUMERIC(15, 2) NOT NULL CHECK (amount > 0.00),
+    utr_reference VARCHAR(100) NOT NULL,
+    deposit_account_details JSONB,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
+    processed_by UUID REFERENCES users(id),
+    proof_image_url TEXT,
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    processed_at TIMESTAMP WITH TIME ZONE
+);
+
+-- 9. Player Withdrawal Requests Queue (Admin Controlled Approval/Rejection)
+CREATE TABLE withdrawals (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    amount NUMERIC(15, 2) NOT NULL CHECK (amount > 0.00),
+    payout_method VARCHAR(50) NOT NULL,
+    account_details JSONB NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
+    processed_by UUID REFERENCES users(id),
+    reference_id VARCHAR(100),
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    processed_at TIMESTAMP WITH TIME ZONE
+);
+
 -- Strategic Indexes
 CREATE INDEX idx_users_parent_id ON users(parent_id);
 CREATE INDEX idx_users_role ON users(role);
@@ -124,6 +180,18 @@ CREATE INDEX idx_ledger_sender ON ledger_entries(sender_id);
 CREATE INDEX idx_ledger_receiver ON ledger_entries(receiver_id);
 CREATE INDEX idx_ledger_type ON ledger_entries(transaction_type);
 CREATE INDEX idx_ledger_created_at ON ledger_entries(created_at);
+
+CREATE INDEX idx_deposit_accounts_type ON deposit_accounts(account_type);
+CREATE INDEX idx_deposit_accounts_active ON deposit_accounts(is_active);
+
+CREATE INDEX idx_deposits_user ON deposits(user_id);
+CREATE INDEX idx_deposits_status ON deposits(status);
+CREATE INDEX idx_deposits_utr ON deposits(utr_reference);
+CREATE INDEX idx_deposits_created_at ON deposits(created_at);
+
+CREATE INDEX idx_withdrawals_user ON withdrawals(user_id);
+CREATE INDEX idx_withdrawals_status ON withdrawals(status);
+CREATE INDEX idx_withdrawals_created_at ON withdrawals(created_at);
 
 CREATE INDEX idx_market_selections_market ON market_selections(market_id);
 CREATE INDEX idx_trades_market ON trades(market_id);

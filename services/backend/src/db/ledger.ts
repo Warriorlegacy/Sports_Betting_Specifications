@@ -967,3 +967,298 @@ export async function getWithdrawalsList(
   };
 }
 
+/**
+ * Submits a new deposit request from player with UTR reference and payment details.
+ */
+export async function submitDepositRequestAtomic(params: {
+  userId: string;
+  amount: number;
+  paymentMethod: string;
+  utrReference: string;
+  paymentMethodId?: string;
+  depositAccountDetails?: Record<string, any>;
+  proofImageUrl?: string;
+  notes?: string;
+}): Promise<{
+  depositId: string;
+  amount: number;
+  paymentMethod: string;
+  utrReference: string;
+  status: string;
+  createdAt: string;
+}> {
+  const {
+    userId,
+    amount,
+    paymentMethod,
+    utrReference,
+    paymentMethodId,
+    depositAccountDetails,
+    proofImageUrl,
+    notes
+  } = params;
+
+  if (amount <= 0 || isNaN(amount)) {
+    throw new Error('Valid deposit amount greater than zero is required');
+  }
+
+  if (!utrReference || !utrReference.trim()) {
+    throw new Error('Valid 12-digit UPI UTR or Transaction Reference number is required');
+  }
+
+  const roundedAmount = Math.round(amount * 100) / 100;
+  const cleanUtr = utrReference.trim();
+
+  // Check if UTR is already submitted
+  const existingUtr = await pool.query(
+    `SELECT id, status FROM deposits WHERE utr_reference = $1 AND status IN ('PENDING', 'APPROVED') LIMIT 1`,
+    [cleanUtr]
+  );
+  if (existingUtr.rows.length > 0) {
+    throw new Error(`UTR reference '${cleanUtr}' has already been submitted (status: ${existingUtr.rows[0].status})`);
+  }
+
+  // Validate user is active
+  const userCheck = await pool.query(`SELECT id, username, is_active FROM users WHERE id = $1`, [userId]);
+  if (userCheck.rows.length === 0) {
+    throw new Error('User account not found');
+  }
+  if (!userCheck.rows[0].is_active) {
+    throw new Error('User account is deactivated');
+  }
+
+  const insertRes = await pool.query(
+    `INSERT INTO deposits (
+      user_id, payment_method_id, payment_method, amount, utr_reference,
+      deposit_account_details, status, proof_image_url, notes
+    ) VALUES ($1, $2, $3, $4, $5, $6, 'PENDING', $7, $8)
+    RETURNING id, amount, payment_method, utr_reference, status, created_at`,
+    [
+      userId,
+      paymentMethodId || null,
+      paymentMethod,
+      roundedAmount,
+      cleanUtr,
+      depositAccountDetails ? JSON.stringify(depositAccountDetails) : null,
+      proofImageUrl || null,
+      notes || `Player deposit submission via ${paymentMethod}`
+    ]
+  );
+
+  const row = insertRes.rows[0];
+
+  return {
+    depositId: row.id,
+    amount: parseFloat(row.amount),
+    paymentMethod: row.payment_method,
+    utrReference: row.utr_reference,
+    status: row.status,
+    createdAt: row.created_at
+  };
+}
+
+/**
+ * Atomically approves or rejects a player deposit request.
+ * If approved: atomically updates available_credit & credit_limit, records double-entry ledger entry.
+ */
+export async function processDepositAtomic(
+  depositId: string,
+  processorId: string,
+  action: 'APPROVE' | 'REJECT',
+  notes?: string
+): Promise<{
+  depositId: string;
+  status: string;
+  amount: number;
+  userId: string;
+  username: string;
+  availableCredit?: number;
+  creditLimit?: number;
+}> {
+  return await withTransaction(async (client) => {
+    // 1. Lock deposit row
+    const depRes = await client.query(
+      `SELECT d.id, d.user_id, d.amount, d.payment_method, d.utr_reference, d.status, u.username
+       FROM deposits d
+       JOIN users u ON d.user_id = u.id
+       WHERE d.id = $1 FOR UPDATE`,
+      [depositId]
+    );
+
+    if (depRes.rows.length === 0) {
+      throw new Error(`Deposit request with ID ${depositId} not found`);
+    }
+
+    const deposit = depRes.rows[0];
+    if (deposit.status !== 'PENDING') {
+      throw new Error(`Deposit request has already been ${deposit.status.toLowerCase()}`);
+    }
+
+    const amount = parseFloat(deposit.amount);
+    const targetUserId = deposit.user_id;
+
+    if (action === 'APPROVE') {
+      // 2. Lock user row
+      const userRes = await client.query(
+        `SELECT id, username, available_credit, credit_limit, is_active FROM users WHERE id = $1 FOR UPDATE`,
+        [targetUserId]
+      );
+
+      if (userRes.rows.length === 0) {
+        throw new Error('Target user account not found');
+      }
+
+      const user = userRes.rows[0];
+      const newAvail = Math.round((parseFloat(user.available_credit) + amount) * 100) / 100;
+      const newLimit = Math.round((parseFloat(user.credit_limit) + amount) * 100) / 100;
+
+      // 3. Update user balances
+      await client.query(
+        `UPDATE users SET available_credit = $1, credit_limit = $2, updated_at = NOW() WHERE id = $3`,
+        [newAvail, newLimit, targetUserId]
+      );
+
+      // 4. Update deposit status
+      await client.query(
+        `UPDATE deposits
+         SET status = 'APPROVED', processed_by = $1, notes = $2, processed_at = NOW()
+         WHERE id = $3`,
+        [processorId, notes || `Approved & Credited by Admin (UTR: ${deposit.utr_reference})`, depositId]
+      );
+
+      // 5. Insert double-entry ledger entry
+      await client.query(
+        `INSERT INTO ledger_entries (sender_id, receiver_id, amount, transaction_type, reference_id, notes)
+         VALUES ($1, $2, $3, 'DEPOSIT', $4, $5)`,
+        [
+          null,
+          targetUserId,
+          amount,
+          deposit.utr_reference,
+          notes || `Deposit approved: ₹${amount.toFixed(2)} via ${deposit.payment_method} (UTR: ${deposit.utr_reference})`
+        ]
+      );
+
+      return {
+        depositId,
+        status: 'APPROVED',
+        amount,
+        userId: targetUserId,
+        username: user.username,
+        availableCredit: newAvail,
+        creditLimit: newLimit
+      };
+    } else {
+      // REJECT
+      await client.query(
+        `UPDATE deposits
+         SET status = 'REJECTED', processed_by = $1, notes = $2, processed_at = NOW()
+         WHERE id = $3`,
+        [processorId, notes || 'Deposit request rejected by operator', depositId]
+      );
+
+      return {
+        depositId,
+        status: 'REJECTED',
+        amount,
+        userId: targetUserId,
+        username: deposit.username
+      };
+    }
+  });
+}
+
+/**
+ * Fetches deposits list for Admin oversight or audit filtering.
+ */
+export async function getDepositsList(
+  status?: string,
+  userId?: string,
+  limit: number = 50,
+  offset: number = 0,
+  search?: string
+): Promise<{
+  deposits: any[];
+  total: number;
+}> {
+  let whereClauses: string[] = [];
+  let params: any[] = [];
+  let pIdx = 1;
+
+  if (status) {
+    whereClauses.push(`d.status = $${pIdx++}`);
+    params.push(status);
+  }
+
+  if (userId) {
+    whereClauses.push(`d.user_id = $${pIdx++}`);
+    params.push(userId);
+  }
+
+  if (search) {
+    whereClauses.push(`(d.utr_reference ILIKE $${pIdx} OR u.username ILIKE $${pIdx})`);
+    params.push(`%${search}%`);
+    pIdx++;
+  }
+
+  const whereSql = whereClauses.length > 0 ? `WHERE ${whereClauses.join(' AND ')}` : '';
+
+  const countRes = await pool.query(
+    `SELECT COUNT(*) as count FROM deposits d JOIN users u ON d.user_id = u.id ${whereSql}`,
+    params
+  );
+  const total = parseInt(countRes.rows[0].count, 10);
+
+  const listRes = await pool.query(
+    `SELECT d.id, d.user_id, d.payment_method_id, d.payment_method, d.amount, d.utr_reference,
+            d.deposit_account_details, d.status, d.processed_by, d.proof_image_url, d.notes,
+            d.created_at, d.processed_at,
+            u.username, u.role, u.available_credit, u.exposure,
+            pu.username as processor_username
+     FROM deposits d
+     JOIN users u ON d.user_id = u.id
+     LEFT JOIN users pu ON d.processed_by = pu.id
+     ${whereSql}
+     ORDER BY d.created_at DESC
+     LIMIT $${pIdx++} OFFSET $${pIdx++}`,
+    [...params, limit, offset]
+  );
+
+  return {
+    deposits: listRes.rows,
+    total
+  };
+}
+
+/**
+ * Fetches user's own deposits.
+ */
+export async function getUserDeposits(
+  userId: string,
+  limit: number = 50,
+  offset: number = 0
+): Promise<{
+  deposits: any[];
+  total: number;
+}> {
+  const countRes = await pool.query(
+    `SELECT COUNT(*) as count FROM deposits WHERE user_id = $1`,
+    [userId]
+  );
+  const total = parseInt(countRes.rows[0].count, 10);
+
+  const listRes = await pool.query(
+    `SELECT id, amount, payment_method, utr_reference, deposit_account_details, status, notes, created_at, processed_at
+     FROM deposits
+     WHERE user_id = $1
+     ORDER BY created_at DESC
+     LIMIT $2 OFFSET $3`,
+    [userId, limit, offset]
+  );
+
+  return {
+    deposits: listRes.rows,
+    total
+  };
+}
+

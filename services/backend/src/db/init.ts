@@ -103,13 +103,52 @@ CREATE TABLE IF NOT EXISTS ledger_entries (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS deposit_accounts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    account_type VARCHAR(50) NOT NULL, -- 'BANK', 'UPI', 'QR', 'CRYPTO'
+    display_name VARCHAR(100) NOT NULL,
+    bank_name VARCHAR(100),
+    account_holder VARCHAR(100),
+    account_number VARCHAR(100),
+    ifsc_code VARCHAR(50),
+    branch VARCHAR(100),
+    upi_id VARCHAR(100),
+    qr_code_url TEXT,
+    crypto_network VARCHAR(50),
+    crypto_address VARCHAR(150),
+    min_deposit NUMERIC(15, 2) NOT NULL DEFAULT 100.00,
+    max_deposit NUMERIC(15, 2) NOT NULL DEFAULT 500000.00,
+    daily_limit NUMERIC(15, 2) NOT NULL DEFAULT 2000000.00,
+    instructions TEXT,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    is_primary BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS deposits (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+    payment_method_id UUID REFERENCES deposit_accounts(id) ON DELETE SET NULL,
+    payment_method VARCHAR(50) NOT NULL,
+    amount NUMERIC(15, 2) NOT NULL CHECK (amount > 0.00),
+    utr_reference VARCHAR(100) NOT NULL,
+    deposit_account_details JSONB,
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
+    processed_by UUID REFERENCES users(id),
+    proof_image_url TEXT,
+    notes TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    processed_at TIMESTAMP WITH TIME ZONE
+);
+
 CREATE TABLE IF NOT EXISTS withdrawals (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
     amount NUMERIC(15, 2) NOT NULL CHECK (amount > 0.00),
     payout_method VARCHAR(50) NOT NULL,
     account_details JSONB NOT NULL,
-    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED')),
     processed_by UUID REFERENCES users(id),
     reference_id VARCHAR(100),
     notes TEXT,
@@ -127,6 +166,11 @@ CREATE INDEX IF NOT EXISTS idx_bets_created_at ON bets(created_at);
 CREATE INDEX IF NOT EXISTS idx_ledger_sender ON ledger_entries(sender_id);
 CREATE INDEX IF NOT EXISTS idx_ledger_receiver ON ledger_entries(receiver_id);
 CREATE INDEX IF NOT EXISTS idx_ledger_type ON ledger_entries(transaction_type);
+CREATE INDEX IF NOT EXISTS idx_deposit_accounts_type ON deposit_accounts(account_type);
+CREATE INDEX IF NOT EXISTS idx_deposit_accounts_active ON deposit_accounts(is_active);
+CREATE INDEX IF NOT EXISTS idx_deposits_user ON deposits(user_id);
+CREATE INDEX IF NOT EXISTS idx_deposits_status ON deposits(status);
+CREATE INDEX IF NOT EXISTS idx_deposits_utr ON deposits(utr_reference);
 CREATE INDEX IF NOT EXISTS idx_withdrawals_user_id ON withdrawals(user_id);
 CREATE INDEX IF NOT EXISTS idx_withdrawals_status ON withdrawals(status);
 CREATE INDEX IF NOT EXISTS idx_market_selections_market ON market_selections(market_id);
@@ -180,8 +224,16 @@ VALUES
 ('MKT_LAL_BOS_NBA', 1, 'LA Lakers'),
 ('MKT_LAL_BOS_NBA', 2, 'Boston Celtics')
 ON CONFLICT (market_id, selection_id) DO NOTHING;
-`;
 
+-- Seed Default Admin Managed Deposit Accounts
+INSERT INTO deposit_accounts (id, account_type, display_name, bank_name, account_holder, account_number, ifsc_code, branch, upi_id, min_deposit, max_deposit, instructions, is_active, is_primary)
+VALUES 
+('a0000000-0000-0000-0000-000000000001', 'BANK', 'ICICI Corporate Primary', 'ICICI Bank Ltd', 'NEXUSVIP ENTERPRISES LTD', '50200088912456', 'ICIC0000104', 'Nariman Point Mumbai', NULL, 500.00, 500000.00, 'Direct IMPS or RTGS deposit. Enter 12-digit UTR after transferring.', TRUE, TRUE),
+('a0000000-0000-0000-0000-000000000002', 'BANK', 'HDFC Priority Fast Current', 'HDFC Bank Ltd', 'NEXUSVIP GLOBAL TRADING', '50100492819234', 'HDFC0000060', 'Connaught Place Delhi', NULL, 500.00, 500000.00, 'Instant 24x7 IMPS clearing. Auto-verified on UTR submission.', TRUE, FALSE),
+('a0000000-0000-0000-0000-000000000003', 'UPI', 'Official Nexusvip Fast UPI', NULL, 'NEXUSVIP PAY', NULL, NULL, NULL, 'nexusvip.pay@icici', 100.00, 100000.00, 'Scan with PhonePe, Google Pay, Paytm, or BHIM. Enter 12-digit UTR immediately.', TRUE, TRUE),
+('a0000000-0000-0000-0000-000000000004', 'CRYPTO', 'USDT TRC20 Hot Wallet', NULL, 'NEXUS VIP CRYPTO', NULL, NULL, NULL, NULL, 500.00, 1000000.00, 'Send USDT TRC-20 only. Enter TxHash reference after transfer.', TRUE, FALSE)
+ON CONFLICT (id) DO NOTHING;
+`;
 
 export async function initializeDatabase(): Promise<void> {
   try {
@@ -204,7 +256,11 @@ export async function initializeDatabase(): Promise<void> {
       await pool.query(SEED_SQL);
       console.log('Seed data inserted successfully.');
     } else {
-      console.log('Database schema already exists. Ensuring default markets and admin seed records...');
+      console.log('Database schema already exists. Ensuring latest tables, default markets, and deposit accounts...');
+      // Ensure new tables are created if updating existing schema
+      await pool.query(SCHEMA_SQL).catch(err => {
+        console.warn('Schema DDL note:', err.message);
+      });
       await pool.query(SEED_SQL).catch(err => {
         console.warn('Seed insert note:', err.message);
       });

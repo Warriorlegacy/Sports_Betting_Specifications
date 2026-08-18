@@ -253,3 +253,170 @@ betRouter.get('/market/:marketId/exposure', authenticateToken, async (req: Authe
     res.status(500).json({ error: error.message || 'Failed to calculate market exposure' });
   }
 });
+
+/**
+ * GET /api/bets/records
+ * Admin / Master view of bet records across all users or downline subtree with multi-criteria filters.
+ */
+betRouter.get(
+  '/records',
+  authenticateToken,
+  async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const requester = req.user!;
+      const allowedRoles = ['ADMIN', 'SUPER_MASTER', 'MASTER', 'AGENT'];
+      if (!allowedRoles.includes(requester.role)) {
+        return res.status(403).json({ error: 'Access denied to global bet records' });
+      }
+
+      const {
+        username,
+        userId,
+        marketId,
+        sport,
+        type,
+        status,
+        dateFrom,
+        dateTo,
+        limit = '50',
+        offset = '0'
+      } = req.query;
+
+      const limitNum = Math.min(200, parseInt(limit as string, 10) || 50);
+      const offsetNum = Math.max(0, parseInt(offset as string, 10) || 0);
+
+      let whereConditions: string[] = [];
+      let params: any[] = [];
+      let pIdx = 1;
+
+      // Downline isolation if not ADMIN
+      if (requester.role !== 'ADMIN') {
+        whereConditions.push(`b.user_id IN (
+          WITH RECURSIVE downline AS (
+            SELECT id FROM users WHERE id = $${pIdx++}
+            UNION ALL
+            SELECT u.id FROM users u INNER JOIN downline d ON u.parent_id = d.id
+          )
+          SELECT id FROM downline
+        )`);
+        params.push(requester.id);
+      }
+
+      if (username) {
+        whereConditions.push(`u.username ILIKE $${pIdx++}`);
+        params.push(`%${username}%`);
+      }
+
+      if (userId) {
+        whereConditions.push(`b.user_id = $${pIdx++}`);
+        params.push(userId);
+      }
+
+      if (marketId) {
+        whereConditions.push(`b.market_id = $${pIdx++}`);
+        params.push(marketId);
+      }
+
+      if (sport) {
+        whereConditions.push(`m.sport ILIKE $${pIdx++}`);
+        params.push(sport);
+      }
+
+      if (type) {
+        whereConditions.push(`b.type = $${pIdx++}`);
+        params.push(type);
+      }
+
+      if (status) {
+        whereConditions.push(`b.status = $${pIdx++}`);
+        params.push(status);
+      }
+
+      if (dateFrom) {
+        whereConditions.push(`b.created_at >= $${pIdx++}`);
+        params.push(dateFrom);
+      }
+
+      if (dateTo) {
+        whereConditions.push(`b.created_at <= $${pIdx++}`);
+        params.push(dateTo);
+      }
+
+      const whereSql = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+
+      // Count query
+      const countSql = `
+        SELECT 
+          COUNT(b.id) as total_count,
+          COALESCE(SUM(b.stake), 0) as total_volume,
+          COALESCE(SUM(b.liability), 0) as total_liability,
+          COALESCE(SUM(b.pnl), 0) as total_pnl,
+          COUNT(CASE WHEN b.status = 'MATCHED' THEN 1 END) as matched_count,
+          COUNT(CASE WHEN b.status = 'UNMATCHED' THEN 1 END) as unmatched_count,
+          COUNT(CASE WHEN b.status = 'SETTLED' THEN 1 END) as settled_count
+        FROM bets b
+        JOIN users u ON b.user_id = u.id
+        JOIN markets m ON b.market_id = m.id
+        ${whereSql}
+      `;
+      const countRes = await query(countSql, params);
+      const agg = countRes.rows[0];
+
+      // Records query
+      const listSql = `
+        SELECT b.id, b.user_id, b.market_id, b.selection_id, b.type, b.price, b.stake, b.matched_stake,
+               b.liability, b.status, b.pnl, b.created_at, b.matched_at, b.settled_at,
+               u.username, u.role as user_role,
+               m.event_name, m.sport, ms.selection_name
+        FROM bets b
+        JOIN users u ON b.user_id = u.id
+        JOIN markets m ON b.market_id = m.id
+        JOIN market_selections ms ON b.market_id = ms.market_id AND b.selection_id = ms.selection_id
+        ${whereSql}
+        ORDER BY b.created_at DESC
+        LIMIT $${pIdx++} OFFSET $${pIdx++}
+      `;
+      const listRes = await query(listSql, [...params, limitNum, offsetNum]);
+
+      const bets = listRes.rows.map((r) => ({
+        id: r.id,
+        userId: r.user_id,
+        username: r.username,
+        userRole: r.user_role,
+        marketId: r.market_id,
+        eventName: r.event_name,
+        sport: r.sport,
+        selectionId: r.selection_id,
+        selectionName: r.selection_name,
+        type: r.type,
+        price: parseFloat(r.price),
+        stake: parseFloat(r.stake),
+        matchedStake: parseFloat(r.matched_stake),
+        unmatchedStake: Math.max(0, parseFloat(r.stake) - parseFloat(r.matched_stake)),
+        liability: parseFloat(r.liability),
+        status: r.status,
+        pnl: parseFloat(r.pnl || '0'),
+        createdAt: r.created_at,
+        matchedAt: r.matched_at,
+        settledAt: r.settled_at
+      }));
+
+      res.json({
+        bets,
+        total: parseInt(agg.total_count || '0', 10),
+        stats: {
+          totalVolume: parseFloat(agg.total_volume || '0'),
+          totalLiability: parseFloat(agg.total_liability || '0'),
+          totalPnL: parseFloat(agg.total_pnl || '0'),
+          matchedCount: parseInt(agg.matched_count || '0', 10),
+          unmatchedCount: parseInt(agg.unmatched_count || '0', 10),
+          settledCount: parseInt(agg.settled_count || '0', 10)
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching bet records:', error);
+      res.status(500).json({ error: 'Failed to fetch bet records' });
+    }
+  }
+);
+

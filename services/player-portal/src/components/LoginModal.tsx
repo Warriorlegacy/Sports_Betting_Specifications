@@ -14,6 +14,7 @@ import {
   ShieldCheck,
   ArrowRight
 } from 'lucide-react';
+import { api, setAuthToken } from '../services/api';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -85,21 +86,35 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     }, 600);
   };
 
+  const [regError, setRegError] = useState<string | null>(null);
+  const [regLoading, setRegLoading] = useState<boolean>(false);
+
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!regUsername.trim() || !regPassword.trim()) return;
 
-    setRegisterSuccess(true);
-    setTimeout(() => {
-      const newUser = {
-        id: `usr_${Date.now()}`,
+    try {
+      setRegLoading(true);
+      setRegError(null);
+      const res = await api.auth.register({
         username: regUsername.trim(),
-        availableCredit: 500, // ₹500 Instant Welcome Bonus
-        exposure: 0,
-        creditLimit: 10000
-      };
-      onLoginSuccess(newUser);
-    }, 1000);
+        password: regPassword.trim(),
+        phone: regPhone.trim() || undefined,
+        referralCode: referralCode.trim() || undefined
+      });
+
+      if (res.token) {
+        setAuthToken(res.token);
+      }
+      setRegisterSuccess(true);
+      setTimeout(() => {
+        onLoginSuccess(res.user);
+      }, 1000);
+    } catch (err: any) {
+      setRegError(err.message || 'Registration failed');
+    } finally {
+      setRegLoading(false);
+    }
   };
 
   const handleQuickLogin = async (quickUser: string) => {
@@ -330,10 +345,16 @@ export const LoginModal: React.FC<LoginModalProps> = ({
               <div className="py-6 text-center space-y-2">
                 <CheckCircle2 className="w-12 h-12 mx-auto text-[#27AE60] animate-bounce" />
                 <h4 className="font-black text-sm text-white">Registration Successful!</h4>
-                <p className="text-xs text-[#adadad]">Welcome to Nexusvip. Logging in to your portal...</p>
+                <p className="text-xs text-[#adadad]">Welcome to Nexusvip. ₹500 welcome credit added. Logging in...</p>
               </div>
             ) : (
               <form onSubmit={handleRegisterSubmit} className="space-y-2.5">
+                {regError && (
+                  <div className="p-2 rounded-lg bg-[#FF4148]/20 border border-[#FF4148]/40 text-[#FF4148] text-[11px] flex items-center space-x-1.5">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>{regError}</span>
+                  </div>
+                )}
                 <div>
                   <label className="text-[10px] font-bold uppercase text-[#adadad]">Desired Username</label>
                   <input
@@ -383,10 +404,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
                 <button
                   type="submit"
-                  className="w-full py-2.5 rounded-lg bg-[#27AE60] hover:bg-[#219652] text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg flex items-center justify-center space-x-2"
+                  disabled={regLoading}
+                  className="w-full py-2.5 rounded-lg bg-[#27AE60] hover:bg-[#219652] disabled:opacity-50 text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg flex items-center justify-center space-x-2"
                 >
                   <Sparkles className="w-4 h-4" />
-                  <span>Register & Claim ₹500 Bonus</span>
+                  <span>{regLoading ? 'Creating Player Account...' : 'Register & Claim ₹500 Bonus'}</span>
                 </button>
               </form>
             )}

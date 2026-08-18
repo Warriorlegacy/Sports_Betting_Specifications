@@ -9,7 +9,8 @@ import {
   ShieldCheck,
   Ban,
   UserCheck,
-  Coins
+  Coins,
+  KeyRound
 } from 'lucide-react';
 
 export interface TreeNode {
@@ -31,6 +32,7 @@ interface HierarchyTreeProps {
   onOpenCreditModal: (user: TreeNode, mode: 'ALLOCATE' | 'RECALL') => void;
   onOpenCreateModal: (parentUser: TreeNode) => void;
   onToggleStatus: (userId: string, currentStatus: boolean) => void;
+  onOpenResetPassword?: (user: TreeNode) => void;
 }
 
 export const HierarchyTree: React.FC<HierarchyTreeProps> = ({
@@ -38,7 +40,8 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({
   currentUserRole,
   onOpenCreditModal,
   onOpenCreateModal,
-  onToggleStatus
+  onToggleStatus,
+  onOpenResetPassword
 }) => {
   const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>({
     ...(tree ? { [tree.id]: true } : {})
@@ -184,6 +187,17 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({
             >
               {node.isActive ? <Ban className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
             </button>
+
+            {/* Reset Password */}
+            {onOpenResetPassword && (
+              <button
+                onClick={() => onOpenResetPassword(node)}
+                title="Reset Credentials / Password"
+                className="p-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 transition-colors"
+              >
+                <KeyRound className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
 

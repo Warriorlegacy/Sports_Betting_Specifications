@@ -16,6 +16,7 @@ import { marketRouter } from './modules/markets/marketRoutes';
 import { betRouter } from './modules/bets/betRoutes';
 import { reportRouter } from './modules/reports/reportRoutes';
 import { paymentWebhookRouter } from './modules/ledger/paymentWebhookRoutes';
+import { paymentMethodRouter } from './modules/paymentMethods/paymentMethodRoutes';
 
 export const app = express();
 const server = http.createServer(app);
@@ -33,6 +34,7 @@ app.set('io', realTimeGateway.getIO());
 app.use('/api/auth', authRouter);
 app.use('/api/hierarchy', hierarchyRouter);
 app.use('/api/ledger', ledgerRouter);
+app.use('/api/payment-methods', paymentMethodRouter);
 app.use('/api/markets', marketRouter);
 app.use('/api/bets', betRouter);
 app.use('/api/reports', reportRouter);

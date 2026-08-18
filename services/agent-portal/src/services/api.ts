@@ -41,15 +41,32 @@ export const api = {
   auth: {
     login: (credentials: { username: string; password: string }) =>
       request('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
-    getMe: () => request('/auth/me')
+    getMe: () => request('/auth/me'),
+    register: (userData: { username: string; password: string; phone?: string; referralCode?: string }) =>
+      request('/auth/register', { method: 'POST', body: JSON.stringify(userData) })
   },
   hierarchy: {
     getTree: () => request('/hierarchy/tree'),
     getSubordinates: () => request('/hierarchy/subordinates'),
-    createUser: (userData: { username: string; password: string; initialCredit?: number; role?: string }) =>
+    getRoles: () => request('/hierarchy/roles'),
+    createUser: (userData: { username: string; password: string; initialCredit?: number; role?: string; parentId?: string }) =>
       request('/hierarchy/users', { method: 'POST', body: JSON.stringify(userData) }),
     toggleStatus: (userId: string, isActive: boolean) =>
-      request(`/hierarchy/users/${userId}/status`, { method: 'PATCH', body: JSON.stringify({ isActive }) })
+      request(`/hierarchy/users/${userId}/status`, { method: 'PATCH', body: JSON.stringify({ isActive }) }),
+    resetPassword: (userId: string, newPassword: string) =>
+      request(`/hierarchy/users/${userId}/password`, { method: 'PATCH', body: JSON.stringify({ newPassword }) }),
+    updateRole: (userId: string, newRole: string) =>
+      request(`/hierarchy/users/${userId}/role`, { method: 'PATCH', body: JSON.stringify({ newRole }) })
+  },
+  paymentMethods: {
+    getAll: () => request('/payment-methods/admin'),
+    getActive: () => request('/payment-methods'),
+    create: (accountData: any) =>
+      request('/payment-methods', { method: 'POST', body: JSON.stringify(accountData) }),
+    update: (id: string, accountData: any) =>
+      request(`/payment-methods/${id}`, { method: 'PUT', body: JSON.stringify(accountData) }),
+    delete: (id: string) =>
+      request(`/payment-methods/${id}`, { method: 'DELETE' })
   },
   ledger: {
     allocateCredit: (payload: { receiverId: string; amount: number; notes?: string }) =>
@@ -57,7 +74,49 @@ export const api = {
     recallCredit: (payload: { receiverId: string; amount: number; notes?: string }) =>
       request('/ledger/recall', { method: 'POST', body: JSON.stringify(payload) }),
     getHistory: (limit: number = 50, offset: number = 0) =>
-      request(`/ledger/history?limit=${limit}&offset=${offset}`)
+      request(`/ledger/history?limit=${limit}&offset=${offset}`),
+    getDeposits: (status?: string, search?: string, limit: number = 50, offset: number = 0) => {
+      let query = `?limit=${limit}&offset=${offset}`;
+      if (status && status !== 'ALL') query += `&status=${status}`;
+      if (search) query += `&search=${encodeURIComponent(search)}`;
+      return request(`/ledger/deposits${query}`);
+    },
+    processDeposit: (id: string, action: 'APPROVE' | 'REJECT', notes?: string) =>
+      request(`/ledger/deposits/${id}/process`, { method: 'POST', body: JSON.stringify({ action, notes }) }),
+    getWithdrawals: (status?: string, limit: number = 50, offset: number = 0) => {
+      let query = `?limit=${limit}&offset=${offset}`;
+      if (status && status !== 'ALL') query += `&status=${status}`;
+      return request(`/ledger/withdrawals${query}`);
+    },
+    processWithdrawal: (id: string, action: 'APPROVE' | 'REJECT', referenceId?: string, notes?: string) =>
+      request(`/ledger/withdrawals/${id}/process`, { method: 'POST', body: JSON.stringify({ action, referenceId, notes }) })
+  },
+  bets: {
+    getRecords: (params: {
+      username?: string;
+      userId?: string;
+      marketId?: string;
+      sport?: string;
+      type?: string;
+      status?: string;
+      dateFrom?: string;
+      dateTo?: string;
+      limit?: number;
+      offset?: number;
+    } = {}) => {
+      const q = new URLSearchParams();
+      if (params.username) q.append('username', params.username);
+      if (params.userId) q.append('userId', params.userId);
+      if (params.marketId) q.append('marketId', params.marketId);
+      if (params.sport && params.sport !== 'ALL') q.append('sport', params.sport);
+      if (params.type && params.type !== 'ALL') q.append('type', params.type);
+      if (params.status && params.status !== 'ALL') q.append('status', params.status);
+      if (params.dateFrom) q.append('dateFrom', params.dateFrom);
+      if (params.dateTo) q.append('dateTo', params.dateTo);
+      if (params.limit) q.append('limit', String(params.limit));
+      if (params.offset) q.append('offset', String(params.offset));
+      return request(`/bets/records?${q.toString()}`);
+    }
   },
   markets: {
     getAll: () => request('/markets'),

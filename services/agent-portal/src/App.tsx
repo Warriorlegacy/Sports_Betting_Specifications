@@ -6,9 +6,14 @@ import { CreateUserModal } from './components/CreateUserModal';
 import { MarketControls } from './components/MarketControls';
 import { LedgerTable, LedgerEntry } from './components/LedgerTable';
 import { ProvidersHub } from './components/ProvidersHub';
+import { BetRecordsDesk } from './components/BetRecordsDesk';
+import { FinancialApprovalsDesk } from './components/FinancialApprovalsDesk';
+import { PaymentAccountsManager } from './components/PaymentAccountsManager';
+import { RolesMatrixModal } from './components/RolesMatrixModal';
+import { ResetPasswordModal } from './components/ResetPasswordModal';
 import { api, setAuthToken, removeAuthToken, getAuthToken } from './services/api';
 import { socketService } from './services/socket';
-import { Shield, Zap, Lock, User, RefreshCw, KeyRound, ChevronRight } from 'lucide-react';
+import { Shield, Zap, Lock, User, RefreshCw, KeyRound, ChevronRight, Bell } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<any | null>(null);
@@ -27,6 +32,13 @@ export const App: React.FC = () => {
 
   const [createModalOpen, setCreateModalOpen] = useState<boolean>(false);
   const [createModalParent, setCreateModalParent] = useState<TreeNode | null>(null);
+
+  const [rolesModalOpen, setRolesModalOpen] = useState<boolean>(false);
+  const [resetPasswordModalOpen, setResetPasswordModalOpen] = useState<boolean>(false);
+  const [resetPasswordUser, setResetPasswordUser] = useState<TreeNode | null>(null);
+
+  // Notification Toast State
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Login form state
   const [loginUsername, setLoginUsername] = useState<string>('admin');
@@ -91,10 +103,22 @@ export const App: React.FC = () => {
       fetchDashboardData();
     });
 
+    socket.on('admin:deposit_request', (data: { username: string; amount: number; utr: string }) => {
+      setToastMessage(`⚡ New Deposit: ${data.username} submitted ₹${data.amount} (UTR: ${data.utr})`);
+      setTimeout(() => setToastMessage(null), 5000);
+    });
+
+    socket.on('admin:withdrawal_request', (data: { username: string; amount: number; method: string }) => {
+      setToastMessage(`🚨 New Withdrawal: ${data.username} requested ₹${data.amount} via ${data.method}`);
+      setTimeout(() => setToastMessage(null), 5000);
+    });
+
     return () => {
       socket.off('user:balance');
       socket.off('market:global_status');
       socket.off('market:global_settled');
+      socket.off('admin:deposit_request');
+      socket.off('admin:withdrawal_request');
     };
   }, [currentUser, fetchDashboardData]);
 
@@ -157,6 +181,11 @@ export const App: React.FC = () => {
     }
   };
 
+  const handleOpenResetPassword = (user: TreeNode) => {
+    setResetPasswordUser(user);
+    setResetPasswordModalOpen(true);
+  };
+
   const handleToggleMarketLock = async (marketId: string, isLocked: boolean) => {
     await api.markets.toggleLock(marketId, isLocked);
   };
@@ -189,7 +218,7 @@ export const App: React.FC = () => {
               NEXUS EXCHANGE
             </h1>
             <p className="text-xs text-slate-400 font-medium">
-              Multi-Tier Administrative & Credit Control Portal
+              5-Tier Administrative, Banking & Multi-Role Risk Control Desk
             </p>
           </div>
 
@@ -297,13 +326,22 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#070a12] text-slate-100 flex flex-col">
+    <div className="min-h-screen bg-[#070a12] text-slate-100 flex flex-col relative">
+      {/* Real-Time Notification Toast */}
+      {toastMessage && (
+        <div className="fixed top-20 right-6 z-50 p-4 rounded-2xl bg-blue-600 text-white font-bold text-xs shadow-2xl border border-blue-400 flex items-center space-x-2 animate-in slide-in-from-top duration-200">
+          <Bell className="w-4 h-4 animate-bounce" />
+          <span>{toastMessage}</span>
+        </div>
+      )}
+
       <Header
         user={currentUser}
         onLogout={handleLogout}
         onRefresh={fetchDashboardData}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
+        onOpenRolesMatrix={() => setRolesModalOpen(true)}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -314,7 +352,20 @@ export const App: React.FC = () => {
             onOpenCreditModal={handleOpenCreditModal}
             onOpenCreateModal={handleOpenCreateModal}
             onToggleStatus={handleToggleStatus}
+            onOpenResetPassword={handleOpenResetPassword}
           />
+        )}
+
+        {activeTab === 'bets' && (
+          <BetRecordsDesk />
+        )}
+
+        {activeTab === 'approvals' && (
+          <FinancialApprovalsDesk />
+        )}
+
+        {activeTab === 'banking' && (
+          <PaymentAccountsManager />
         )}
 
         {activeTab === 'markets' && (
@@ -352,7 +403,22 @@ export const App: React.FC = () => {
         onClose={() => setCreateModalOpen(false)}
         parentUser={createModalParent}
         parentAvailableCredit={currentUser.availableCredit}
+        currentUserRole={currentUser.role}
         onSubmit={handleCreateUserSubmit}
+      />
+
+      {/* Roles & Powers Matrix Modal */}
+      <RolesMatrixModal
+        isOpen={rolesModalOpen}
+        onClose={() => setRolesModalOpen(false)}
+      />
+
+      {/* Reset Password Modal */}
+      <ResetPasswordModal
+        isOpen={resetPasswordModalOpen}
+        onClose={() => setResetPasswordModalOpen(false)}
+        user={resetPasswordUser}
+        onSuccess={fetchDashboardData}
       />
     </div>
   );
