@@ -206,21 +206,21 @@ export const App: React.FC = () => {
   // If not logged in, render Login Page with Demo Account Switcher
   if (!currentUser) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-[#070a12] relative overflow-hidden">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-[#141414] relative overflow-hidden">
         {/* Glow effects */}
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-[#f36c21]/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-amber-600/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="w-full max-w-md bg-slate-900/90 border border-slate-800 rounded-3xl p-8 shadow-2xl backdrop-blur-xl relative z-10 space-y-6">
+        <div className="w-full max-w-md bg-[#1e1e1e] border border-zinc-800 hover:border-[#f36c21]/30 rounded-3xl p-8 shadow-2xl backdrop-blur-xl relative z-10 space-y-6 transition-all">
           {/* Logo & Title */}
           <div className="text-center space-y-2">
-            <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-xl shadow-blue-500/25">
+            <div className="w-14 h-14 mx-auto rounded-2xl bg-gradient-to-tr from-amber-500 via-[#f36c21] to-red-600 flex items-center justify-center shadow-xl shadow-orange-500/25">
               <Zap className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-2xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 via-indigo-200 to-white bg-clip-text text-transparent">
-              NEXUS EXCHANGE
+            <h1 className="text-2xl font-black tracking-tight bg-gradient-to-r from-[#f36c21] via-amber-300 to-white bg-clip-text text-transparent">
+              NEXUSVIP EXCHANGE
             </h1>
-            <p className="text-xs text-slate-400 font-medium">
+            <p className="text-xs text-zinc-400 font-medium">
               5-Tier Administrative, Banking & Multi-Role Risk Control Desk
             </p>
           </div>
@@ -233,14 +233,14 @@ export const App: React.FC = () => {
 
           {/* Quick Demo Login Switcher */}
           <div className="space-y-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block text-center">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 block text-center">
               Quick Switch Role Login
             </span>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => handleLogin('admin')}
-                className="p-2.5 rounded-xl text-xs font-bold bg-purple-950/40 hover:bg-purple-900/50 border border-purple-800/50 text-purple-200 transition-all text-left flex flex-col"
+                className="p-2.5 rounded-xl text-xs font-bold bg-[#262626] hover:bg-[#333] border border-purple-500/40 text-purple-300 transition-all text-left flex flex-col hover:scale-[1.02]"
               >
                 <span>Global Admin</span>
                 <span className="text-[10px] text-purple-400 font-normal">Level 0 Root (10M)</span>
@@ -249,7 +249,7 @@ export const App: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleLogin('supermaster_asia')}
-                className="p-2.5 rounded-xl text-xs font-bold bg-blue-950/40 hover:bg-blue-900/50 border border-blue-800/50 text-blue-200 transition-all text-left flex flex-col"
+                className="p-2.5 rounded-xl text-xs font-bold bg-[#262626] hover:bg-[#333] border border-blue-500/40 text-blue-300 transition-all text-left flex flex-col hover:scale-[1.02]"
               >
                 <span>Super Master</span>
                 <span className="text-[10px] text-blue-400 font-normal">Level 1 Asia (500k)</span>
@@ -258,7 +258,7 @@ export const App: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleLogin('master_mumbai')}
-                className="p-2.5 rounded-xl text-xs font-bold bg-emerald-950/40 hover:bg-emerald-900/50 border border-emerald-800/50 text-emerald-200 transition-all text-left flex flex-col"
+                className="p-2.5 rounded-xl text-xs font-bold bg-[#262626] hover:bg-[#333] border border-emerald-500/40 text-emerald-300 transition-all text-left flex flex-col hover:scale-[1.02]"
               >
                 <span>Master Agency</span>
                 <span className="text-[10px] text-emerald-400 font-normal">Level 2 Mumbai (100k)</span>
@@ -267,7 +267,7 @@ export const App: React.FC = () => {
               <button
                 type="button"
                 onClick={() => handleLogin('agent_vikram')}
-                className="p-2.5 rounded-xl text-xs font-bold bg-amber-950/40 hover:bg-amber-900/50 border border-amber-800/50 text-amber-200 transition-all text-left flex flex-col"
+                className="p-2.5 rounded-xl text-xs font-bold bg-[#262626] hover:bg-[#333] border border-amber-500/40 text-amber-300 transition-all text-left flex flex-col hover:scale-[1.02]"
               >
                 <span>Retail Agent</span>
                 <span className="text-[10px] text-amber-400 font-normal">Level 3 Vikram (25k)</span>
@@ -276,9 +276,9 @@ export const App: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-2">
-            <div className="h-px flex-1 bg-slate-800" />
-            <span className="text-[10px] uppercase font-bold text-slate-500">Or manual credentials</span>
-            <div className="h-px flex-1 bg-slate-800" />
+            <div className="h-px flex-1 bg-zinc-800" />
+            <span className="text-[10px] uppercase font-bold text-zinc-500">Or manual credentials</span>
+            <div className="h-px flex-1 bg-zinc-800" />
           </div>
 
           {/* Form */}
@@ -290,27 +290,27 @@ export const App: React.FC = () => {
             className="space-y-4"
           >
             <div>
-              <label className="text-xs font-semibold uppercase text-slate-300">Username</label>
+              <label className="text-xs font-semibold uppercase text-zinc-300">Username</label>
               <div className="relative mt-1">
-                <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
                 <input
                   type="text"
                   value={loginUsername}
                   onChange={(e) => setLoginUsername(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500"
+                  className="w-full pl-9 pr-4 py-2.5 bg-[#141414] border border-zinc-700 rounded-xl text-sm text-white focus:outline-none focus:border-[#f36c21] transition-colors"
                 />
               </div>
             </div>
 
             <div>
-              <label className="text-xs font-semibold uppercase text-slate-300">Password</label>
+              <label className="text-xs font-semibold uppercase text-zinc-300">Password</label>
               <div className="relative mt-1">
-                <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
                 <input
                   type="password"
                   value={loginPassword}
                   onChange={(e) => setLoginPassword(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500"
+                  className="w-full pl-9 pr-4 py-2.5 bg-[#141414] border border-zinc-700 rounded-xl text-sm text-white focus:outline-none focus:border-[#f36c21] transition-colors"
                 />
               </div>
             </div>
@@ -318,7 +318,7 @@ export const App: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 text-sm font-bold rounded-xl bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/25 transition-all disabled:opacity-50"
+              className="w-full py-3 text-sm font-black uppercase tracking-wider rounded-xl bg-gradient-to-r from-[#f36c21] to-[#e0540b] hover:from-[#ff7a33] hover:to-[#f36c21] text-white shadow-lg shadow-orange-600/30 transition-all disabled:opacity-50"
             >
               {loading ? 'Authenticating...' : 'Sign In to Agent Portal'}
             </button>
@@ -346,10 +346,10 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#070a12] text-slate-100 flex flex-col relative">
+    <div className="min-h-screen bg-[#141414] text-white flex flex-col relative">
       {/* Real-Time Notification Toast */}
       {toastMessage && (
-        <div className="fixed top-20 right-6 z-50 p-4 rounded-2xl bg-blue-600 text-white font-bold text-xs shadow-2xl border border-blue-400 flex items-center space-x-2 animate-in slide-in-from-top duration-200">
+        <div className="fixed top-20 right-6 z-50 p-4 rounded-2xl bg-[#f36c21] text-white font-black text-xs shadow-2xl border border-orange-400 flex items-center space-x-2 animate-in slide-in-from-top duration-200">
           <Bell className="w-4 h-4 animate-bounce" />
           <span>{toastMessage}</span>
         </div>

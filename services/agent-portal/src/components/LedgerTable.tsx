@@ -169,30 +169,30 @@ export const LedgerTable: React.FC<LedgerTableProps> = ({ entries, onRefresh }) 
   return (
     <div className="space-y-4">
       {/* Top Controls Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-2xl bg-slate-900/60 border border-slate-800 gap-3">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-2xl bg-[#1e1e1e] border border-zinc-800 shadow-xl gap-3">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-600/20">
-            <BookOpen className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 rounded-xl bg-orange-500/20 border border-[#f36c21]/30 flex items-center justify-center shadow-lg shadow-orange-600/20">
+            <BookOpen className="w-5 h-5 text-[#f36c21]" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-slate-100 flex items-center space-x-2">
+            <h2 className="text-base font-bold text-white flex items-center space-x-2">
               <span>Financial & Ledger Management</span>
               <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800/50">
                 Audited
               </span>
             </h2>
-            <p className="text-xs text-slate-400">Tamper-evident transactions, deposits & payout approval queue</p>
+            <p className="text-xs text-zinc-400">Tamper-evident transactions, deposits & payout approval queue</p>
           </div>
         </div>
 
         {/* Sub Navigation */}
-        <div className="flex items-center gap-2 bg-slate-950 p-1 rounded-xl border border-slate-800">
+        <div className="flex items-center gap-2 bg-[#141414] p-1 rounded-xl border border-zinc-800">
           <button
             onClick={() => setActiveSubTab('LEDGER')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center space-x-1.5 ${
               activeSubTab === 'LEDGER'
-                ? 'bg-blue-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-[#f36c21] text-white shadow-md shadow-orange-600/30'
+                : 'text-zinc-400 hover:text-white'
             }`}
           >
             <BookOpen className="w-3.5 h-3.5" />
@@ -202,8 +202,8 @@ export const LedgerTable: React.FC<LedgerTableProps> = ({ entries, onRefresh }) 
             onClick={() => setActiveSubTab('WITHDRAWALS')}
             className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold transition-all flex items-center space-x-1.5 ${
               activeSubTab === 'WITHDRAWALS'
-                ? 'bg-emerald-600 text-white shadow-md'
-                : 'text-slate-400 hover:text-white'
+                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+                : 'text-zinc-400 hover:text-white'
             }`}
           >
             <Wallet className="w-3.5 h-3.5" />
@@ -215,7 +215,7 @@ export const LedgerTable: React.FC<LedgerTableProps> = ({ entries, onRefresh }) 
               if (activeSubTab === 'WITHDRAWALS') fetchWithdrawals();
             }}
             title="Refresh Ledger"
-            className="p-1.5 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800"
+            className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-[#242424]"
           >
             <RefreshCw className="w-3.5 h-3.5" />
           </button>
@@ -224,9 +224,9 @@ export const LedgerTable: React.FC<LedgerTableProps> = ({ entries, onRefresh }) 
 
       {/* SUB-VIEW 1: IMMUTABLE LEDGER ENTRIES */}
       {activeSubTab === 'LEDGER' && (
-        <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/80 shadow-xl">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-slate-950/80 text-xs font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-800">
+        <div className="overflow-x-auto rounded-2xl border border-zinc-800 bg-[#1e1e1e] shadow-xl">
+          <table className="w-full text-left text-sm text-zinc-300">
+            <thead className="bg-[#141414] text-[10px] font-black uppercase tracking-wider text-zinc-400 border-b border-zinc-800">
               <tr>
                 <th className="px-5 py-3.5">Timestamp</th>
                 <th className="px-5 py-3.5">Type</th>
@@ -237,27 +237,27 @@ export const LedgerTable: React.FC<LedgerTableProps> = ({ entries, onRefresh }) 
                 <th className="px-5 py-3.5">Notes</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 font-medium">
+            <tbody className="divide-y divide-zinc-800/60 font-medium text-xs">
               {entries.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-5 py-8 text-center text-slate-500">
+                  <td colSpan={7} className="px-5 py-8 text-center text-zinc-500">
                     No ledger entries recorded yet.
                   </td>
                 </tr>
               ) : (
                 entries.map((entry) => (
-                  <tr key={entry.id} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="px-5 py-3.5 text-xs text-slate-400 whitespace-nowrap">
+                  <tr key={entry.id} className="hover:bg-[#262626] transition-colors">
+                    <td className="px-5 py-3.5 text-xs text-zinc-400 font-mono whitespace-nowrap">
                       {new Date(entry.createdAt).toLocaleString()}
                     </td>
                     <td className="px-5 py-3.5 whitespace-nowrap">{getTypeBadge(entry.transactionType)}</td>
-                    <td className="px-5 py-3.5 text-xs text-slate-300 font-semibold">{entry.senderUsername}</td>
-                    <td className="px-5 py-3.5 text-xs text-slate-300 font-semibold">{entry.receiverUsername}</td>
-                    <td className="px-5 py-3.5 text-right font-black mono-num text-slate-100">
-                      ₹{entry.amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    <td className="px-5 py-3.5 text-xs text-white font-bold">{entry.senderUsername}</td>
+                    <td className="px-5 py-3.5 text-xs text-white font-bold">{entry.receiverUsername}</td>
+                    <td className="px-5 py-3.5 text-right font-black font-mono text-white">
+                      ₹{entry.amount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
-                    <td className="px-5 py-3.5 text-xs text-slate-400 font-mono">{entry.referenceId}</td>
-                    <td className="px-5 py-3.5 text-xs text-slate-400 max-w-xs truncate" title={entry.notes || ''}>
+                    <td className="px-5 py-3.5 text-xs text-zinc-400 font-mono">{entry.referenceId}</td>
+                    <td className="px-5 py-3.5 text-xs text-zinc-400 max-w-xs truncate" title={entry.notes || ''}>
                       {entry.notes || '—'}
                     </td>
                   </tr>
@@ -270,9 +270,9 @@ export const LedgerTable: React.FC<LedgerTableProps> = ({ entries, onRefresh }) 
 
       {/* SUB-VIEW 2: WITHDRAWALS APPROVAL QUEUE */}
       {activeSubTab === 'WITHDRAWALS' && (
-        <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-900/80 shadow-xl">
-          <table className="w-full text-left text-sm">
-            <thead className="bg-slate-950/80 text-xs font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-800">
+        <div className="overflow-x-auto rounded-2xl border border-zinc-800 bg-[#1e1e1e] shadow-xl">
+          <table className="w-full text-left text-sm text-zinc-300">
+            <thead className="bg-[#141414] text-[10px] font-black uppercase tracking-wider text-zinc-400 border-b border-zinc-800">
               <tr>
                 <th className="px-5 py-3.5">Requested At</th>
                 <th className="px-5 py-3.5">Player</th>
@@ -283,36 +283,36 @@ export const LedgerTable: React.FC<LedgerTableProps> = ({ entries, onRefresh }) 
                 <th className="px-5 py-3.5 text-center">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 font-medium">
+            <tbody className="divide-y divide-zinc-800/60 font-medium text-xs">
               {withdrawalsLoading ? (
                 <tr>
-                  <td colSpan={7} className="px-5 py-8 text-center text-slate-400 text-xs">
+                  <td colSpan={7} className="px-5 py-8 text-center text-zinc-400 text-xs">
                     <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2 text-emerald-400" />
                     Loading withdrawal queue...
                   </td>
                 </tr>
               ) : withdrawals.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-5 py-8 text-center text-slate-500">
+                  <td colSpan={7} className="px-5 py-8 text-center text-zinc-500">
                     No pending withdrawal requests. All payouts are up to date!
                   </td>
                 </tr>
               ) : (
                 withdrawals.map((w) => (
-                  <tr key={w.id} className="hover:bg-slate-800/40 transition-colors">
-                    <td className="px-5 py-3.5 text-xs text-slate-400 whitespace-nowrap">
+                  <tr key={w.id} className="hover:bg-[#262626] transition-colors">
+                    <td className="px-5 py-3.5 text-xs text-zinc-400 font-mono whitespace-nowrap">
                       {new Date(w.created_at).toLocaleString()}
                     </td>
                     <td className="px-5 py-3.5">
                       <div className="text-xs font-bold text-white">{w.username}</div>
-                      <div className="text-[10px] text-slate-400 uppercase">{w.role}</div>
+                      <div className="text-[10px] text-zinc-400 uppercase">{w.role}</div>
                     </td>
                     <td className="px-5 py-3.5">
-                      <span className="px-2 py-0.5 rounded text-xs font-bold bg-slate-800 text-slate-300">
+                      <span className="px-2 py-0.5 rounded text-xs font-bold bg-[#242424] text-zinc-300 border border-zinc-700">
                         {w.payout_method}
                       </span>
                     </td>
-                    <td className="px-5 py-3.5 text-xs text-slate-300 font-mono">
+                    <td className="px-5 py-3.5 text-xs text-zinc-300 font-mono">
                       {typeof w.account_details === 'object' ? (
                         <div>
                           {w.account_details.upiId && <div>UPI: {w.account_details.upiId}</div>}
@@ -327,8 +327,8 @@ export const LedgerTable: React.FC<LedgerTableProps> = ({ entries, onRefresh }) 
                         w.account_details
                       )}
                     </td>
-                    <td className="px-5 py-3.5 text-right font-black mono-num text-emerald-400 text-base">
-                      ₹{parseFloat(w.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    <td className="px-5 py-3.5 text-right font-black font-mono text-emerald-400 text-base">
+                      ₹{parseFloat(w.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                     </td>
                     <td className="px-5 py-3.5">
                       <span
@@ -364,7 +364,7 @@ export const LedgerTable: React.FC<LedgerTableProps> = ({ entries, onRefresh }) 
                           </button>
                         </div>
                       ) : (
-                        <span className="text-xs text-slate-500 font-medium">Processed</span>
+                        <span className="text-xs text-zinc-500 font-medium">Processed</span>
                       )}
                     </td>
                   </tr>
@@ -377,3 +377,5 @@ export const LedgerTable: React.FC<LedgerTableProps> = ({ entries, onRefresh }) 
     </div>
   );
 };
+
+

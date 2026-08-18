@@ -47,15 +47,15 @@ export const Header: React.FC<HeaderProps> = ({
   const getRoleBadge = (role: string) => {
     switch (role) {
       case 'ADMIN':
-        return <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40">L0 • Admin</span>;
+        return <span className="px-2 py-0.5 text-[11px] font-bold rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/40">L0 • Admin</span>;
       case 'SUPER_MASTER':
-        return <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/40">L1 • Super Master</span>;
+        return <span className="px-2 py-0.5 text-[11px] font-bold rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/40">L1 • Super Master</span>;
       case 'MASTER':
-        return <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">L2 • Master</span>;
+        return <span className="px-2 py-0.5 text-[11px] font-bold rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">L2 • Master</span>;
       case 'AGENT':
-        return <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">L3 • Agent</span>;
+        return <span className="px-2 py-0.5 text-[11px] font-bold rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">L3 • Agent</span>;
       default:
-        return <span className="px-2 py-0.5 text-xs font-semibold rounded-full bg-slate-500/20 text-slate-300 border border-slate-500/40">L4 • Player</span>;
+        return <span className="px-2 py-0.5 text-[11px] font-bold rounded-full bg-zinc-700/40 text-zinc-300 border border-zinc-600/40">L4 • Player</span>;
     }
   };
 
@@ -70,39 +70,39 @@ export const Header: React.FC<HeaderProps> = ({
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#0b1120]/95 backdrop-blur-md border-b border-slate-800 shadow-xl">
+    <header className="sticky top-0 z-40 w-full bg-[#1c1c1c]/95 backdrop-blur-md border-b border-[#2d2d2d] shadow-2xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Brand */}
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-[#f36c21] to-red-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-[#f36c21] to-red-600 flex items-center justify-center shadow-lg shadow-orange-500/25">
               <Zap className="w-6 h-6 text-white" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-[#f36c21] via-amber-300 to-white bg-clip-text text-transparent">
+                <span className="font-black text-lg tracking-tight bg-gradient-to-r from-[#f36c21] via-amber-300 to-white bg-clip-text text-transparent">
                   NEXUSVIP EXCHANGE
                 </span>
-                <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 bg-orange-950/80 text-amber-300 rounded border border-orange-700/50">
+                <span className="text-[10px] uppercase font-black tracking-widest px-1.5 py-0.5 bg-orange-950/90 text-amber-300 rounded border border-orange-700/60 shadow-sm">
                   Admin & Risk Desk
                 </span>
               </div>
-              <p className="text-xs text-slate-400 font-medium">5-Tier Credit Ledger & Multi-Role Operations</p>
+              <p className="text-xs text-zinc-400 font-medium">5-Tier Credit Ledger & Multi-Role Operations</p>
             </div>
           </div>
 
           {/* Navigation Tabs */}
-          <nav className="hidden xl:flex items-center space-x-1 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
+          <nav className="hidden xl:flex items-center space-x-1 bg-[#141414] p-1 rounded-xl border border-zinc-800">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
-                  className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center space-x-1.5 ${
+                  className={`px-3 py-1.5 text-xs font-black uppercase tracking-wider rounded-lg transition-all flex items-center space-x-1.5 ${
                     activeTab === item.id
-                      ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                      ? 'bg-gradient-to-r from-[#f36c21] to-[#e0540b] text-white shadow-md shadow-orange-600/30'
+                      : 'text-zinc-400 hover:text-white hover:bg-[#282828]'
                   }`}
                 >
                   {Icon && <Icon className="w-3.5 h-3.5" />}
@@ -118,7 +118,7 @@ export const Header: React.FC<HeaderProps> = ({
               {/* Creator Credits Button */}
               <button
                 onClick={onOpenCredits}
-                className="hidden sm:flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-orange-950/60 via-amber-950/40 to-slate-900 border border-[#f36c21]/40 hover:border-[#f36c21] text-amber-300 text-xs font-bold transition-all shadow-sm hover:shadow-orange-500/20"
+                className="hidden sm:flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-orange-950/60 via-amber-950/40 to-zinc-900 border border-[#f36c21]/40 hover:border-[#f36c21] text-amber-300 text-xs font-bold transition-all shadow-sm hover:shadow-orange-500/20"
                 title="Solo Creator & Godfather of Platform"
               >
                 <Award className="w-3.5 h-3.5 text-[#f36c21]" />
@@ -135,16 +135,16 @@ export const Header: React.FC<HeaderProps> = ({
                 <span>Roles & Powers</span>
               </button>
 
-              <div className="hidden lg:flex items-center space-x-3 bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-800">
+              <div className="hidden lg:flex items-center space-x-3 bg-[#242424] px-3 py-1.5 rounded-xl border border-zinc-700/60">
                 <div className="flex flex-col text-right">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Available Credit</span>
+                  <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Available Credit</span>
                   <span className="font-mono text-xs font-bold text-emerald-400">
                     ₹{user.availableCredit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
-                <div className="h-6 w-px bg-slate-800" />
+                <div className="h-6 w-px bg-zinc-700" />
                 <div className="flex flex-col text-right">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-semibold">Active Exposure</span>
+                  <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">Active Exposure</span>
                   <span className="font-mono text-xs font-bold text-amber-400">
                     ₹{user.exposure.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                   </span>
@@ -152,16 +152,16 @@ export const Header: React.FC<HeaderProps> = ({
               </div>
 
               {/* Profile Pill */}
-              <div className="flex items-center space-x-2 bg-slate-800/60 pl-3 pr-2 py-1.5 rounded-xl border border-slate-700/60">
+              <div className="flex items-center space-x-2 bg-[#242424] pl-3 pr-2 py-1.5 rounded-xl border border-zinc-700/60">
                 <div className="flex flex-col text-right">
-                  <span className="text-xs font-bold text-slate-100">{user.username}</span>
+                  <span className="text-xs font-bold text-white">{user.username}</span>
                   {getRoleBadge(user.role)}
                 </div>
                 {onOpenChangePassword && (
                   <button
                     onClick={onOpenChangePassword}
                     title="Change My Password"
-                    className="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-slate-700/50 rounded-lg transition-colors"
+                    className="p-1.5 text-zinc-400 hover:text-[#f36c21] hover:bg-[#333] rounded-lg transition-colors"
                   >
                     <KeyRound className="w-3.5 h-3.5" />
                   </button>
@@ -169,14 +169,14 @@ export const Header: React.FC<HeaderProps> = ({
                 <button
                   onClick={onRefresh}
                   title="Refresh Data"
-                  className="p-1.5 text-slate-400 hover:text-blue-400 hover:bg-slate-700/50 rounded-lg transition-colors"
+                  className="p-1.5 text-zinc-400 hover:text-amber-400 hover:bg-[#333] rounded-lg transition-colors"
                 >
                   <RefreshCw className="w-3.5 h-3.5" />
                 </button>
                 <button
                   onClick={onLogout}
                   title="Sign Out"
-                  className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-slate-700/50 rounded-lg transition-colors"
+                  className="p-1.5 text-zinc-400 hover:text-red-400 hover:bg-[#333] rounded-lg transition-colors"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                 </button>
@@ -186,15 +186,15 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Mobile / Compact Subnav for medium screens */}
-        <div className="xl:hidden flex items-center space-x-1 py-2 overflow-x-auto border-t border-slate-800/80">
+        <div className="xl:hidden flex items-center space-x-1 py-2 overflow-x-auto border-t border-zinc-800">
           {navItems.map((item) => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`px-3 py-1 text-xs font-bold rounded-lg whitespace-nowrap transition-all ${
+              className={`px-3 py-1 text-xs font-black uppercase tracking-wider rounded-lg whitespace-nowrap transition-all ${
                 activeTab === item.id
-                  ? 'bg-blue-600 text-white shadow-md'
-                  : 'text-slate-400 hover:text-white bg-slate-900/60'
+                  ? 'bg-gradient-to-r from-[#f36c21] to-[#e0540b] text-white shadow-md'
+                  : 'text-zinc-400 hover:text-white bg-[#141414]'
               }`}
             >
               {item.label}

@@ -143,21 +143,21 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden">
+      <div className="w-full max-w-md bg-[#1e1e1e] border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden text-white">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/60">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-[#141414]">
           <div className="flex items-center space-x-2.5">
-            <div className="p-2 rounded-xl bg-blue-500/20 text-blue-400">
+            <div className="p-2 rounded-xl bg-orange-500/20 text-[#f36c21] border border-[#f36c21]/30">
               <UserPlus className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-base text-slate-100">Provision Client Account</h3>
-              <p className="text-xs text-slate-400">Supervisor / Parent: {parentUser.username}</p>
+              <h3 className="font-bold text-base text-white">Provision Client Account</h3>
+              <p className="text-xs text-zinc-400">Supervisor / Parent: {parentUser.username}</p>
             </div>
           </div>
           <button
             onClick={handleCloseAll}
-            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+            className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-[#242424]"
           >
             <X className="w-5 h-5" />
           </button>
@@ -168,26 +168,26 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
           <div className="p-6 space-y-4 text-center">
             <CheckCircle2 className="w-14 h-14 mx-auto text-emerald-400 animate-bounce" />
             <h4 className="font-black text-lg text-white">Account Provisioned Successfully!</h4>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-zinc-400">
               Share these login credentials directly with your client or agency partner.
             </p>
 
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 text-left space-y-2 text-xs font-mono">
-              <div className="flex justify-between border-b border-slate-900 pb-1">
-                <span className="text-slate-400">Username / ID:</span>
+            <div className="p-4 bg-[#141414] rounded-2xl border border-zinc-800 text-left space-y-2 text-xs font-mono">
+              <div className="flex justify-between border-b border-zinc-800 pb-1">
+                <span className="text-zinc-400">Username / ID:</span>
                 <span className="font-bold text-white text-sm">{createdCredentials.username}</span>
               </div>
-              <div className="flex justify-between border-b border-slate-900 pb-1">
-                <span className="text-slate-400">Password:</span>
+              <div className="flex justify-between border-b border-zinc-800 pb-1">
+                <span className="text-zinc-400">Password:</span>
                 <span className="font-bold text-amber-300">{createdCredentials.password}</span>
               </div>
-              <div className="flex justify-between border-b border-slate-900 pb-1">
-                <span className="text-slate-400">Role Tier:</span>
-                <span className="font-bold text-blue-400">{createdCredentials.role}</span>
+              <div className="flex justify-between border-b border-zinc-800 pb-1">
+                <span className="text-zinc-400">Role Tier:</span>
+                <span className="font-bold text-[#f36c21]">{createdCredentials.role}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-400">Allocated Balance:</span>
-                <span className="font-bold text-emerald-400">₹{parseFloat(createdCredentials.initialCredit).toLocaleString()}</span>
+                <span className="text-zinc-400">Allocated Balance:</span>
+                <span className="font-bold text-emerald-400">₹{parseFloat(createdCredentials.initialCredit).toLocaleString('en-IN')}</span>
               </div>
             </div>
 
@@ -195,7 +195,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
               <button
                 type="button"
                 onClick={copyCredentialsText}
-                className="flex-1 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-emerald-600/25"
+                className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#f36c21] to-[#e0540b] hover:from-[#ff7a33] hover:to-[#f36c21] text-white font-bold text-xs flex items-center justify-center space-x-2 shadow-lg shadow-orange-600/25"
               >
                 {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 <span>{copied ? 'Copied Card!' : 'Copy WhatsApp Card'}</span>
@@ -203,7 +203,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
               <button
                 type="button"
                 onClick={handleCloseAll}
-                className="px-5 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs"
+                className="px-5 py-3 rounded-xl bg-[#242424] hover:bg-[#333] text-zinc-200 font-bold text-xs border border-zinc-700"
               >
                 Done
               </button>
@@ -222,7 +222,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
             {/* Role Selection (If Admin) */}
             {isAdmin ? (
               <div className="space-y-1.5">
-                <label className="font-bold uppercase tracking-wider text-slate-400 text-[10px]">
+                <label className="font-bold uppercase tracking-wider text-zinc-400 text-[10px]">
                   Select Account Role Tier
                 </label>
                 <div className="grid grid-cols-2 gap-1.5">
@@ -241,48 +241,48 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                       }}
                       className={`p-2 rounded-xl text-left border transition-all ${
                         selectedRole === item.r
-                          ? 'bg-blue-600/20 border-blue-500 text-white'
-                          : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                          ? 'bg-[#f36c21]/20 border-[#f36c21] text-white'
+                          : 'bg-[#141414] border-zinc-800 text-zinc-400 hover:border-zinc-700'
                       }`}
                     >
                       <div className="font-bold text-xs text-white">{item.label}</div>
-                      <div className="text-[10px] text-slate-500">{item.desc}</div>
+                      <div className="text-[10px] text-zinc-500">{item.desc}</div>
                     </button>
                   ))}
                 </div>
               </div>
             ) : (
-              <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between">
+              <div className="p-3 rounded-xl bg-[#141414] border border-zinc-800 flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] uppercase font-semibold text-slate-400 block">Assigned Role Tier</span>
-                  <span className="text-sm font-bold text-blue-400">{currentRole}</span>
+                  <span className="text-[10px] uppercase font-semibold text-zinc-400 block">Assigned Role Tier</span>
+                  <span className="text-sm font-bold text-[#f36c21]">{currentRole}</span>
                 </div>
-                <Shield className="w-6 h-6 text-blue-500/50" />
+                <Shield className="w-6 h-6 text-[#f36c21]/50" />
               </div>
             )}
 
             {/* Username Field with Generator */}
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <label className="font-bold uppercase text-slate-300 text-[10px]">Username / User ID *</label>
+                <label className="font-bold uppercase text-zinc-300 text-[10px]">Username / User ID *</label>
                 <button
                   type="button"
                   onClick={() => generateRandomUsername(currentRole)}
-                  className="text-blue-400 hover:text-blue-300 font-bold flex items-center space-x-1 text-[10px]"
+                  className="text-[#f36c21] hover:text-amber-400 font-bold flex items-center space-x-1 text-[10px]"
                 >
                   <RefreshCw className="w-3 h-3" />
                   <span>Generate ID</span>
                 </button>
               </div>
               <div className="relative">
-                <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
                 <input
                   type="text"
                   placeholder="e.g. master_delhi or player_rahul"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
-                  className="w-full pl-9 pr-4 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white font-mono text-xs focus:outline-none focus:border-blue-500"
+                  className="w-full pl-9 pr-4 py-2 bg-[#141414] border border-zinc-700 rounded-xl text-white font-mono text-xs focus:outline-none focus:border-[#f36c21]"
                 />
               </div>
             </div>
@@ -290,7 +290,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
             {/* Password Field with Generator */}
             <div className="space-y-1">
               <div className="flex items-center justify-between">
-                <label className="font-bold uppercase text-slate-300 text-[10px]">Password *</label>
+                <label className="font-bold uppercase text-zinc-300 text-[10px]">Password *</label>
                 <button
                   type="button"
                   onClick={generateSecurePassword}
@@ -301,24 +301,24 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 </button>
               </div>
               <div className="relative">
-                <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
                 <input
                   type="text"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  className="w-full pl-9 pr-4 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white font-mono text-xs focus:outline-none focus:border-blue-500"
+                  className="w-full pl-9 pr-4 py-2 bg-[#141414] border border-zinc-700 rounded-xl text-white font-mono text-xs focus:outline-none focus:border-[#f36c21]"
                 />
               </div>
             </div>
 
             {/* Initial Credit Provision */}
             <div className="space-y-1">
-              <label className="font-bold uppercase text-slate-300 text-[10px]">
+              <label className="font-bold uppercase text-zinc-300 text-[10px]">
                 Initial Credit Provision (₹)
               </label>
               <div className="relative">
-                <Coins className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+                <Coins className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
                 <input
                   type="number"
                   step="100"
@@ -326,10 +326,10 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                   placeholder="1000"
                   value={initialCredit}
                   onChange={(e) => setInitialCredit(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white font-mono text-xs focus:outline-none focus:border-blue-500"
+                  className="w-full pl-9 pr-4 py-2 bg-[#141414] border border-zinc-700 rounded-xl text-white font-mono text-xs focus:outline-none focus:border-[#f36c21]"
                 />
               </div>
-              <span className="text-[10px] text-slate-500 block">
+              <span className="text-[10px] text-zinc-500 block">
                 Available parent balance: ₹{parentAvailableCredit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </span>
             </div>
@@ -339,7 +339,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 text-xs font-bold rounded-xl bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/25 disabled:opacity-50 transition-all"
+                className="w-full py-3 text-xs font-bold rounded-xl bg-gradient-to-r from-[#f36c21] to-[#e0540b] hover:from-[#ff7a33] hover:to-[#f36c21] text-white shadow-lg shadow-orange-600/25 disabled:opacity-50 transition-all"
               >
                 {loading ? 'Creating Account & Allocating Balance...' : 'Create Account & Generate Card'}
               </button>
@@ -350,3 +350,4 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
     </div>
   );
 };
+

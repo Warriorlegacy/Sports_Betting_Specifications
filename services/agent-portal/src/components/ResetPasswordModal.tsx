@@ -63,19 +63,19 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4 text-white">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+      <div className="w-full max-w-md bg-[#1e1e1e] border border-zinc-800 rounded-2xl p-6 shadow-2xl space-y-4 text-white">
+        <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
           <div className="flex items-center space-x-2.5">
-            <div className="p-2 rounded-xl bg-amber-500/20 text-amber-300">
+            <div className="p-2 rounded-xl bg-orange-500/20 text-[#f36c21] border border-[#f36c21]/30">
               <KeyRound className="w-5 h-5" />
             </div>
             <div>
               <h3 className="font-bold text-base">Reset Account Password</h3>
-              <p className="text-xs text-slate-400">User: <span className="text-white font-bold">{user.username}</span> ({user.role})</p>
+              <p className="text-xs text-zinc-400">User: <span className="text-white font-bold">{user.username}</span> ({user.role})</p>
             </div>
           </div>
 
-          <button onClick={onClose} className="p-1 rounded-lg text-slate-400 hover:text-white">
+          <button onClick={onClose} className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-[#242424]">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -97,11 +97,11 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label className="font-bold uppercase text-slate-400 text-[11px]">New Password</label>
+              <label className="font-bold uppercase text-zinc-400 text-[11px]">New Password</label>
               <button
                 type="button"
                 onClick={generateStrongPassword}
-                className="text-blue-400 hover:text-blue-300 font-bold flex items-center space-x-1 text-[11px]"
+                className="text-[#f36c21] hover:text-amber-400 font-bold flex items-center space-x-1 text-[11px]"
               >
                 <RefreshCw className="w-3 h-3" />
                 <span>Generate Random</span>
@@ -114,12 +114,12 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
                 required
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white font-mono font-bold focus:outline-none focus:border-blue-500"
+                className="w-full p-2.5 bg-[#141414] border border-zinc-700 rounded-xl text-white font-mono font-bold focus:outline-none focus:border-[#f36c21]"
               />
               <button
                 type="button"
                 onClick={copyToClipboard}
-                className="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white"
+                className="p-2.5 rounded-xl bg-[#242424] hover:bg-[#333] text-zinc-300 hover:text-white border border-zinc-700"
                 title="Copy Password"
               >
                 {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
@@ -127,19 +127,19 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
             </div>
           </div>
 
-          <div className="flex space-x-2 pt-2 border-t border-slate-800">
+          <div className="flex space-x-2 pt-2 border-t border-zinc-800">
             <button
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs"
+              className="flex-1 py-2.5 rounded-xl bg-[#242424] hover:bg-[#333] text-zinc-300 font-bold text-xs border border-zinc-700"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-lg shadow-blue-600/25 disabled:opacity-50"
+              className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-[#f36c21] to-[#e0540b] hover:from-[#ff7a33] hover:to-[#f36c21] text-white font-bold text-xs shadow-lg shadow-orange-600/25 disabled:opacity-50"
             >
               {loading ? 'Updating Password...' : 'Save New Password'}
             </button>
@@ -149,3 +149,4 @@ export const ResetPasswordModal: React.FC<ResetPasswordModalProps> = ({
     </div>
   );
 };
+

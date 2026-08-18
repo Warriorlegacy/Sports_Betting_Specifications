@@ -136,21 +136,21 @@ export const FinancialApprovalsDesk: React.FC = () => {
         <div>
           <div className="flex items-center space-x-2">
             <h2 className="text-xl font-black tracking-tight text-white flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-emerald-400" />
+              <ShieldCheck className="w-5 h-5 text-[#f36c21]" />
               Financial Approvals & Settlement Desk
             </h2>
-            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-800">
+            <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-orange-950/80 text-amber-300 border border-orange-700/60">
               Audit & Clearing
             </span>
           </div>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className="text-xs text-zinc-400 mt-0.5">
             Authorize player deposit UTRs, verify transfers, and dispatch IMPS/UPI withdrawal requests.
           </p>
         </div>
 
         <button
           onClick={activeTab === 'DEPOSITS' ? fetchDeposits : fetchWithdrawals}
-          className="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold transition-all border border-slate-700 self-start sm:self-auto"
+          className="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-[#242424] hover:bg-[#333] text-zinc-200 text-xs font-bold transition-all border border-zinc-700 self-start sm:self-auto shadow-sm"
         >
           <RefreshCw className="w-3.5 h-3.5" />
           <span>Refresh Queue</span>
@@ -158,13 +158,13 @@ export const FinancialApprovalsDesk: React.FC = () => {
       </div>
 
       {/* Main Tab Selector */}
-      <div className="flex space-x-2 border-b border-slate-800 pb-2">
+      <div className="flex space-x-2 border-b border-zinc-800 pb-2">
         <button
           onClick={() => setActiveTab('DEPOSITS')}
           className={`flex items-center space-x-2 px-5 py-2.5 rounded-xl font-bold text-xs transition-all ${
             activeTab === 'DEPOSITS'
               ? 'bg-[#f36c21] text-white shadow-lg shadow-orange-500/25'
-              : 'bg-slate-900 text-slate-400 hover:text-white'
+              : 'bg-[#1e1e1e] text-zinc-400 hover:text-white border border-zinc-800'
           }`}
         >
           <ArrowDownLeft className="w-4 h-4" />
@@ -176,7 +176,7 @@ export const FinancialApprovalsDesk: React.FC = () => {
           className={`flex items-center space-x-2 px-5 py-2.5 rounded-xl font-bold text-xs transition-all ${
             activeTab === 'WITHDRAWALS'
               ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/25'
-              : 'bg-slate-900 text-slate-400 hover:text-white'
+              : 'bg-[#1e1e1e] text-zinc-400 hover:text-white border border-zinc-800'
           }`}
         >
           <ArrowUpRight className="w-4 h-4" />
@@ -190,7 +190,7 @@ export const FinancialApprovalsDesk: React.FC = () => {
       {activeTab === 'DEPOSITS' && (
         <div className="space-y-4">
           {/* Filters */}
-          <div className="p-3 bg-slate-900/90 rounded-2xl border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="p-3 bg-[#1e1e1e] rounded-2xl border border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex space-x-1 w-full sm:w-auto">
               {(['PENDING', 'APPROVED', 'REJECTED', 'ALL'] as const).map((status) => (
                 <button
@@ -198,8 +198,8 @@ export const FinancialApprovalsDesk: React.FC = () => {
                   onClick={() => setDepositStatusFilter(status)}
                   className={`flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
                     depositStatusFilter === status
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-slate-950 text-slate-400 hover:text-white'
+                      ? 'bg-[#f36c21] text-white shadow-md shadow-orange-600/30'
+                      : 'bg-[#141414] text-zinc-400 hover:text-white'
                   }`}
                 >
                   {status}
@@ -208,22 +208,22 @@ export const FinancialApprovalsDesk: React.FC = () => {
             </div>
 
             <div className="relative w-full sm:w-72">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
               <input
                 type="text"
                 placeholder="Search by UTR or username..."
                 value={depositSearch}
                 onChange={(e) => setDepositSearch(e.target.value)}
-                className="w-full pl-9 pr-3 py-1.5 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                className="w-full pl-9 pr-3 py-1.5 bg-[#141414] border border-zinc-700 rounded-xl text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#f36c21]"
               />
             </div>
           </div>
 
           {/* Deposits Table */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+          <div className="bg-[#1e1e1e] border border-zinc-800 rounded-2xl overflow-hidden shadow-xl">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-300">
-                <thead className="bg-slate-950/80 text-slate-400 uppercase text-[10px] font-bold border-b border-slate-800 tracking-wider">
+              <table className="w-full text-left text-xs text-zinc-300">
+                <thead className="bg-[#141414] text-zinc-400 uppercase text-[10px] font-black border-b border-zinc-800 tracking-wider">
                   <tr>
                     <th className="px-4 py-3">Submitted At</th>
                     <th className="px-4 py-3">Player Account</th>
@@ -236,20 +236,20 @@ export const FinancialApprovalsDesk: React.FC = () => {
                     <th className="px-4 py-3 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 font-medium">
+                <tbody className="divide-y divide-zinc-800/60 font-medium">
                   {depositsLoading ? (
                     <tr>
-                      <td colSpan={9} className="px-6 py-12 text-center text-slate-500">
-                        <RefreshCw className="w-6 h-6 animate-spin mx-auto text-blue-500 mb-2" />
+                      <td colSpan={9} className="px-6 py-12 text-center text-zinc-500">
+                        <RefreshCw className="w-6 h-6 animate-spin mx-auto text-[#f36c21] mb-2" />
                         <span>Loading deposit requests...</span>
                       </td>
                     </tr>
                   ) : deposits.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="px-6 py-12 text-center text-slate-500">
-                        <CheckCircle2 className="w-8 h-8 mx-auto text-slate-600 mb-2" />
-                        <p className="font-bold text-slate-400">Deposit Queue Empty</p>
-                        <p className="text-[11px] mt-1 text-slate-600">No deposit requests matching current filter.</p>
+                      <td colSpan={9} className="px-6 py-12 text-center text-zinc-500">
+                        <CheckCircle2 className="w-8 h-8 mx-auto text-zinc-600 mb-2" />
+                        <p className="font-bold text-zinc-400">Deposit Queue Empty</p>
+                        <p className="text-[11px] mt-1 text-zinc-600">No deposit requests matching current filter.</p>
                       </td>
                     </tr>
                   ) : (
@@ -262,20 +262,20 @@ export const FinancialApprovalsDesk: React.FC = () => {
                       });
 
                       return (
-                        <tr key={dep.id} className="hover:bg-slate-800/40 transition-colors">
-                          <td className="px-4 py-3 font-mono text-[11px] text-slate-400 whitespace-nowrap">
+                        <tr key={dep.id} className="hover:bg-[#262626] transition-colors">
+                          <td className="px-4 py-3 font-mono text-[11px] text-zinc-400 whitespace-nowrap">
                             {dt}
                           </td>
 
                           <td className="px-4 py-3 whitespace-nowrap">
                             <div className="font-bold text-white">{dep.username}</div>
-                            <span className="text-[10px] text-slate-500 font-mono">
+                            <span className="text-[10px] text-zinc-500 font-mono">
                               Bal: ₹{parseFloat(dep.available_credit || '0').toLocaleString()}
                             </span>
                           </td>
 
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold text-[10px] uppercase">
+                            <span className="px-2 py-0.5 rounded bg-[#262626] text-zinc-300 font-bold text-[10px] uppercase border border-zinc-700">
                               {dep.payment_method}
                             </span>
                           </td>
@@ -286,12 +286,12 @@ export const FinancialApprovalsDesk: React.FC = () => {
 
                           <td className="px-4 py-3 font-mono whitespace-nowrap">
                             <div className="flex items-center space-x-1.5">
-                              <span className="font-black text-white bg-slate-950 px-2 py-1 rounded border border-slate-800">
+                              <span className="font-black text-white bg-[#141414] px-2 py-1 rounded border border-zinc-700">
                                 {dep.utr_reference}
                               </span>
                               <button
                                 onClick={() => copyToClipboard(dep.utr_reference, `dep_${dep.id}`)}
-                                className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
+                                className="p-1 rounded bg-[#242424] hover:bg-[#333] text-zinc-300"
                                 title="Copy UTR"
                               >
                                 {copiedKey === `dep_${dep.id}` ? (
@@ -303,13 +303,13 @@ export const FinancialApprovalsDesk: React.FC = () => {
                             </div>
                           </td>
 
-                          <td className="px-4 py-3 text-xs text-slate-300 max-w-[180px] truncate">
+                          <td className="px-4 py-3 text-xs text-zinc-300 max-w-[180px] truncate">
                             {dep.deposit_account_details ? (
                               <span>
                                 {dep.deposit_account_details.displayName || dep.deposit_account_details.bankName || 'Nexus Account'}
                               </span>
                             ) : (
-                              <span className="text-slate-500">Default Gateway</span>
+                              <span className="text-zinc-500">Default Gateway</span>
                             )}
                           </td>
 
@@ -320,14 +320,14 @@ export const FinancialApprovalsDesk: React.FC = () => {
                                   setPreviewScreenshotUrl(dep.proof_image_url);
                                   setPreviewScreenshotUser(`${dep.username} • ₹${parseFloat(dep.amount).toLocaleString()} (UTR: ${dep.utr_reference})`);
                                 }}
-                                className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-blue-950/80 hover:bg-blue-900 border border-blue-600/60 text-blue-300 font-bold text-[11px] transition-all hover:scale-105 shadow-sm"
+                                className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-orange-950/80 hover:bg-orange-900 border border-[#f36c21]/60 text-amber-300 font-bold text-[11px] transition-all hover:scale-105 shadow-sm"
                                 title="View Payment Screenshot Proof"
                               >
-                                <ImageIcon className="w-3.5 h-3.5 text-blue-400" />
+                                <ImageIcon className="w-3.5 h-3.5 text-[#f36c21]" />
                                 <span>View Proof</span>
                               </button>
                             ) : (
-                              <span className="text-slate-600 text-[10px] italic">No Image</span>
+                              <span className="text-zinc-600 text-[10px] italic">No Image</span>
                             )}
                           </td>
 
@@ -374,7 +374,7 @@ export const FinancialApprovalsDesk: React.FC = () => {
                                 </button>
                               </div>
                             ) : (
-                              <span className="text-[11px] text-slate-500 font-mono">
+                              <span className="text-[11px] text-zinc-500 font-mono">
                                 by {dep.processor_username || 'Admin'}
                               </span>
                             )}
@@ -396,15 +396,15 @@ export const FinancialApprovalsDesk: React.FC = () => {
       {activeTab === 'WITHDRAWALS' && (
         <div className="space-y-4">
           {/* Status Filters */}
-          <div className="p-3 bg-slate-900/90 rounded-2xl border border-slate-800 flex items-center space-x-1">
+          <div className="p-3 bg-[#1e1e1e] rounded-2xl border border-zinc-800 flex items-center space-x-1">
             {(['PENDING', 'APPROVED', 'REJECTED', 'ALL'] as const).map((status) => (
               <button
                 key={status}
                 onClick={() => setWithdrawStatusFilter(status)}
                 className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
                   withdrawStatusFilter === status
-                    ? 'bg-emerald-600 text-white'
-                    : 'bg-slate-950 text-slate-400 hover:text-white'
+                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30'
+                    : 'bg-[#141414] text-zinc-400 hover:text-white'
                 }`}
               >
                 {status}
@@ -413,10 +413,10 @@ export const FinancialApprovalsDesk: React.FC = () => {
           </div>
 
           {/* Withdrawals Table */}
-          <div className="bg-slate-900/90 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+          <div className="bg-[#1e1e1e] border border-zinc-800 rounded-2xl overflow-hidden shadow-xl">
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-300">
-                <thead className="bg-slate-950/80 text-slate-400 uppercase text-[10px] font-bold border-b border-slate-800 tracking-wider">
+              <table className="w-full text-left text-xs text-zinc-300">
+                <thead className="bg-[#141414] text-zinc-400 uppercase text-[10px] font-black border-b border-zinc-800 tracking-wider">
                   <tr>
                     <th className="px-4 py-3">Requested At</th>
                     <th className="px-4 py-3">Player Account</th>
@@ -427,20 +427,20 @@ export const FinancialApprovalsDesk: React.FC = () => {
                     <th className="px-4 py-3 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 font-medium">
+                <tbody className="divide-y divide-zinc-800/60 font-medium">
                   {withdrawalsLoading ? (
                     <tr>
-                      <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
+                      <td colSpan={7} className="px-6 py-12 text-center text-zinc-500">
                         <RefreshCw className="w-6 h-6 animate-spin mx-auto text-emerald-500 mb-2" />
                         <span>Loading withdrawal requests...</span>
                       </td>
                     </tr>
                   ) : withdrawals.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
-                        <CheckCircle2 className="w-8 h-8 mx-auto text-slate-600 mb-2" />
-                        <p className="font-bold text-slate-400">Withdrawal Queue Empty</p>
-                        <p className="text-[11px] mt-1 text-slate-600">No withdrawal requests matching current filter.</p>
+                      <td colSpan={7} className="px-6 py-12 text-center text-zinc-500">
+                        <CheckCircle2 className="w-8 h-8 mx-auto text-zinc-600 mb-2" />
+                        <p className="font-bold text-zinc-400">Withdrawal Queue Empty</p>
+                        <p className="text-[11px] mt-1 text-zinc-600">No withdrawal requests matching current filter.</p>
                       </td>
                     </tr>
                   ) : (
@@ -455,20 +455,20 @@ export const FinancialApprovalsDesk: React.FC = () => {
                       const acc = wth.account_details || {};
 
                       return (
-                        <tr key={wth.id} className="hover:bg-slate-800/40 transition-colors">
-                          <td className="px-4 py-3 font-mono text-[11px] text-slate-400 whitespace-nowrap">
+                        <tr key={wth.id} className="hover:bg-[#262626] transition-colors">
+                          <td className="px-4 py-3 font-mono text-[11px] text-zinc-400 whitespace-nowrap">
                             {dt}
                           </td>
 
                           <td className="px-4 py-3 whitespace-nowrap">
                             <div className="font-bold text-white">{wth.username}</div>
-                            <span className="text-[10px] text-slate-500 font-mono">
+                            <span className="text-[10px] text-zinc-500 font-mono">
                               Role: {wth.role}
                             </span>
                           </td>
 
                           <td className="px-4 py-3 whitespace-nowrap">
-                            <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-bold text-[10px] uppercase">
+                            <span className="px-2 py-0.5 rounded bg-[#262626] text-zinc-300 font-bold text-[10px] uppercase border border-zinc-700">
                               {wth.payout_method}
                             </span>
                           </td>
@@ -480,13 +480,13 @@ export const FinancialApprovalsDesk: React.FC = () => {
                           <td className="px-4 py-3">
                             {wth.payout_method === 'UPI' ? (
                               <div className="flex items-center space-x-1.5">
-                                <span className="font-mono font-bold text-white bg-slate-950 px-2 py-1 rounded border border-slate-800">
+                                <span className="font-mono font-bold text-white bg-[#141414] px-2 py-1 rounded border border-zinc-700">
                                   {acc.upiId || 'N/A'}
                                 </span>
                                 {acc.upiId && (
                                   <button
                                     onClick={() => copyToClipboard(acc.upiId, `wth_upi_${wth.id}`)}
-                                    className="p-1 rounded bg-slate-800 text-slate-300 hover:bg-slate-700"
+                                    className="p-1 rounded bg-[#242424] text-zinc-300 hover:bg-[#333]"
                                     title="Copy UPI ID"
                                   >
                                     {copiedKey === `wth_upi_${wth.id}` ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
@@ -497,17 +497,17 @@ export const FinancialApprovalsDesk: React.FC = () => {
                               <div className="space-y-0.5 text-[11px]">
                                 <div className="font-bold text-white flex items-center space-x-2">
                                   <span>{acc.bankHolderName || 'A/C Holder'}</span>
-                                  <span className="font-mono text-slate-400">({acc.bankAccNumber})</span>
+                                  <span className="font-mono text-zinc-400">({acc.bankAccNumber})</span>
                                   {acc.bankAccNumber && (
                                     <button
                                       onClick={() => copyToClipboard(acc.bankAccNumber, `wth_acc_${wth.id}`)}
-                                      className="p-0.5 rounded bg-slate-800 text-slate-300"
+                                      className="p-0.5 rounded bg-[#242424] text-zinc-300"
                                     >
                                       {copiedKey === `wth_acc_${wth.id}` ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
                                     </button>
                                   )}
                                 </div>
-                                <div className="text-[10px] font-mono text-slate-400">
+                                <div className="text-[10px] font-mono text-zinc-400">
                                   IFSC: <span className="text-amber-300 font-bold">{acc.bankIfsc}</span>
                                 </div>
                               </div>
@@ -558,7 +558,7 @@ export const FinancialApprovalsDesk: React.FC = () => {
                                 </button>
                               </div>
                             ) : (
-                              <span className="text-[11px] text-slate-500 font-mono">
+                              <span className="text-[11px] text-zinc-500 font-mono">
                                 Ref: {wth.reference_id || 'N/A'}
                               </span>
                             )}
@@ -579,8 +579,8 @@ export const FinancialApprovalsDesk: React.FC = () => {
       {/* ========================================================================= */}
       {selectedDeposit && depositAction && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4 text-white">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="w-full max-w-md bg-[#1e1e1e] border border-zinc-800 rounded-2xl p-6 shadow-2xl space-y-4 text-white">
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
               <h3 className="font-bold text-base flex items-center space-x-2">
                 {depositAction === 'APPROVE' ? (
                   <>
@@ -596,26 +596,26 @@ export const FinancialApprovalsDesk: React.FC = () => {
               </h3>
             </div>
 
-            <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2 text-xs">
-              <div className="flex justify-between text-slate-400">
+            <div className="p-3 bg-[#141414] rounded-xl border border-zinc-800 space-y-2 text-xs">
+              <div className="flex justify-between text-zinc-400">
                 <span>Player:</span>
                 <span className="font-bold text-white">{selectedDeposit.username}</span>
               </div>
-              <div className="flex justify-between text-slate-400">
+              <div className="flex justify-between text-zinc-400">
                 <span>Deposit Amount:</span>
                 <span className="font-mono font-black text-emerald-400 text-sm">
                   ₹{parseFloat(selectedDeposit.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </span>
               </div>
-              <div className="flex justify-between text-slate-400">
+              <div className="flex justify-between text-zinc-400">
                 <span>UTR Reference:</span>
                 <span className="font-mono font-bold text-white">{selectedDeposit.utr_reference}</span>
               </div>
 
               {selectedDeposit.proof_image_url && (
-                <div className="pt-2 border-t border-slate-800 space-y-1">
+                <div className="pt-2 border-t border-zinc-800 space-y-1">
                   <div className="flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-blue-400 flex items-center gap-1">
+                    <span className="text-[11px] font-bold text-[#f36c21] flex items-center gap-1">
                       <ImageIcon className="w-3.5 h-3.5" /> Uploaded Payment Screenshot
                     </span>
                     <button
@@ -624,7 +624,7 @@ export const FinancialApprovalsDesk: React.FC = () => {
                         setPreviewScreenshotUrl(selectedDeposit.proof_image_url);
                         setPreviewScreenshotUser(`${selectedDeposit.username} (UTR: ${selectedDeposit.utr_reference})`);
                       }}
-                      className="text-[10px] text-blue-400 hover:text-blue-300 font-bold underline"
+                      className="text-[10px] text-[#f36c21] hover:text-amber-400 font-bold underline"
                     >
                       Enlarge Proof
                     </button>
@@ -634,7 +634,7 @@ export const FinancialApprovalsDesk: React.FC = () => {
                       setPreviewScreenshotUrl(selectedDeposit.proof_image_url);
                       setPreviewScreenshotUser(`${selectedDeposit.username} (UTR: ${selectedDeposit.utr_reference})`);
                     }}
-                    className="cursor-pointer rounded-lg overflow-hidden border border-slate-700 bg-black/60 max-h-36 flex items-center justify-center relative group"
+                    className="cursor-pointer rounded-lg overflow-hidden border border-zinc-700 bg-black/60 max-h-36 flex items-center justify-center relative group"
                   >
                     <img
                       src={selectedDeposit.proof_image_url}
@@ -650,7 +650,7 @@ export const FinancialApprovalsDesk: React.FC = () => {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-300">
+              <label className="text-xs font-semibold text-zinc-300">
                 {depositAction === 'APPROVE' ? 'Operator Notes (Optional)' : 'Reason for Rejection *'}
               </label>
               <textarea
@@ -662,7 +662,7 @@ export const FinancialApprovalsDesk: React.FC = () => {
                     : 'e.g. UTR not matching banking records'
                 }
                 rows={2}
-                className="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500"
+                className="w-full p-2.5 bg-[#141414] border border-zinc-700 rounded-xl text-xs text-white focus:outline-none focus:border-[#f36c21]"
               />
             </div>
 
@@ -674,7 +674,7 @@ export const FinancialApprovalsDesk: React.FC = () => {
                   setDepositAction(null);
                 }}
                 disabled={processingDeposit}
-                className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs"
+                className="flex-1 py-2.5 rounded-xl bg-[#242424] hover:bg-[#333] text-zinc-300 font-bold text-xs transition-colors border border-zinc-700"
               >
                 Cancel
               </button>
@@ -682,7 +682,7 @@ export const FinancialApprovalsDesk: React.FC = () => {
                 type="button"
                 onClick={handleProcessDeposit}
                 disabled={processingDeposit || (depositAction === 'REJECT' && !depositNote.trim())}
-                className={`flex-1 py-2.5 rounded-xl font-bold text-xs text-white shadow-lg disabled:opacity-50 ${
+                className={`flex-1 py-2.5 rounded-xl font-bold text-xs text-white shadow-lg disabled:opacity-50 transition-all ${
                   depositAction === 'APPROVE'
                     ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/25'
                     : 'bg-red-600 hover:bg-red-500 shadow-red-600/25'
@@ -700,8 +700,8 @@ export const FinancialApprovalsDesk: React.FC = () => {
       {/* ========================================================================= */}
       {selectedWithdrawal && withdrawAction && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl space-y-4 text-white">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="w-full max-w-md bg-[#1e1e1e] border border-zinc-800 rounded-2xl p-6 shadow-2xl space-y-4 text-white">
+            <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
               <h3 className="font-bold text-base flex items-center space-x-2">
                 {withdrawAction === 'APPROVE' ? (
                   <>
@@ -717,18 +717,18 @@ export const FinancialApprovalsDesk: React.FC = () => {
               </h3>
             </div>
 
-            <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-2 text-xs">
-              <div className="flex justify-between text-slate-400">
+            <div className="p-3 bg-[#141414] rounded-xl border border-zinc-800 space-y-2 text-xs">
+              <div className="flex justify-between text-zinc-400">
                 <span>Player:</span>
                 <span className="font-bold text-white">{selectedWithdrawal.username}</span>
               </div>
-              <div className="flex justify-between text-slate-400">
+              <div className="flex justify-between text-zinc-400">
                 <span>Withdrawal Amount:</span>
                 <span className="font-mono font-black text-amber-400 text-sm">
                   ₹{parseFloat(selectedWithdrawal.amount).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </span>
               </div>
-              <div className="flex justify-between text-slate-400">
+              <div className="flex justify-between text-zinc-400">
                 <span>Payout Method:</span>
                 <span className="font-bold text-white">{selectedWithdrawal.payout_method}</span>
               </div>
@@ -736,24 +736,24 @@ export const FinancialApprovalsDesk: React.FC = () => {
 
             {withdrawAction === 'APPROVE' ? (
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-300">Bank IMPS / UPI RRN Reference</label>
+                <label className="text-xs font-semibold text-zinc-300">Bank IMPS / UPI RRN Reference</label>
                 <input
                   type="text"
                   value={withdrawRefId}
                   onChange={(e) => setWithdrawRefId(e.target.value)}
                   placeholder="e.g. IMPS99201948201"
-                  className="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-xl text-xs font-mono text-white focus:outline-none focus:border-blue-500"
+                  className="w-full p-2.5 bg-[#141414] border border-zinc-700 rounded-xl text-xs font-mono text-white focus:outline-none focus:border-[#f36c21]"
                 />
               </div>
             ) : (
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-300">Reason for Rejection (Refund Reason) *</label>
+                <label className="text-xs font-semibold text-zinc-300">Reason for Rejection (Refund Reason) *</label>
                 <textarea
                   value={withdrawNote}
                   onChange={(e) => setWithdrawNote(e.target.value)}
                   placeholder="e.g. Invalid bank IFSC code or account holder name mismatch"
                   rows={2}
-                  className="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-xl text-xs text-white focus:outline-none focus:border-blue-500"
+                  className="w-full p-2.5 bg-[#141414] border border-zinc-700 rounded-xl text-xs text-white focus:outline-none focus:border-[#f36c21]"
                 />
               </div>
             )}
@@ -766,7 +766,7 @@ export const FinancialApprovalsDesk: React.FC = () => {
                   setWithdrawAction(null);
                 }}
                 disabled={processingWithdrawal}
-                className="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs"
+                className="flex-1 py-2.5 rounded-xl bg-[#242424] hover:bg-[#333] text-zinc-300 font-bold text-xs transition-colors border border-zinc-700"
               >
                 Cancel
               </button>
@@ -774,7 +774,7 @@ export const FinancialApprovalsDesk: React.FC = () => {
                 type="button"
                 onClick={handleProcessWithdrawal}
                 disabled={processingWithdrawal || (withdrawAction === 'REJECT' && !withdrawNote.trim())}
-                className={`flex-1 py-2.5 rounded-xl font-bold text-xs text-white shadow-lg disabled:opacity-50 ${
+                className={`flex-1 py-2.5 rounded-xl font-bold text-xs text-white shadow-lg disabled:opacity-50 transition-all ${
                   withdrawAction === 'APPROVE'
                     ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/25'
                     : 'bg-red-600 hover:bg-red-500 shadow-red-600/25'
@@ -792,22 +792,22 @@ export const FinancialApprovalsDesk: React.FC = () => {
       {/* ========================================================================= */}
       {previewScreenshotUrl && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-md animate-in fade-in select-none">
-          <div className="w-full max-w-4xl bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+          <div className="w-full max-w-4xl bg-[#1e1e1e] border border-zinc-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-4 bg-[#141414] border-b border-zinc-800 flex items-center justify-between">
               <div className="flex items-center space-x-2.5">
-                <div className="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/30 flex items-center justify-center">
-                  <ImageIcon className="w-4 h-4 text-blue-400" />
+                <div className="w-8 h-8 rounded-lg bg-orange-500/20 border border-[#f36c21]/30 flex items-center justify-center">
+                  <ImageIcon className="w-4 h-4 text-[#f36c21]" />
                 </div>
                 <div>
                   <h3 className="font-bold text-sm text-white">Payment Receipt / Screenshot Inspection</h3>
                   {previewScreenshotUser && (
-                    <p className="text-xs text-slate-400 font-mono">{previewScreenshotUser}</p>
+                    <p className="text-xs text-zinc-400 font-mono">{previewScreenshotUser}</p>
                   )}
                 </div>
               </div>
               <button
                 onClick={() => setPreviewScreenshotUrl(null)}
-                className="p-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+                className="p-1.5 rounded-xl bg-[#242424] text-zinc-400 hover:text-white hover:bg-[#333] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -816,16 +816,16 @@ export const FinancialApprovalsDesk: React.FC = () => {
               <img
                 src={previewScreenshotUrl}
                 alt="Payment Receipt"
-                className="max-h-[68vh] max-w-full object-contain rounded-lg shadow-2xl border border-slate-800"
+                className="max-h-[68vh] max-w-full object-contain rounded-lg shadow-2xl border border-zinc-800"
               />
             </div>
-            <div className="p-3 bg-slate-950 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+            <div className="p-3 bg-[#141414] border-t border-zinc-800 flex items-center justify-between text-xs text-zinc-400">
               <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">
                 <ShieldCheck className="w-4 h-4" /> Operator Verified Banking Proof
               </span>
               <button
                 onClick={() => setPreviewScreenshotUrl(null)}
-                className="px-4 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs"
+                className="px-4 py-1.5 rounded-xl bg-[#242424] hover:bg-[#333] text-white font-bold text-xs transition-colors border border-zinc-700"
               >
                 Close Preview
               </button>
@@ -836,3 +836,4 @@ export const FinancialApprovalsDesk: React.FC = () => {
     </div>
   );
 };
+

@@ -107,21 +107,21 @@ export const RolesMatrixModal: React.FC<RolesMatrixModalProps> = ({ isOpen, onCl
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
-      <div className="w-full max-w-4xl bg-slate-900 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-white max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+      <div className="w-full max-w-4xl bg-[#1e1e1e] border border-zinc-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-white max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between border-b border-zinc-800 pb-4">
           <div className="flex items-center space-x-3">
-            <div className="p-2.5 rounded-2xl bg-purple-500/20 text-purple-300 border border-purple-500/30">
+            <div className="p-2.5 rounded-2xl bg-orange-500/20 text-[#f36c21] border border-[#f36c21]/30">
               <Shield className="w-6 h-6" />
             </div>
             <div>
               <h3 className="font-extrabold text-lg tracking-tight">5-Tier Role & Authority Matrix</h3>
-              <p className="text-xs text-slate-400">Clear specification of roles, responsibilities, abilities, and powers</p>
+              <p className="text-xs text-zinc-400">Clear specification of roles, responsibilities, abilities, and powers</p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white"
+            className="p-2 rounded-xl bg-[#242424] hover:bg-[#333] text-zinc-400 hover:text-white border border-zinc-700"
           >
             <X className="w-5 h-5" />
           </button>
@@ -131,28 +131,32 @@ export const RolesMatrixModal: React.FC<RolesMatrixModalProps> = ({ isOpen, onCl
           {roles.map((r) => (
             <div
               key={r.role}
-              className="p-5 rounded-2xl bg-slate-950 border border-slate-800/80 space-y-3 hover:border-slate-700 transition-all shadow-lg"
+              className="p-5 rounded-2xl bg-[#141414] border border-zinc-800 space-y-3 hover:border-zinc-700 transition-all shadow-lg"
             >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-900 pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-zinc-800/80 pb-3">
                 <div className="flex items-center space-x-2.5">
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-black border ${r.badge}`}>
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-black border ${
+                    r.role === 'ADMIN'
+                      ? 'bg-orange-500/20 text-[#f36c21] border-[#f36c21]/30'
+                      : r.badge
+                  }`}>
                     {r.level} • {r.role}
                   </span>
                   <h4 className="font-bold text-sm text-white">{r.title}</h4>
                 </div>
-                <span className="text-xs text-slate-400 italic">{r.description}</span>
+                <span className="text-xs text-zinc-400 italic">{r.description}</span>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs pt-1">
                 {/* Responsibilities */}
-                <div className="space-y-1.5 p-3 rounded-xl bg-slate-900/60 border border-slate-800/60">
-                  <span className="text-[11px] uppercase font-bold text-slate-400 block tracking-wider">
+                <div className="space-y-1.5 p-3 rounded-xl bg-[#1e1e1e] border border-zinc-800">
+                  <span className="text-[11px] uppercase font-bold text-zinc-400 block tracking-wider">
                     Core Responsibilities
                   </span>
-                  <ul className="space-y-1 text-slate-300">
+                  <ul className="space-y-1 text-zinc-300">
                     {r.responsibilities.map((resp, idx) => (
                       <li key={idx} className="flex items-start space-x-1.5">
-                        <span className="text-blue-400 font-bold">•</span>
+                        <span className="text-[#f36c21] font-bold">•</span>
                         <span>{resp}</span>
                       </li>
                     ))}
@@ -160,11 +164,11 @@ export const RolesMatrixModal: React.FC<RolesMatrixModalProps> = ({ isOpen, onCl
                 </div>
 
                 {/* Abilities & Powers */}
-                <div className="space-y-1.5 p-3 rounded-xl bg-slate-900/60 border border-slate-800/60">
+                <div className="space-y-1.5 p-3 rounded-xl bg-[#1e1e1e] border border-zinc-800">
                   <span className="text-[11px] uppercase font-bold text-emerald-400 block tracking-wider">
                     Abilities & System Powers
                   </span>
-                  <ul className="space-y-1 text-slate-300">
+                  <ul className="space-y-1 text-zinc-300">
                     {r.powers.map((pow, idx) => (
                       <li key={idx} className="flex items-start space-x-1.5">
                         <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
@@ -181,7 +185,7 @@ export const RolesMatrixModal: React.FC<RolesMatrixModalProps> = ({ isOpen, onCl
         <div className="pt-2 text-center">
           <button
             onClick={onClose}
-            className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-lg shadow-blue-600/25"
+            className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#f36c21] to-[#e0540b] hover:from-[#ff7a33] hover:to-[#f36c21] text-white font-bold text-xs shadow-lg shadow-orange-600/25 transition-all"
           >
             Close Role Matrix
           </button>
@@ -190,3 +194,4 @@ export const RolesMatrixModal: React.FC<RolesMatrixModalProps> = ({ isOpen, onCl
     </div>
   );
 };
+

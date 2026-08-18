@@ -61,32 +61,32 @@ export const CreditModal: React.FC<CreditModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-150">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+      <div className="w-full max-w-md bg-[#1e1e1e] border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-150 text-white">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800 bg-slate-950/50">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800 bg-[#141414]">
           <div className="flex items-center space-x-2.5">
             {isAllocate ? (
-              <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400">
+              <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
                 <ArrowDownLeft className="w-5 h-5" />
               </div>
             ) : (
-              <div className="p-2 rounded-xl bg-amber-500/20 text-amber-400">
+              <div className="p-2 rounded-xl bg-orange-500/20 text-amber-400 border border-orange-500/30">
                 <ArrowUpRight className="w-5 h-5" />
               </div>
             )}
             <div>
-              <h3 className="font-bold text-base text-slate-100">
+              <h3 className="font-bold text-base text-white">
                 {isAllocate ? 'Allocate Downline Credit' : 'Recall Subordinate Credit'}
               </h3>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-zinc-400">
                 {isAllocate ? 'Provision credit lines down the tree' : 'Recall unencumbered credit'}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+            className="p-1 rounded-lg text-zinc-400 hover:text-white hover:bg-[#242424]"
           >
             <X className="w-5 h-5" />
           </button>
@@ -102,28 +102,28 @@ export const CreditModal: React.FC<CreditModalProps> = ({
           )}
 
           {/* Account Target Info */}
-          <div className="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-2">
+          <div className="p-3.5 rounded-xl bg-[#141414] border border-zinc-800 space-y-2">
             <div className="flex justify-between text-xs">
-              <span className="text-slate-400">Target Account:</span>
-              <span className="font-bold text-slate-200">{targetUser.username} ({targetUser.role})</span>
+              <span className="text-zinc-400">Target Account:</span>
+              <span className="font-bold text-white">{targetUser.username} ({targetUser.role})</span>
             </div>
             <div className="flex justify-between text-xs">
-              <span className="text-slate-400">Target Available Credit:</span>
-              <span className="mono-num font-semibold text-emerald-400">
-                {targetUser.availableCredit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              <span className="text-zinc-400">Target Available Credit:</span>
+              <span className="font-mono font-semibold text-emerald-400">
+                ₹{targetUser.availableCredit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </span>
             </div>
             <div className="flex justify-between text-xs">
-              <span className="text-slate-400">Target Active Exposure:</span>
-              <span className="mono-num font-semibold text-amber-400">
-                {targetUser.exposure.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              <span className="text-zinc-400">Target Active Exposure:</span>
+              <span className="font-mono font-semibold text-amber-400">
+                ₹{targetUser.exposure.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </span>
             </div>
             {isAllocate && (
-              <div className="flex justify-between text-xs pt-1 border-t border-slate-800">
-                <span className="text-slate-400">Your Available Balance:</span>
-                <span className="mono-num font-bold text-blue-400">
-                  {parentBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              <div className="flex justify-between text-xs pt-1 border-t border-zinc-800">
+                <span className="text-zinc-400">Your Available Balance:</span>
+                <span className="font-mono font-bold text-[#f36c21]">
+                  ₹{parentBalance.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </span>
               </div>
             )}
@@ -131,11 +131,11 @@ export const CreditModal: React.FC<CreditModalProps> = ({
 
           {/* Amount Input */}
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
-              Credit Amount
+            <label className="text-xs font-semibold uppercase tracking-wider text-zinc-300">
+              Credit Amount (₹)
             </label>
             <div className="relative">
-              <Coins className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+              <Coins className="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
               <input
                 type="number"
                 step="0.01"
@@ -144,7 +144,7 @@ export const CreditModal: React.FC<CreditModalProps> = ({
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 required
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white font-mono text-base focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500 transition-all"
+                className="w-full pl-10 pr-4 py-2.5 bg-[#141414] border border-zinc-700 rounded-xl text-white font-mono text-base focus:outline-none focus:border-[#f36c21] transition-all"
               />
             </div>
           </div>
@@ -156,16 +156,16 @@ export const CreditModal: React.FC<CreditModalProps> = ({
                 key={quickAmt}
                 type="button"
                 onClick={() => setAmount(quickAmt.toString())}
-                className="flex-1 py-1.5 text-xs font-mono font-semibold rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700/60"
+                className="flex-1 py-1.5 text-xs font-mono font-semibold rounded-lg bg-[#242424] hover:bg-[#333] text-zinc-300 border border-zinc-700 transition-colors"
               >
-                +{quickAmt.toLocaleString()}
+                +₹{quickAmt.toLocaleString('en-IN')}
               </button>
             ))}
           </div>
 
           {/* Notes / Reason */}
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wider text-slate-300">
+            <label className="text-xs font-semibold uppercase tracking-wider text-zinc-300">
               Ledger Note / Reference
             </label>
             <input
@@ -173,26 +173,29 @@ export const CreditModal: React.FC<CreditModalProps> = ({
               placeholder={isAllocate ? 'e.g. Weekly operational credit' : 'e.g. Settlement sweep'}
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3.5 py-2 bg-slate-950 border border-slate-700 rounded-xl text-slate-200 text-xs focus:outline-none focus:border-blue-500"
+              className="w-full px-3.5 py-2 bg-[#141414] border border-zinc-700 rounded-xl text-zinc-200 text-xs focus:outline-none focus:border-[#f36c21]"
             />
           </div>
 
           {/* Submit Button */}
-          <div className="pt-2">
+          <div className="flex space-x-3 pt-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-2.5 text-xs font-semibold rounded-xl bg-[#242424] hover:bg-[#333] text-zinc-300 border border-zinc-700 transition-colors"
+            >
+              Cancel
+            </button>
             <button
               type="submit"
               disabled={loading}
-              className={`w-full py-3 text-sm font-bold rounded-xl text-white shadow-lg transition-all ${
+              className={`flex-1 py-2.5 text-xs font-bold rounded-xl text-white shadow-lg transition-all disabled:opacity-50 ${
                 isAllocate
-                  ? 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/20'
-                  : 'bg-amber-600 hover:bg-amber-500 shadow-amber-600/20'
-              } disabled:opacity-50`}
+                  ? 'bg-gradient-to-r from-[#f36c21] to-[#e0540b] hover:from-[#ff7a33] hover:to-[#f36c21] shadow-orange-600/25'
+                  : 'bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 shadow-amber-600/25'
+              }`}
             >
-              {loading
-                ? 'Executing Atomic Transaction...'
-                : isAllocate
-                ? `Allocate ${numAmount > 0 ? numAmount.toLocaleString() + ' Credit' : ''}`
-                : `Recall ${numAmount > 0 ? numAmount.toLocaleString() + ' Credit' : ''}`}
+              {loading ? 'Processing...' : isAllocate ? 'Confirm Allocation' : 'Confirm Recall'}
             </button>
           </div>
         </form>

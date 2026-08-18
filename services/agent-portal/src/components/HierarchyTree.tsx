@@ -83,7 +83,7 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({
         <div
           className={`flex flex-wrap items-center justify-between p-4 rounded-xl transition-all border ${
             node.isActive
-              ? 'bg-slate-900/80 border-slate-800 hover:border-slate-700'
+              ? 'bg-[#1e1e1e] border-zinc-800 hover:border-[#f36c21]/40 shadow-sm'
               : 'bg-red-950/20 border-red-900/40 opacity-75'
           }`}
           style={{ marginLeft: `${Math.min(depth * 24, 120)}px` }}
@@ -93,9 +93,9 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({
             {hasChildren ? (
               <button
                 onClick={() => toggleExpand(node.id)}
-                className="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-white"
+                className="p-1 rounded hover:bg-[#282828] text-zinc-400 hover:text-white"
               >
-                {isExpanded ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+                {isExpanded ? <ChevronDown className="w-5 h-5 text-[#f36c21]" /> : <ChevronRight className="w-5 h-5 text-[#f36c21]" />}
               </button>
             ) : (
               <div className="w-7" />
@@ -103,7 +103,7 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({
 
             <div className="flex flex-col">
               <div className="flex items-center space-x-2">
-                <span className="font-bold text-base text-slate-100">{node.username}</span>
+                <span className="font-bold text-base text-white">{node.username}</span>
                 <span className={`px-2 py-0.5 text-[10px] font-bold uppercase rounded-md border ${getRoleColor(node.role)}`}>
                   {node.role.replace('_', ' ')}
                 </span>
@@ -113,30 +113,30 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({
                   </span>
                 )}
               </div>
-              <span className="text-xs text-slate-500 mono-num">UUID: {node.id.slice(0, 8)}...</span>
+              <span className="text-xs text-zinc-500 mono-num">UUID: {node.id.slice(0, 8)}...</span>
             </div>
           </div>
 
           {/* Balance & Risk Metrics */}
           <div className="flex items-center space-x-6 my-2 sm:my-0">
             <div className="flex flex-col text-right">
-              <span className="text-[11px] font-medium text-slate-400">Available Credit</span>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Available Credit</span>
               <span className="mono-num text-sm font-bold text-emerald-400">
-                {node.availableCredit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                ₹{node.availableCredit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </span>
             </div>
 
             <div className="flex flex-col text-right">
-              <span className="text-[11px] font-medium text-slate-400">Active Exposure</span>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Active Exposure</span>
               <span className="mono-num text-sm font-bold text-amber-400">
-                {node.exposure.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                ₹{node.exposure.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </span>
             </div>
 
             <div className="flex flex-col text-right hidden sm:flex">
-              <span className="text-[11px] font-medium text-slate-400">Credit Limit</span>
-              <span className="mono-num text-sm font-semibold text-slate-300">
-                {node.creditLimit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400">Credit Limit</span>
+              <span className="mono-num text-sm font-semibold text-zinc-300">
+                ₹{node.creditLimit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
               </span>
             </div>
           </div>
@@ -147,7 +147,7 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({
             <button
               onClick={() => onOpenCreditModal(node, 'ALLOCATE')}
               title="Allocate Credit to this node"
-              className="flex items-center space-x-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600/20 text-emerald-300 hover:bg-emerald-600/30 border border-emerald-500/30 transition-colors"
+              className="flex items-center space-x-1 px-2.5 py-1.5 text-xs font-bold rounded-lg bg-emerald-600/20 text-emerald-300 hover:bg-emerald-600/30 border border-emerald-500/30 transition-colors"
             >
               <ArrowDownLeft className="w-3.5 h-3.5" />
               <span>+ Credit</span>
@@ -157,7 +157,7 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({
             <button
               onClick={() => onOpenCreditModal(node, 'RECALL')}
               title="Recall unencumbered credit from this node"
-              className="flex items-center space-x-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-amber-600/20 text-amber-300 hover:bg-amber-600/30 border border-amber-500/30 transition-colors"
+              className="flex items-center space-x-1 px-2.5 py-1.5 text-xs font-bold rounded-lg bg-amber-600/20 text-amber-300 hover:bg-amber-600/30 border border-amber-500/30 transition-colors"
             >
               <ArrowUpRight className="w-3.5 h-3.5" />
               <span>- Recall</span>
@@ -168,7 +168,7 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({
               <button
                 onClick={() => onOpenCreateModal(node)}
                 title="Create Downline Subordinate"
-                className="flex items-center space-x-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-blue-600/20 text-blue-300 hover:bg-blue-600/30 border border-blue-500/30 transition-colors"
+                className="flex items-center space-x-1 px-2.5 py-1.5 text-xs font-bold rounded-lg bg-[#f36c21]/20 text-orange-300 hover:bg-[#f36c21]/30 border border-[#f36c21]/40 transition-colors"
               >
                 <PlusCircle className="w-3.5 h-3.5" />
                 <span>+ Subordinate</span>
@@ -181,7 +181,7 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({
               title={node.isActive ? 'Suspend User' : 'Activate User'}
               className={`p-1.5 rounded-lg border transition-colors ${
                 node.isActive
-                  ? 'text-slate-400 hover:text-red-400 border-slate-700 hover:bg-red-500/10'
+                  ? 'text-zinc-400 hover:text-red-400 border-zinc-700 hover:bg-red-500/10'
                   : 'text-red-400 hover:text-emerald-400 border-red-700 hover:bg-emerald-500/10'
               }`}
             >
@@ -193,7 +193,7 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({
               <button
                 onClick={() => onOpenResetPassword(node)}
                 title="Reset Credentials / Password"
-                className="p-1.5 rounded-lg border border-slate-700 text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 transition-colors"
+                className="p-1.5 rounded-lg border border-zinc-700 text-zinc-400 hover:text-amber-400 hover:bg-amber-500/10 transition-colors"
               >
                 <KeyRound className="w-4 h-4" />
               </button>
@@ -203,7 +203,7 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({
 
         {/* Render Children */}
         {hasChildren && isExpanded && (
-          <div className="flex flex-col space-y-2 pl-4 border-l-2 border-slate-800 ml-4">
+          <div className="flex flex-col space-y-2 pl-4 border-l-2 border-zinc-800 ml-4">
             {node.children.map((child) => renderNode(child, depth + 1))}
           </div>
         )}
@@ -214,19 +214,19 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({
   return (
     <div className="space-y-6">
       {/* Top summary bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-xl bg-slate-900/60 border border-slate-800">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-xl bg-[#1e1e1e] border border-zinc-800">
         <div className="flex items-center space-x-3">
-          <Users className="w-5 h-5 text-blue-400" />
+          <Users className="w-5 h-5 text-[#f36c21]" />
           <div>
-            <h2 className="text-base font-bold text-slate-100">Downline Branch Navigator</h2>
-            <p className="text-xs text-slate-400">Strict 5-Tier Non-Cyclic Credit & Subordinate Isolation</p>
+            <h2 className="text-base font-black text-white">Downline Branch Navigator</h2>
+            <p className="text-xs text-zinc-400">Strict 5-Tier Non-Cyclic Credit & Subordinate Isolation</p>
           </div>
         </div>
 
         {tree && canCreateChild(tree.role) && (
           <button
             onClick={() => onOpenCreateModal(tree)}
-            className="flex items-center space-x-2 px-4 py-2 text-sm font-semibold rounded-xl bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-600/20 transition-all"
+            className="flex items-center space-x-2 px-4 py-2 text-sm font-bold rounded-xl bg-gradient-to-r from-[#f36c21] to-[#e0540b] hover:from-[#ff7a33] hover:to-[#f36c21] text-white shadow-lg shadow-orange-600/30 transition-all"
           >
             <PlusCircle className="w-4 h-4" />
             <span>Create Downline Account</span>
@@ -237,7 +237,7 @@ export const HierarchyTree: React.FC<HierarchyTreeProps> = ({
       {/* Tree Visualization */}
       <div className="space-y-3">
         {tree ? renderNode(tree) : (
-          <div className="p-8 text-center text-slate-500 bg-slate-900/40 rounded-xl border border-slate-800">
+          <div className="p-8 text-center text-zinc-500 bg-[#1e1e1e] rounded-xl border border-zinc-800">
             No hierarchy nodes found.
           </div>
         )}
