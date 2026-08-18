@@ -15,6 +15,7 @@ import { CashierModal } from './components/CashierModal';
 import { LoginModal } from './components/LoginModal';
 import { CreditsModal } from './components/CreditsModal';
 import { ThemeCustomizerModal } from './components/ThemeCustomizerModal';
+import { NewsTicker } from './components/NewsTicker';
 import { api, setAuthToken, removeAuthToken, getAuthToken } from './services/api';
 import { playerSocket } from './services/socket';
 import { SportsbookEngine } from './services/sportsbookEngine';
@@ -755,6 +756,9 @@ export const App: React.FC = () => {
         oneClickBet={oneClickBet}
         setOneClickBet={setOneClickBet}
       />
+
+      {/* LIVE BROADCAST NEWS & ANNOUNCEMENTS TICKER */}
+      <NewsTicker />
 
       {/* 2. MAIN 3-COLUMN BODY LAYOUT */}
       <div className="max-w-[1440px] w-full mx-auto px-2 sm:px-4 py-3 flex gap-3 flex-1">

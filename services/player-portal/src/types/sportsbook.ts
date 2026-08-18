@@ -25,7 +25,7 @@ export interface SelectionOdds {
 export interface BettingMarket {
   id: string;
   name: string;
-  category: 'MAIN' | 'HANDICAPS' | 'TOTALS' | 'PROPS' | 'CORNERS_CARDS' | 'PERIODS' | 'SGP';
+  category: 'MAIN' | 'HANDICAPS' | 'TOTALS' | 'PROPS' | 'CORNERS_CARDS' | 'PERIODS' | 'SGP' | 'TOSS';
   isSuspended?: boolean;
   selections: SelectionOdds[];
 }

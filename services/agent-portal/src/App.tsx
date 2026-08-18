@@ -12,6 +12,7 @@ import { PaymentAccountsManager } from './components/PaymentAccountsManager';
 import { RolesMatrixModal } from './components/RolesMatrixModal';
 import { ResetPasswordModal } from './components/ResetPasswordModal';
 import { CreditsModal } from './components/CreditsModal';
+import { NewsTicker } from './components/NewsTicker';
 import { api, setAuthToken, removeAuthToken, getAuthToken } from './services/api';
 import { socketService } from './services/socket';
 import { Shield, Zap, Lock, User, RefreshCw, KeyRound, ChevronRight, Bell, Award, Sparkles } from 'lucide-react';
@@ -363,6 +364,9 @@ export const App: React.FC = () => {
         onOpenRolesMatrix={() => setRolesModalOpen(true)}
         onOpenCredits={() => setCreditsModalOpen(true)}
       />
+
+      {/* DEALER BROADCAST TICKER */}
+      <NewsTicker />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {activeTab === 'hierarchy' && (

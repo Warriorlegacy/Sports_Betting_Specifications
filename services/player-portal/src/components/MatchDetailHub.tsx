@@ -61,6 +61,7 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
 
   const categories = [
     { id: 'ALL', label: 'All Markets' },
+    ...(match.sport === 'Cricket' ? [{ id: 'TOSS', label: '🪙 Toss Winner' }] : []),
     { id: 'MAIN', label: 'Main Lines' },
     { id: 'HANDICAPS', label: 'Spreads & Handicaps' },
     { id: 'TOTALS', label: 'Totals (Over/Under)' },
@@ -68,7 +69,21 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
     { id: 'CORNERS_CARDS', label: 'Corners & Cards' }
   ];
 
-  const filteredMarkets = match.markets.filter((m) => {
+  // Auto-inject Toss Market for Cricket if not present (as in IndianBet77 TossBook)
+  const allMarkets = [...match.markets];
+  if (match.sport === 'Cricket' && !allMarkets.some((m) => m.category === 'TOSS')) {
+    allMarkets.unshift({
+      id: `MKT_TOSS_${match.id}`,
+      name: 'Coin Toss Winner (Back & Lay)',
+      category: 'TOSS',
+      selections: [
+        { id: `toss_h_${match.id}`, name: `${match.homeTeam.name} (Win Toss)`, price: 1.95, tick: 'same' },
+        { id: `toss_a_${match.id}`, name: `${match.awayTeam.name} (Win Toss)`, price: 1.95, tick: 'same' }
+      ]
+    });
+  }
+
+  const filteredMarkets = allMarkets.filter((m) => {
     if (selectedMarketCategory === 'ALL') return true;
     return m.category === selectedMarketCategory;
   });

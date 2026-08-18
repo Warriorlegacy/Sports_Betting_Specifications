@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
-import { Trash2, AlertCircle, CheckCircle2, DollarSign, Zap } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Trash2, AlertCircle, CheckCircle2, DollarSign, Zap, Sliders } from 'lucide-react';
 import { BetSlipItem } from '../types/sportsbook';
+import { getSavedQuickStakes, QuickStakeModal } from './QuickStakeModal';
 
 interface FairplayBetSlipProps {
   betItems: BetSlipItem[];
@@ -30,7 +31,12 @@ export const FairplayBetSlip: React.FC<FairplayBetSlipProps> = ({
   oneClickBet
 }) => {
   const [activeTab, setActiveTab] = useState<'BET_SLIP' | 'OPEN_BETS'>('BET_SLIP');
-  const quickStakes = [100, 500, 1000, 5000, 10000, 25000];
+  const [quickStakes, setQuickStakes] = useState<number[]>(getSavedQuickStakes());
+  const [isQuickStakeModalOpen, setIsQuickStakeModalOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    setQuickStakes(getSavedQuickStakes());
+  }, []);
 
   const totalLiability = betItems.reduce((acc, bet) => {
     if (bet.type === 'BACK') return acc + (bet.stake || 0);
@@ -153,16 +159,30 @@ export const FairplayBetSlip: React.FC<FairplayBetSlipProps> = ({
                   </div>
 
                   {/* Quick Stake Buttons */}
-                  <div className="grid grid-cols-3 gap-1">
-                    {quickStakes.map((amt) => (
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-[9px] text-[#8e8e8e]">
+                      <span>Quick Add Stake:</span>
                       <button
-                        key={amt}
-                        onClick={() => onUpdateStake(index, (bet.stake || 0) + amt)}
-                        className="py-1 rounded bg-[#272727] hover:bg-[#333] text-[10px] font-mono font-bold text-[#adadad] hover:text-white transition-colors"
+                        type="button"
+                        onClick={() => setIsQuickStakeModalOpen(true)}
+                        className="text-[#f36c21] hover:underline font-bold flex items-center gap-0.5"
                       >
-                        +{amt >= 1000 ? `${amt / 1000}k` : amt}
+                        <Sliders className="w-2.5 h-2.5" />
+                        <span>Edit Values</span>
                       </button>
-                    ))}
+                    </div>
+                    <div className="grid grid-cols-3 gap-1">
+                      {quickStakes.map((amt) => (
+                        <button
+                          key={amt}
+                          type="button"
+                          onClick={() => onUpdateStake(index, (bet.stake || 0) + amt)}
+                          className="py-1 rounded bg-[#272727] hover:bg-[#333] text-[10px] font-mono font-bold text-[#adadad] hover:text-white transition-colors"
+                        >
+                          +{amt >= 1000 ? `${amt / 1000}k` : amt}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
                   {/* Return Summary */}
@@ -218,6 +238,13 @@ export const FairplayBetSlip: React.FC<FairplayBetSlipProps> = ({
           </button>
         </div>
       )}
+
+      {/* Customizable Quick Stake Buttons Modal */}
+      <QuickStakeModal
+        isOpen={isQuickStakeModalOpen}
+        onClose={() => setIsQuickStakeModalOpen(false)}
+        onSave={(newStakes) => setQuickStakes(newStakes)}
+      />
     </div>
   );
 };
