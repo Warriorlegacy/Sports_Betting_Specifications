@@ -3,13 +3,15 @@
  */
 
 const http = require('http');
+const https = require('https');
 
 const API_BASE = process.env.HEALTHCHECK_HOST || 'https://sports-exchange-backend-j1aj.onrender.com';
 
 function checkEndpoint(path) {
   return new Promise((resolve, reject) => {
     const url = `${API_BASE}${path}`;
-    http.get(url, (res) => {
+    const client = url.startsWith('https:') ? https : http;
+    client.get(url, (res) => {
       let data = '';
       res.on('data', (chunk) => (data += chunk));
       res.on('end', () => {
