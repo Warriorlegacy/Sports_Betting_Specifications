@@ -3,9 +3,10 @@ import { Download, ShieldCheck, HelpCircle, PhoneCall, Smartphone, Lock, Award, 
 
 interface FairplayFooterProps {
   onOpenCredits?: () => void;
+  onOpenAppDownload?: () => void;
 }
 
-export const FairplayFooter: React.FC<FairplayFooterProps> = ({ onOpenCredits }) => {
+export const FairplayFooter: React.FC<FairplayFooterProps> = ({ onOpenCredits, onOpenAppDownload }) => {
   return (
     <footer className="w-full bg-[#181818] border-t border-[#2d2d2d] select-none text-white mt-8">
       {/* 1. DOWNLOAD THE APP BANNER */}
@@ -25,15 +26,14 @@ export const FairplayFooter: React.FC<FairplayFooterProps> = ({ onOpenCredits })
             </div>
           </div>
 
-          <a
-            href="https://assets3.hurry2.com/site_apk/4516fairplayvip.apk"
-            target="_blank"
-            rel="noreferrer"
-            className="px-5 py-2 rounded-full bg-[#212121] hover:bg-black text-white font-black text-xs uppercase tracking-wider transition-all flex items-center space-x-2 shadow-md shrink-0"
+          <button
+            type="button"
+            onClick={onOpenAppDownload || (() => { window.location.href = '/apk/nexusvip-exchange.apk'; })}
+            className="px-5 py-2 rounded-full bg-[#212121] hover:bg-black text-white font-black text-xs uppercase tracking-wider transition-all flex items-center space-x-2 shadow-md shrink-0 cursor-pointer"
           >
             <Download className="w-4 h-4 text-[#f36c21]" />
-            <span>Download APK</span>
-          </a>
+            <span>Download APK (v2.0.0)</span>
+          </button>
         </div>
       </div>
 

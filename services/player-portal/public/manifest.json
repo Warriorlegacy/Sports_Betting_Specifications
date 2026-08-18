@@ -1,0 +1,25 @@
+{
+  "name": "NexusVIP Sports Betting Exchange",
+  "short_name": "NexusVIP",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#141414",
+  "theme_color": "#f36c21",
+  "description": "Ultra-High Performance Live Sports Betting Exchange, Casino & Worli Matka",
+  "icons": [
+    {
+      "src": "/assets/fairplayvip8252.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/assets/fairplayvip8252.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "orientation": "portrait-primary",
+  "categories": ["sports", "entertainment", "games"]
+}

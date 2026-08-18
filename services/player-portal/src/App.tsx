@@ -16,6 +16,8 @@ import { LoginModal } from './components/LoginModal';
 import { CreditsModal } from './components/CreditsModal';
 import { ThemeCustomizerModal } from './components/ThemeCustomizerModal';
 import { NewsTicker } from './components/NewsTicker';
+import { AppDownloadModal } from './components/AppDownloadModal';
+import { MobileBottomNav } from './components/MobileBottomNav';
 import { api, setAuthToken, removeAuthToken, getAuthToken } from './services/api';
 import { playerSocket } from './services/socket';
 import { SportsbookEngine } from './services/sportsbookEngine';
@@ -265,6 +267,9 @@ export const App: React.FC = () => {
 
   // Creator & Godfather Credits Modal State
   const [isCreditsModalOpen, setIsCreditsModalOpen] = useState<boolean>(false);
+
+  // App Download Modal State
+  const [isAppDownloadModalOpen, setIsAppDownloadModalOpen] = useState<boolean>(false);
 
   // Theme & Brand Customizer Modal State
   const [isThemeModalOpen, setIsThemeModalOpen] = useState<boolean>(false);
@@ -751,6 +756,7 @@ export const App: React.FC = () => {
           setIsCashierOpen(true);
         }}
         onOpenCredits={() => setIsCreditsModalOpen(true)}
+        onOpenAppDownload={() => setIsAppDownloadModalOpen(true)}
         onLogout={handleLogout}
         openBetsCount={myBets.filter((b) => b.status === 'UNMATCHED' || b.status === 'MATCHED').length}
         oneClickBet={oneClickBet}
@@ -760,8 +766,32 @@ export const App: React.FC = () => {
       {/* LIVE BROADCAST NEWS & ANNOUNCEMENTS TICKER */}
       <NewsTicker />
 
+      {/* MOBILE APP INSTALL FLOATING BANNER */}
+      <div className="lg:hidden bg-gradient-to-r from-[#2c1405] via-[#1a1a1a] to-[#121212] border-b border-[#333] px-3 py-2 flex items-center justify-between shadow-md">
+        <div className="flex items-center space-x-2">
+          <div className="w-7 h-7 rounded-lg bg-black flex items-center justify-center p-1 border border-[#f36c21]/40">
+            <img src="/assets/fairplayvip8252.png" alt="NexusVIP" className="w-full h-full object-contain" />
+          </div>
+          <div>
+            <div className="flex items-center space-x-1.5">
+              <span className="text-white text-xs font-black">NexusVIP Android App</span>
+              <span className="px-1.5 py-0.2 rounded text-[8px] font-black uppercase bg-[#27AE60]/20 text-[#27AE60] border border-[#27AE60]/40">
+                v2.0.0
+              </span>
+            </div>
+            <span className="text-[10px] text-[#adadad] block">Faster live betting • 0-lag stream</span>
+          </div>
+        </div>
+        <button
+          onClick={() => setIsAppDownloadModalOpen(true)}
+          className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#f36c21] to-[#e05b12] text-white text-[11px] font-black uppercase tracking-wider shadow shadow-orange-600/30 active:scale-95 transition-transform"
+        >
+          Get App
+        </button>
+      </div>
+
       {/* 2. MAIN 3-COLUMN BODY LAYOUT */}
-      <div className="max-w-[1440px] w-full mx-auto px-2 sm:px-4 py-3 flex gap-3 flex-1">
+      <div className="max-w-[1440px] w-full mx-auto px-2 sm:px-4 py-3 flex gap-3 flex-1 pb-20 lg:pb-3">
         {/* LEFT COLUMN: ALL SPORTS ACCORDION */}
         <div className="hidden lg:block">
           <FairplaySidebar
@@ -963,23 +993,41 @@ export const App: React.FC = () => {
       </div>
 
       {/* 3. FAIRPLAY FOOTER */}
-      <FairplayFooter onOpenCredits={() => setIsCreditsModalOpen(true)} />
+      <FairplayFooter
+        onOpenCredits={() => setIsCreditsModalOpen(true)}
+        onOpenAppDownload={() => setIsAppDownloadModalOpen(true)}
+      />
 
-      {/* Floating Mobile Bet Slip Toggle */}
-      {betSlipItems.length > 0 && (
-        <div className="lg:hidden fixed bottom-3 right-3 z-40">
-          <button
-            onClick={() => setIsSlipOpen(true)}
-            className="px-4 py-2.5 rounded-full bg-[#f36c21] text-white font-black text-xs uppercase shadow-2xl flex items-center space-x-2 animate-bounce"
-          >
-            <span>Bet Slip ({betSlipItems.length})</span>
-          </button>
-        </div>
-      )}
+      {/* 4. MOBILE FLOATING BOTTOM NAVIGATION DOCK */}
+      <MobileBottomNav
+        activeNavTab={activeView.toLowerCase()}
+        setActiveNavTab={(tab) => {
+          setSelectedMatchId(null);
+          if (tab === 'inplay') setActiveView('INPLAY' as any);
+          else if (tab === 'sportbook') setActiveView('SPORTSBOOK' as any);
+          else if (tab === 'live_casino') setActiveView('CASINO' as any);
+          else if (tab === 'matka') setActiveView('MATKA' as any);
+          else setActiveView(tab.toUpperCase() as any);
+        }}
+        openBetsCount={myBets.filter((b) => b.status === 'UNMATCHED' || b.status === 'MATCHED').length}
+        betSlipCount={betSlipItems.length}
+        onToggleBetSlip={() => setIsSlipOpen((prev) => !prev)}
+        onOpenAppDownload={() => setIsAppDownloadModalOpen(true)}
+        onOpenCashier={() => {
+          if (!currentUser) {
+            setIsLoginModalOpen(true);
+            return;
+          }
+          setCashierTab('DEPOSIT');
+          setIsCashierOpen(true);
+        }}
+        user={currentUser}
+        onOpenLogin={() => setIsLoginModalOpen(true)}
+      />
 
       {/* Mobile Drawer Bet Slip Modal */}
       {isSlipOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-black/80 flex items-end justify-center p-2">
+        <div className="lg:hidden fixed inset-0 z-50 bg-black/80 flex items-end justify-center p-2 animate-in fade-in">
           <div className="w-full max-w-lg">
             <FairplayBetSlip
               betItems={betSlipItems}
@@ -1049,6 +1097,12 @@ export const App: React.FC = () => {
       <CreditsModal
         isOpen={isCreditsModalOpen}
         onClose={() => setIsCreditsModalOpen(false)}
+      />
+
+      {/* App Download Modal */}
+      <AppDownloadModal
+        isOpen={isAppDownloadModalOpen}
+        onClose={() => setIsAppDownloadModalOpen(false)}
       />
     </div>
   );

@@ -41,6 +41,7 @@ interface FairplayHeaderProps {
   onOpenRegister: () => void;
   onOpenCashier: (tab?: 'DEPOSIT' | 'WITHDRAW' | 'HISTORY') => void;
   onOpenCredits?: () => void;
+  onOpenAppDownload?: () => void;
   onLogout: () => void;
   openBetsCount: number;
   oneClickBet: boolean;
@@ -57,6 +58,7 @@ export const FairplayHeader: React.FC<FairplayHeaderProps> = ({
   onOpenRegister,
   onOpenCashier,
   onOpenCredits,
+  onOpenAppDownload,
   onLogout,
   openBetsCount,
   oneClickBet,
@@ -109,15 +111,14 @@ export const FairplayHeader: React.FC<FairplayHeaderProps> = ({
           </div>
 
           {/* Download App */}
-          <a
-            href="https://assets3.hurry2.com/site_apk/4516fairplayvip.apk"
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center space-x-1 text-[#f36c21] font-bold hover:underline"
+          <button
+            type="button"
+            onClick={onOpenAppDownload || (() => { window.location.href = '/apk/nexusvip-exchange.apk'; })}
+            className="flex items-center space-x-1 text-[#f36c21] font-bold hover:underline cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Download App</span>
-          </a>
+          </button>
 
           {/* WhatsApp Support Buttons */}
           <div className="flex items-center space-x-2">
@@ -340,6 +341,12 @@ export const FairplayHeader: React.FC<FairplayHeaderProps> = ({
                 <div className="flex items-center space-x-2">
                   <Settings className="w-4 h-4 text-amber-400" />
                   <span>Early Cash Out Terminal</span>
+                </div>
+              </button>
+              <button onClick={() => { onOpenAppDownload && onOpenAppDownload(); setUserDrawerOpen(false); }} className="w-full flex items-center justify-between p-2.5 rounded hover:bg-[#272727] text-left">
+                <div className="flex items-center space-x-2">
+                  <Download className="w-4 h-4 text-[#f36c21]" />
+                  <span className="text-white font-bold">Download Android APK (v2.0.0)</span>
                 </div>
               </button>
               <button onClick={() => { onOpenCredits && onOpenCredits(); setUserDrawerOpen(false); }} className="w-full flex items-center justify-between p-2.5 rounded hover:bg-[#272727] text-left">
