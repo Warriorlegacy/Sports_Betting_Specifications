@@ -1,23 +1,41 @@
 # 📖 Official User Manual & Operations Guide
 ## Ultra-High Performance Sports Exchange, Live TV & Gaming Portal
 
-Welcome to the **Official User Manual** for your comprehensive Sports Betting Exchange, Cricket Fancy Terminal, Live TV Streaming, Indian Worli Matka Bazar, and Live Dealer Casino Platform.
+Welcome to the **Official User Manual & Operations Guide** for your comprehensive Sports Betting Exchange, Cricket Fancy Terminal, Live TV Streaming, Indian Worli Matka Bazar, and Live Dealer Casino Platform.
+
+---
+
+## 👨‍💻 Creator & Platform Engineering Credits
+
+* **Solo Creator & Architect**: **Piyush Raj Singh**
+* **Title**: Godfather & Solo Lead Architect of Signhify AI & Sports Betting Exchange Platform
+* **Engineering Motto**: *"Type less. Signhify everything."*
+* **Portfolio & Repositories**:
+  * **AI Engineering Studio**: [Signhify AI Platform](https://signhify.lovable.app)
+  * **LinkedIn**: [Piyush Raj Singh](https://linkedin.com/in/piyushraj-singh)
+  * **Instagram**: [@piyushrajsingh.golu](https://www.instagram.com/piyushrajsingh.golu?igsh=eHFnNnhwZjJyYmo2&utm_source=qr)
+  * **GitHub**: [Warriorlegacy](https://github.com/Warriorlegacy)
 
 ---
 
 ## 📑 Table of Contents
 1. [Platform Architecture & Core Overview](#1-platform-architecture--core-overview)
 2. [Navigation & Interface Layout](#2-navigation--interface-layout)
-3. [Sportsbook & In-Play Match Betting](#3-sportsbook--in-play-match-betting)
-4. [P2P Betting Exchange (Betfair Back & Lay Ladder)](#4-p2p-betting-exchange-betfair-back--lay-ladder)
-5. [Cricket Fancy & Session Betting](#5-cricket-fancy--session-betting)
-6. [Live Match TV Broadcast & 3D Sportradar Center](#6-live-match-tv-broadcast--3d-sportradar-center)
-7. [Same-Game Parlay (SGP) Builder](#7-same-game-parlay-sgp-builder)
-8. [Indian Worli Matka Bazar (23 Live Bazars)](#8-indian-worli-matka-bazar-23-live-bazars)
-9. [Live Dealer Casino & Indian Desi Games](#9-live-dealer-casino--indian-desi-games)
-10. [Early Cash Out & Risk Management Terminal](#10-early-cash-out--risk-management-terminal)
-11. [Cashier & Instant Auto-UTR UPI Banking](#11-cashier--instant-auto-utr-upi-banking)
-12. [Theme Customizer & White-Label Controls](#12-theme-customizer--white-label-controls)
+3. [Live Broadcast News & Announcement Ticker](#3-live-broadcast-news--announcement-ticker)
+4. [Sportsbook & In-Play Match Betting](#4-sportsbook--in-play-match-betting)
+5. [P2P Betting Exchange (Betfair Back & Lay Ladder)](#5-p2p-betting-exchange-betfair-back--lay-ladder)
+6. [Cricket Coin Toss Winner Market](#6-cricket-coin-toss-winner-market)
+7. [Cricket Fancy & Session Betting](#7-cricket-fancy--session-betting)
+8. [6-Button Configurable Quick Stakes Customizer](#8-6-button-configurable-quick-stakes-customizer)
+9. [Live Match TV Broadcast & 3D Sportradar Center](#9-live-match-tv-broadcast--3d-sportradar-center)
+10. [Same-Game Parlay (SGP) Builder](#10-same-game-parlay-sgp-builder)
+11. [Indian Worli Matka Bazar (23 Live Bazars)](#11-indian-worli-matka-bazar-23-live-bazars)
+12. [Indian Live Card Games & Live Dealer Casino](#12-indian-live-card-games--live-dealer-casino)
+13. [Early Cash Out & Risk Management Terminal](#13-early-cash-out--risk-management-terminal)
+14. [Cashier & Proof of Payment Upload System](#14-cashier--proof-of-payment-upload-system)
+15. [Agent & Dealer Administration Panel](#15-agent--dealer-administration-panel)
+16. [Theme Customizer & White-Label Controls](#16-theme-customizer--white-label-controls)
+17. [Production Deployment & Infrastructure Matrix](#17-production-deployment--infrastructure-matrix)
 
 ---
 
@@ -25,11 +43,14 @@ Welcome to the **Official User Manual** for your comprehensive Sports Betting Ex
 
 Your platform is built on an enterprise 9-microservice architecture delivering:
 * **348+ Live In-Play Matches 24/7**: Cricket, Football, Tennis, Basketball, Baseball, Table Tennis, NFL, and Esports.
-* **Sub-Second WebSocket Price Ticks**: Millisecond Back/Lay depth updates streamed directly via WebSocket (`wss://zplay1.in`).
+* **Sub-Second WebSocket Price Ticks**: Millisecond Back/Lay depth updates streamed directly via WebSocket (`wss://zplay1.in` / Socket.io).
+* **Live Broadcast Flash Ticker**: Auto-scrolling real-time alert ribbon across both player and dealer portals.
+* **Cricket Coin Toss Winner Markets**: Dedicated Back & Lay markets for pre-match coin toss outcomes.
+* **Configurable 6 Quick Stake Buttons**: Customizable stake buttons (`MaxLimit.aspx` standard) with persistent local storage.
 * **Embedded High-Definition Live Match TV**: Live video streams (`vid.dreamcasino.live`) and 3D radar scoreboards (`scorecard.oddstrad.com`).
 * **Indian Worli Matka Hub**: 23 active markets with authentic 9x–700x payout multipliers.
-* **Live Dealer Casino**: Real HD live tables from Evolution and Ezugi (*Andar Bahar, Teen Patti, Lightning Roulette, Crazy Time*).
-* **Instant Auto-UTR UPI Deposit**: Automated 12-digit UTR ledger matching in 5 seconds.
+* **Comprehensive Indian Live Card Games Suite**: Real interactive tables for *Teen Patti 20-20, Teen Patti One Day, Dragon Tiger 6, Lucky 7 (7 Up 7 Down), Amar Akbar Anthony, and 20-20 Live Poker*.
+* **Cashier with Screenshot Dropzone & Inspector Lightbox**: Direct payment screenshot proof uploads with instant admin inspection.
 
 ---
 
@@ -41,6 +62,8 @@ The top navigation header provides instant one-click switching across all core m
 ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │ ⚡ [BRAND]   [Activity Sportsbook]  [Layers P2P Exchange]  [🎰 Matka]  [🎲 Live Casino]  [💰 Cash Out]  [📜 My Bets] │
 │ ───────────────────────────────────────────────────────────────────────────────────────────────────────────────── │
+│ 📢 [FLASH] LIVE CRICKET TOSS & BOOKMAKER MARKETS ARE LIVE • ZERO COMMISSION OVERHANG • INSTANT UPI SETTLEMENTS    │
+│ ───────────────────────────────────────────────────────────────────────────────────────────────────────────────── │
 │ 🏏 Cricket  ⚽ Football  🎾 Tennis  🏀 Basketball  ⚾ Baseball  🏓 Table Tennis  🏈 NFL  🎮 Esports   [₹ Balance]  │
 └───────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -49,13 +72,27 @@ The top navigation header provides instant one-click switching across all core m
 * **Sportsbook**: Comprehensive multi-market sports book covering 348+ fixtures.
 * **P2P Exchange**: Authentic Betfair-grade Back/Lay ladders with liquidity depth.
 * **Matka Bazar**: 23 Indian Matka markets (Kalyan, Milan, Desawar, Sridevi, Rajdhani).
-* **Live Casino**: Evolution & Ezugi live tables (Andar Bahar, Teen Patti, Roulette).
+* **Live Casino**: Evolution, Ezugi, and Indian live card tables.
 * **Cash Out**: Early settlement manager with automated threshold execution.
 * **My Bets**: Active bets, settlement history, and open liability statements.
 
 ---
 
-## 3. Sportsbook & In-Play Match Betting
+## 3. Live Broadcast News & Announcement Ticker
+
+The platform features a real-time broadcast ribbon positioned right below the header:
+
+* **Real-Time Marquee**: Automatically cycles through platform announcements, settlement notices, match delays, and casino launches.
+* **Audience Filtering**:
+  * `ALL`: Public broadcasts shown to all users.
+  * `PLAYER`: Player-specific deposit bonuses, tournament odds, and game releases.
+  * `DL`: Dealer/Agent notices regarding credit limits, commission policies, and banking UTR checks.
+* **Interactive Controls**: Hovering over the ticker pauses the auto-rotation to allow easy reading.
+* **Admin Publishing**: Admins can post instant announcements via `POST /api/news`.
+
+---
+
+## 4. Sportsbook & In-Play Match Betting
 
 ### Browsing Fixtures
 1. Use the **Sport Filter Bar** to select your sport (*Cricket, Football, Tennis, etc.*).
@@ -65,12 +102,12 @@ The top navigation header provides instant one-click switching across all core m
 ### Adding Selections to the Universal Bet Slip
 1. Click any odds button (*Home, Draw, Away, Over/Under, Handicap*).
 2. The selection appears immediately in the **Universal Bet Slip** on the right side.
-3. Select your quick stake (₹100, ₹500, ₹1,000, ₹5,000, or custom amount).
-4. Review your **Potential Win** calculation and click **Place Bet**.
+3. Select your quick stake button or type a custom amount.
+4. Review your **Potential Profit** and **Total Liability** calculation and click **Place Bet**.
 
 ---
 
-## 4. P2P Betting Exchange (Betfair Back & Lay Ladder)
+## 5. P2P Betting Exchange (Betfair Back & Lay Ladder)
 
 The P2P Exchange allows users to bet against other players with zero house edge:
 
@@ -95,7 +132,17 @@ The **Position Matrix** automatically computes your live Profit/Loss scenario ac
 
 ---
 
-## 5. Cricket Fancy & Session Betting
+## 6. Cricket Coin Toss Winner Market
+
+Adapted directly from Indian exchange platforms (`TossBook.aspx` / `sget1`):
+1. Open any Cricket match in the **Match Detail Hub**.
+2. Click the **🪙 Toss Winner** category tab.
+3. Choose either **Team 1 to win Coin Toss** or **Team 2 to win Coin Toss** with Back & Lay odds.
+4. Toss markets settle immediately upon the official coin toss announcement before the 1st ball is bowled.
+
+---
+
+## 7. Cricket Fancy & Session Betting
 
 Cricket Fancy betting is the most popular in-play betting mode in India:
 
@@ -119,17 +166,30 @@ Cricket Fancy betting is the most popular in-play betting mode in India:
 
 ---
 
-## 6. Live Match TV Broadcast & 3D Sportradar Center
+## 8. 6-Button Configurable Quick Stakes Customizer
+
+To enable rapid 1-click bet placement during volatile in-play odds shifts:
+1. In the Bet Slip or Live Casino stake bar, click the **Sliders (Edit Values)** button.
+2. The **Quick Stake Customizer Modal** opens.
+3. Configure your 6 custom button values (Button 1 through Button 6).
+4. Or choose from 1-click presets:
+   * **Low Stakes**: ₹50, ₹100, ₹250, ₹500, ₹1,000, ₹2,500
+   * **Standard**: ₹100, ₹500, ₹1,000, ₹2,500, ₹5,000, ₹10,000
+   * **High Roller VIP**: ₹1,000, ₹5,000, ₹10,000, ₹25,000, ₹50,000, ₹1,00,000
+5. Click **Save Quick Stakes**. Your customized buttons are instantly saved in local storage and active across all betting slips.
+
+---
+
+## 9. Live Match TV Broadcast & 3D Sportradar Center
 
 Watch live HD video streams directly inside the betting hub without leaving the page:
-
 1. Click the **📺 Live TV & Radar** tab in any match hub.
 2. **📺 Live TV Stream**: Direct CDN video stream with sub-second delay.
 3. **📊 3D Sportradar Tracker**: Real-time interactive pitch visualizer showing ball location, possession attack phases, wagon wheels, and live stats.
 
 ---
 
-## 7. Same-Game Parlay (SGP) Builder
+## 10. Same-Game Parlay (SGP) Builder
 
 Combine multiple markets from the same match into a single high-payout accumulator:
 1. Click the **Sparkles Same-Game Parlay (SGP)** tab in the match hub.
@@ -139,7 +199,7 @@ Combine multiple markets from the same match into a single high-payout accumulat
 
 ---
 
-## 8. Indian Worli Matka Bazar (23 Live Bazars)
+## 11. Indian Worli Matka Bazar (23 Live Bazars)
 
 Access 23 live Indian Matka markets (*Kalyan, Milan Day/Night, Madhur, Desawar, Sridevi, Rajdhani, Time Bazar*):
 
@@ -155,36 +215,34 @@ Access 23 live Indian Matka markets (*Kalyan, Milan Day/Night, Madhur, Desawar, 
 └─────────────────┴───────────────────────────────────────────┴───────────────────────────────────────────┘
 ```
 
-### How to Place a Matka Bet:
-1. Click **🎰 Matka Bazar** in the top navigation.
-2. Select your desired market card (e.g., **KALYAN**).
-3. Check the **Open & Close Bids** countdown timer.
-4. Select **Single**, **Jodi**, or **Patti** and enter your chosen number.
-5. Select your stake (₹100, ₹500, ₹1000, ₹5000) and click **Place Bid**.
-6. Results are automatically declared with instant balance credit.
+---
+
+## 12. Indian Live Card Games & Live Dealer Casino
+
+The platform hosts an authentic suite of 6 Indian Live Exchange Card Games:
+
+1. **Teen Patti 20-20 (`t20`)**:
+   * Player A vs Player B 3-card showdown.
+   * Side Bets: Pair Plus A (3.5x), Pair Plus B (3.5x), 6 Card Bonus (100x).
+2. **Teen Patti One Day (`oneday`)**:
+   * Back and Lay match odds with floating bookmaker prices.
+3. **Dragon Tiger 6 (`dt6`)**:
+   * Highest single card wins.
+   * Odds: Dragon (1.98), Tiger (1.98), Tie (9.00), Suited Tie (50.00).
+4. **Lucky 7 (7 Up 7 Down) (`lucky7eu`)**:
+   * Low (1–6 @ 2.0x), Exact 7 (11x), High (8–12 @ 2.0x).
+5. **Amar Akbar Anthony (`aaa`)**:
+   * Amar (Low 1–6 @ 2.0x), Akbar (Mid 7–10 @ 3.0x), Anthony (Picture Cards J/Q/K @ 4.0x).
+6. **20-20 Live Poker (`poker`)**:
+   * Heads-up Texas Hold'em shootout with live river card showdown.
+7. **Super Andar Bahar Live**:
+   * Desi favorite: Match the Joker card on Andar (1.95) or Bahar (2.00) with up to 4000x multipliers.
+8. **Namaste Hindi Lightning Roulette**:
+   * Hindi-speaking live dealers with 500x Lucky Number Lightning strikes on every spin.
 
 ---
 
-## 9. Live Dealer Casino & Indian Desi Games
-
-Play 24/7 with real live interactive dealers in Hindi and English:
-* **Super Andar Bahar Live** (Evolution)
-* **Teen Patti 20-20 Live** (Ezugi)
-* **Dragon Tiger Live** (Evolution)
-* **Lightning Roulette (500x Multipliers)** (Evolution)
-* **Crazy Time Game Show** (Evolution)
-* **Namaste Hindi Roulette** (Ezugi)
-* **Speed Baccarat VIP** (Pragmatic Play Live)
-* **Infinite Blackjack** (Evolution)
-
-### How to Play:
-1. Click **🎲 Live Casino** in the top navigation.
-2. Filter by *Indian Desi Games, Live Roulette, Cards, or Game Shows*.
-3. Click **Launch Live Table** to join the live dealer room.
-
----
-
-## 10. Early Cash Out & Risk Management Terminal
+## 13. Early Cash Out & Risk Management Terminal
 
 Lock in profits or minimize losses before the final whistle:
 1. Navigate to the **💰 Cash Out** tab in the top navigation.
@@ -194,29 +252,43 @@ Lock in profits or minimize losses before the final whistle:
 
 ---
 
-## 11. Cashier & Instant Auto-UTR UPI Banking
+## 14. Cashier & Proof of Payment Upload System
 
-### Instant Deposit via UPI (GPay / PhonePe / Paytm / BHIM)
-1. Click the **Deposit** button or **Cashier** icon in the header.
-2. Select **UPI Instant Deposit** and choose your amount (e.g., ₹2,500).
-3. Scan the dynamic **UPI QR Code** using any UPI app.
-4. After payment, copy the **12-digit UPI UTR / Reference Number** from your payment receipt.
-5. Paste the UTR into the verification box and click **Submit UTR**.
-6. The automated matcher validates the transaction and **credits your balance in 5 seconds**!
-
-### Crypto & Bank Withdrawals
-1. Switch to the **Withdraw** tab in the Cashier.
-2. Select **UPI / Bank IMPS** or **USDT (TRC20 / BEP20)**.
-3. Enter your UPI ID, Bank details, or Crypto Wallet Address.
-4. Enter the amount and click **Request Withdrawal**.
+### Submitting Deposits with Screenshot Proof
+1. Click **Deposit** in the header.
+2. Select your payment method (UPI QR, Bank IMPS, or USDT).
+3. Transfer the amount using your banking app (GPay, PhonePe, Paytm).
+4. Enter the **12-digit UPI UTR / Reference Number**.
+5. **Screenshot Dropzone**: Click or drag & drop your payment receipt / screenshot.
+   * Instant thumbnail preview with file size verification.
+   * Click the remove icon if you wish to re-upload.
+6. Click **Submit Deposit Request**.
+7. In the **Passbook / History** tab, click **[Proof]** next to any deposit to inspect your uploaded payment screenshot in full-screen Lightbox mode.
 
 ---
 
-## 12. Theme Customizer & White-Label Controls
+## 15. Agent & Dealer Administration Panel
+
+Agents and Admins manage downline hierarchies and financial approvals via the **Agent Portal**:
+
+1. **Hierarchy Tree**: Visual downline tree explorer with real-time credit allocation and lock/unlock controls.
+2. **Financial Approvals Desk**:
+   * View all incoming player deposits with UTR, amount, and timestamp.
+   * **Payment Proof Column**: Click **View Proof** or inspect the thumbnail.
+   * **Approval Lightbox**: Full-resolution modal displaying user ID, amount, UTR, and high-resolution receipt before 1-click **Approve** or **Reject**.
+3. **Payment Accounts Manager**:
+   * Add and activate company UPI IDs, Bank Accounts, and QR code assets for player deposit routing.
+4. **Dealer Broadcast Ticker**:
+   * Instant marquee displaying dealer settlement notices and critical risk alerts.
+
+---
+
+## 16. Theme Customizer & White-Label Controls
 
 Customize the entire visual identity of your portal in real time:
 1. Click the **Palette (Theme)** icon in the header.
 2. Choose from curated design themes:
+   * **Fairplay VIP Gold** (Black & Vivid Sunset Orange `#f36c21`)
    * **Midnight Luxury** (Dark Navy & Emerald Accents)
    * **Cyberpunk Neon** (Deep Violet & Hot Pink Glow)
    * **Sleek Minimalist** (Warm Monochromatic Obsidian)
@@ -224,6 +296,17 @@ Customize the entire visual identity of your portal in real time:
 
 ---
 
-## 🌟 Support & System Health
-* **Live System Status**: All 348+ exchange feeds, live WebSocket broadcasts, and payment gateways operate 24/7/365.
-* **Production API Telemetry**: [https://sports-exchange-backend-j1aj.onrender.com/api/markets/live/telemetry](https://sports-exchange-backend-j1aj.onrender.com/api/markets/live/telemetry)
+## 17. Production Deployment & Infrastructure Matrix
+
+| Service | Hosting Platform | Production URL |
+|---|---|---|
+| **Player Portal (PWA)** | Vercel Edge CDN | [Live Player Portal](https://sports-exchange-player-portal.vercel.app) |
+| **Agent / Admin Portal** | Vercel Edge CDN | [Live Agent Portal](https://sports-exchange-agent-portal.vercel.app) |
+| **Backend REST API** | Render Cloud | [Backend Healthcheck](https://sports-exchange-backend-j1aj.onrender.com/health) |
+| **PostgreSQL Database** | Supabase Cloud | `mqxzzmwufakzaphujhtc.supabase.co` |
+| **WebSocket Stream** | Socket.io / ZPlay | `wss://sports-exchange-backend-j1aj.onrender.com` |
+| **GitHub Repository** | GitHub | [Warriorlegacy/Sports_Betting_Specifications](https://github.com/Warriorlegacy/Sports_Betting_Specifications) |
+
+---
+
+*Architected and Engineered by **Piyush Raj Singh** • 2026*
