@@ -19,7 +19,8 @@ import {
   Bell,
   Star,
   CheckCircle2,
-  ExternalLink
+  ExternalLink,
+  Zap
 } from 'lucide-react';
 import { SportCategory } from '../types/sportsbook';
 
@@ -144,12 +145,17 @@ export const FairplayHeader: React.FC<FairplayHeaderProps> = ({
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
 
-          <div className="cursor-pointer flex items-center" onClick={() => setActiveNavTab('INPLAY')}>
-            <img
-              src="/assets/fairplayvip8252.png"
-              alt="fairplayvip"
-              className="h-8 sm:h-10 object-contain hover:opacity-95 transition-opacity"
-            />
+          <div className="cursor-pointer flex items-center space-x-2" onClick={() => setActiveNavTab('INPLAY')}>
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-[#f36c21] via-amber-500 to-amber-300 flex items-center justify-center shadow-lg shadow-orange-500/20">
+              <Zap className="w-5 h-5 text-black fill-black" />
+            </div>
+            <div className="flex flex-col leading-none">
+              <div className="flex items-center text-lg sm:text-xl font-black tracking-tight">
+                <span className="text-white">NEXUS</span>
+                <span className="text-[#f36c21]">VIP</span>
+              </div>
+              <span className="text-[9px] uppercase font-bold text-amber-400 tracking-widest">EXCHANGE</span>
+            </div>
           </div>
         </div>
 
@@ -252,7 +258,7 @@ export const FairplayHeader: React.FC<FairplayHeaderProps> = ({
                 </div>
                 <div>
                   <h4 className="font-black text-sm text-white">{user.username}</h4>
-                  <span className="text-[10px] text-[#adadad]">Fairplay VIP Member</span>
+                  <span className="text-[10px] text-amber-400 font-bold">Nexusvip VIP Member</span>
                 </div>
               </div>
               <button onClick={() => setUserDrawerOpen(false)} className="p-1 rounded bg-[#333] text-white">

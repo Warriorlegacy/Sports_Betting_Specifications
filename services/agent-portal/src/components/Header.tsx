@@ -44,19 +44,19 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center justify-between h-16">
           {/* Brand */}
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-[#f36c21] to-red-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
               <Zap className="w-6 h-6 text-white" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-blue-400 via-indigo-200 to-white bg-clip-text text-transparent">
-                  NEXUS EXCHANGE
+                <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-[#f36c21] via-amber-300 to-white bg-clip-text text-transparent">
+                  NEXUSVIP EXCHANGE
                 </span>
-                <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 bg-blue-900/60 text-blue-300 rounded border border-blue-700/50">
-                  Agent Desk
+                <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 bg-orange-950/80 text-amber-300 rounded border border-orange-700/50">
+                  Admin & Risk Desk
                 </span>
               </div>
-              <p className="text-xs text-slate-400 font-medium">5-Tier Credit Ledger & Risk Control</p>
+              <p className="text-xs text-slate-400 font-medium">7-Tier Credit Ledger & Risk Control</p>
             </div>
           </div>
 

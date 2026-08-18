@@ -13,7 +13,7 @@ export const FairplayFooter: React.FC = () => {
             </div>
             <div>
               <h3 className="font-black text-sm uppercase tracking-wide">
-                Download the Official fairplayvip Android App
+                Download the Official Nexusvip Android App
               </h3>
               <p className="text-xs text-white/90">
                 Experience sub-second in-play betting, live match TV streaming, and instant UPI withdrawals.
@@ -35,11 +35,16 @@ export const FairplayFooter: React.FC = () => {
 
       {/* 2. PAYMENT METHODS & TRUST BADGES */}
       <div className="max-w-[1440px] mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-4 gap-6 text-xs text-[#adadad]">
-        {/* About Fairplay */}
+        {/* About Nexusvip */}
         <div className="space-y-2">
-          <img src="/assets/fairplayvip8252.png" alt="fairplayvip" className="h-8 object-contain" />
+          <div className="flex items-center space-x-2">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-[#f36c21] via-amber-500 to-amber-300 flex items-center justify-center">
+              <span className="text-black font-black text-xs">NV</span>
+            </div>
+            <span className="font-black text-base tracking-tight text-white">NEXUS<span className="text-[#f36c21]">VIP</span></span>
+          </div>
           <p className="text-[11px] leading-relaxed text-[#8e8e8e]">
-            fairplayvip is India's leading sports betting and live casino exchange, offering Betfair-grade Back & Lay liquidity, Indian Worli Matka, and live Evolution casino tables.
+            Nexusvip is India's leading sports betting and live casino exchange, offering Betfair-grade Back & Lay liquidity, Indian Worli Matka, and live Evolution casino tables.
           </p>
           <div className="flex items-center space-x-2 text-[#27AE60] font-bold text-[11px]">
             <ShieldCheck className="w-4 h-4" />
@@ -92,7 +97,7 @@ export const FairplayFooter: React.FC = () => {
 
       {/* 3. COPYRIGHT & 18+ NOTICE */}
       <div className="bg-[#121212] py-3 px-4 text-center text-[10px] text-[#666] border-t border-[#222]">
-        <p>© 2026 fairplayvip. All Rights Reserved. 18+ Only. Please gamble responsibly.</p>
+        <p>© 2026 Nexusvip. All Rights Reserved. 18+ Only. Please gamble responsibly.</p>
       </div>
     </footer>
   );
