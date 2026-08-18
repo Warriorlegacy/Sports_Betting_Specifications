@@ -478,102 +478,27 @@ function getGuaranteedSportFixtures(todayStr: string, tomorrowStr: string): Live
 }
 
 export async function fetchRealWorldSports(): Promise<LiveMatch[]> {
-  const allMatches: LiveMatch[] = [];
   const todayStr = new Date().toISOString().split('T')[0];
   const tomorrowObj = new Date();
   tomorrowObj.setDate(tomorrowObj.getDate() + 1);
   const tomorrowStr = tomorrowObj.toISOString().split('T')[0];
 
-  for (const feed of REAL_FEEDS) {
-    try {
-      const res = await fetch(feed.url, {
-        headers: { 'User-Agent': 'Mozilla/5.0' },
-        signal: AbortSignal.timeout(6000)
-      });
-      if (!res.ok) continue;
-
+  // 1. Try backend live telemetry endpoint (Render backend has server-side ESPN & real feed scrapper)
+  try {
+    const backendUrl = import.meta.env.VITE_API_URL || 'https://sports-exchange-backend-j1aj.onrender.com';
+    const res = await fetch(`${backendUrl}/api/markets/live-telemetry`, { signal: AbortSignal.timeout(3000) });
+    if (res.ok) {
       const data = await res.json();
-      const events: any[] = data.events || [];
-
-      for (const ev of events) {
-        const comp = ev.competitions?.[0];
-        if (!comp) continue;
-
-        const homeComp = comp.competitors?.find((c: any) => c.homeAway === 'home') || comp.competitors?.[0];
-        const awayComp = comp.competitors?.find((c: any) => c.homeAway === 'away') || comp.competitors?.[1];
-        if (!homeComp || !awayComp) continue;
-
-        const homeTeam = homeComp.team?.displayName || homeComp.athlete?.displayName || 'Home Team';
-        const awayTeam = awayComp.team?.displayName || awayComp.athlete?.displayName || 'Away Team';
-        const homeScore = parseInt(homeComp.score || '0', 10);
-        const awayScore = parseInt(awayComp.score || '0', 10);
-
-        const state = ev.status?.type?.state; // 'pre' | 'in' | 'post'
-        const inPlay = state === 'in';
-        const isSettled = state === 'post' || Boolean(ev.status?.type?.completed);
-        const clockStr = ev.status?.displayClock || ev.status?.type?.shortDetail || ev.status?.type?.detail || 'Scheduled';
-
-        const matchDate = ev.date ? ev.date.split('T')[0] : todayStr;
-        const startTime = ev.date
-          ? new Date(ev.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          : '19:00';
-
-        const markets = calculateRealOdds(feed.sport, homeScore, awayScore, inPlay, homeTeam, awayTeam);
-
-        allMatches.push({
-          id: `REAL_${feed.sport}_${ev.id}`,
-          sport: feed.sport,
-          league: feed.league,
-          country: feed.country,
-          flag: feed.flag,
-          matchDate,
-          startTime,
-          currentPeriod: ev.status?.type?.shortDetail || (inPlay ? 'Live' : 'Pre-Match'),
-          possessionTeam: 'HOME',
-          attackPhase: 'BUILD_UP',
-          ballPosition: { x: 50, y: 50 },
-          possessionStats: { home: 50, away: 50 },
-          shots: [],
-          events: [],
-          stats: [
-            { label: 'Attacks', home: 45, away: 40, homePercent: 53, awayPercent: 47 }
-          ],
-          winProbabilityHistory: [
-            { minute: 0, homeProb: 50, drawProb: 25, awayProb: 25 }
-          ],
-          momentumHistory: [],
-          homeTeam: {
-            name: homeTeam,
-            shortName: (homeComp.team?.abbreviation || homeTeam.substring(0, 3)).toUpperCase(),
-            color: homeComp.team?.color ? `#${homeComp.team.color}` : '#3b82f6',
-            score: inPlay || isSettled ? homeScore : '-'
-          },
-          awayTeam: {
-            name: awayTeam,
-            shortName: (awayComp.team?.abbreviation || awayTeam.substring(0, 3)).toUpperCase(),
-            color: awayComp.team?.color ? `#${awayComp.team.color}` : '#ef4444',
-            score: inPlay || isSettled ? awayScore : '-'
-          },
-          clock: clockStr,
-          inPlay,
-          status: isSettled ? 'SETTLED' : inPlay ? 'LIVE' : 'UPCOMING',
-          isLocked: false,
-          markets
-        });
+      if (data.matches && data.matches.length > 0) {
+        return data.matches;
       }
-    } catch {
-      // Ignore individual feed errors
     }
+  } catch {
+    // Fallback to guaranteed real fixtures
   }
 
-  // Inject guaranteed multi-sport matches so every sport category has live & upcoming events
+  // 2. Inject guaranteed multi-sport matches so every sport category has live & upcoming events
   const guaranteed = getGuaranteedSportFixtures(todayStr, tomorrowStr);
-  for (const g of guaranteed) {
-    const existing = allMatches.find(m => m.sport === g.sport && (m.homeTeam.name === g.homeTeam.name || m.id === g.id));
-    if (!existing) {
-      allMatches.push(g);
-    }
-  }
-
-  return allMatches;
+  return guaranteed;
 }
+

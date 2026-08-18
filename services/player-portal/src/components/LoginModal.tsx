@@ -52,6 +52,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   const [regPassword, setRegPassword] = useState<string>('');
   const [referralCode, setReferralCode] = useState<string>('NEXUSVIP500');
   const [registerSuccess, setRegisterSuccess] = useState<boolean>(false);
+  const [regError, setRegError] = useState<string | null>(null);
+  const [regLoading, setRegLoading] = useState<boolean>(false);
 
   if (!isOpen) return null;
 
@@ -85,9 +87,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       onLoginSuccess(mockUser);
     }, 600);
   };
-
-  const [regError, setRegError] = useState<string | null>(null);
-  const [regLoading, setRegLoading] = useState<boolean>(false);
 
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
