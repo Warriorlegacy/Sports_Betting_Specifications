@@ -1,0 +1,207 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum RoleEnum {
+  ADMIN
+  SUPER_MASTER
+  MASTER
+  AGENT
+  USER
+
+  @@map("role_enum")
+}
+
+enum BetTypeEnum {
+  BACK
+  LAY
+
+  @@map("bet_type_enum")
+}
+
+enum BetStatusEnum {
+  MATCHED
+  PARTIALLY_MATCHED
+  UNMATCHED
+  SETTLED
+  CANCELLED
+  SUSPENDED
+
+  @@map("bet_status_enum")
+}
+
+model User {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username         String    @unique @db.VarChar(50)
+  passwordHash     String    @map("password_hash") @db.VarChar(255)
+  role             RoleEnum
+  parentId         String?   @map("parent_id") @db.Uuid
+  creditLimit      Decimal   @default(0.00) @map("credit_limit") @db.Decimal(15, 2)
+  availableCredit  Decimal   @default(0.00) @map("available_credit") @db.Decimal(15, 2)
+  exposure         Decimal   @default(0.00) @db.Decimal(15, 2)
+  isActive         Boolean   @default(true) @map("is_active")
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  parent           User?     @relation("UserHierarchy", fields: [parentId], references: [id])
+  children         User[]    @relation("UserHierarchy")
+  bets             Bet[]
+  deposits         Deposit[]
+  withdrawals      Withdrawal[]
+
+  @@map("users")
+}
+
+model Market {
+  id                  String            @id @db.VarChar(100)
+  eventName           String            @map("event_name") @db.VarChar(255)
+  marketType          String            @default("MATCH_ODDS") @map("market_type") @db.VarChar(50)
+  sport               String            @default("Cricket") @db.VarChar(50)
+  isLocked            Boolean           @default(false) @map("is_locked")
+  inPlay              Boolean           @default(false) @map("in_play")
+  status              String            @default("OPEN") @db.VarChar(50)
+  winningSelectionId  Int?              @map("winning_selection_id")
+  createdAt           DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt           DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  selections          MarketSelection[]
+  bets                Bet[]
+  trades              Trade[]
+
+  @@map("markets")
+}
+
+model MarketSelection {
+  id            Int      @id @default(autoincrement())
+  marketId      String   @map("market_id") @db.VarChar(100)
+  selectionId   Int      @map("selection_id")
+  selectionName String   @map("selection_name") @db.VarChar(100)
+  status        String   @default("ACTIVE") @db.VarChar(50)
+  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  market        Market   @relation(fields: [marketId], references: [id], onDelete: Cascade)
+
+  @@unique([marketId, selectionId])
+  @@map("market_selections")
+}
+
+model Bet {
+  id           String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String        @map("user_id") @db.Uuid
+  marketId     String        @map("market_id") @db.VarChar(100)
+  selectionId  Int           @map("selection_id")
+  type         BetTypeEnum
+  price        Decimal       @db.Decimal(8, 2)
+  stake        Decimal       @db.Decimal(15, 2)
+  matchedStake Decimal       @default(0.00) @map("matched_stake") @db.Decimal(15, 2)
+  liability    Decimal       @db.Decimal(15, 2)
+  status       BetStatusEnum @default(UNMATCHED)
+  pnl          Decimal?      @default(0.00) @db.Decimal(15, 2)
+  matchedAt    DateTime?     @map("matched_at") @db.Timestamptz(6)
+  settledAt    DateTime?     @map("settled_at") @db.Timestamptz(6)
+  createdAt    DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user         User          @relation(fields: [userId], references: [id])
+  market       Market        @relation(fields: [marketId], references: [id])
+
+  @@map("bets")
+}
+
+model Trade {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  marketId    String   @map("market_id") @db.VarChar(100)
+  selectionId Int      @map("selection_id")
+  backBetId   String   @map("back_bet_id") @db.Uuid
+  layBetId    String   @map("lay_bet_id") @db.Uuid
+  backUserId  String   @map("back_user_id") @db.Uuid
+  layUserId   String   @map("lay_user_id") @db.Uuid
+  price       Decimal  @db.Decimal(8, 2)
+  stake       Decimal  @db.Decimal(15, 2)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  market      Market   @relation(fields: [marketId], references: [id])
+
+  @@map("trades")
+}
+
+model LedgerEntry {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  senderId        String?  @map("sender_id") @db.Uuid
+  receiverId      String?  @map("receiver_id") @db.Uuid
+  amount          Decimal  @db.Decimal(15, 2)
+  transactionType String   @map("transaction_type") @db.VarChar(50)
+  referenceId     String   @map("reference_id") @db.VarChar(100)
+  notes           String?
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@map("ledger_entries")
+}
+
+model DepositAccount {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  accountType    String    @map("account_type") @db.VarChar(50)
+  displayName    String    @map("display_name") @db.VarChar(100)
+  bankName       String?   @map("bank_name") @db.VarChar(100)
+  accountHolder  String?   @map("account_holder") @db.VarChar(100)
+  accountNumber  String?   @map("account_number") @db.VarChar(100)
+  ifscCode       String?   @map("ifsc_code") @db.VarChar(50)
+  branch         String?   @db.VarChar(100)
+  upiId          String?   @map("upi_id") @db.VarChar(100)
+  qrCodeUrl      String?   @map("qr_code_url")
+  cryptoNetwork  String?   @map("crypto_network") @db.VarChar(50)
+  cryptoAddress  String?   @map("crypto_address") @db.VarChar(150)
+  minDeposit     Decimal   @default(100.00) @map("min_deposit") @db.Decimal(15, 2)
+  maxDeposit     Decimal   @default(500000.00) @map("max_deposit") @db.Decimal(15, 2)
+  dailyLimit     Decimal   @default(2000000.00) @map("daily_limit") @db.Decimal(15, 2)
+  instructions   String?
+  isActive       Boolean   @default(true) @map("is_active")
+  isPrimary      Boolean   @default(false) @map("is_primary")
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  deposits       Deposit[]
+
+  @@map("deposit_accounts")
+}
+
+model Deposit {
+  id                    String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId                String          @map("user_id") @db.Uuid
+  paymentMethodId       String?         @map("payment_method_id") @db.Uuid
+  paymentMethod         String          @map("payment_method") @db.VarChar(50)
+  amount                Decimal         @db.Decimal(15, 2)
+  utrReference          String          @map("utr_reference") @db.VarChar(100)
+  depositAccountDetails Json?           @map("deposit_account_details")
+  status                String          @default("PENDING") @db.VarChar(20)
+  processedBy           String?         @map("processed_by") @db.Uuid
+  proofImageUrl         String?         @map("proof_image_url")
+  notes                 String?
+  createdAt             DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  processedAt           DateTime?       @map("processed_at") @db.Timestamptz(6)
+
+  user                  User            @relation(fields: [userId], references: [id])
+  depositAccount        DepositAccount? @relation(fields: [paymentMethodId], references: [id])
+
+  @@map("deposits")
+}
+
+model Withdrawal {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  amount         Decimal   @db.Decimal(15, 2)
+  payoutMethod   String    @map("payout_method") @db.VarChar(50)
+  accountDetails Json      @map("account_details")
+  status         String    @default("PENDING") @db.VarChar(20)
+  processedBy    String?   @map("processed_by") @db.Uuid
+  referenceId    String?   @map("reference_id") @db.VarChar(100)
+  notes          String?
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  processedAt    DateTime? @map("processed_at") @db.Timestamptz(6)
+
+  user           User      @relation(fields: [userId], references: [id])
+
+  @@map("withdrawals")
+}

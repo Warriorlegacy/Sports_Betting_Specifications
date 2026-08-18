@@ -26,5 +26,14 @@
     "postgresql"
   ],
   "author": "Sports Exchange Platform",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.9.1",
+    "@prisma/client": "^7.9.1",
+    "@prisma/config": "^7.9.1",
+    "@supabase/supabase-js": "^2.112.3"
+  },
+  "devDependencies": {
+    "prisma": "^7.9.1"
+  }
 }
