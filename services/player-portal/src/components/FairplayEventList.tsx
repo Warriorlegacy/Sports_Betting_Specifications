@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Play, Tv, Activity, Flame, ShieldAlert, ChevronRight } from 'lucide-react';
+import { Activity } from 'lucide-react';
 import { LiveMatch, SportCategory } from '../types/sportsbook';
 
 interface FairplayEventListProps {
   matches: LiveMatch[];
-  selectedSport: SportCategory | 'ALL';
+  selectedSport: SportCategory;
   onSelectMatch: (matchId: string) => void;
   onSelectOdds: (
     matchId: string,
@@ -31,14 +31,14 @@ export const FairplayEventList: React.FC<FairplayEventListProps> = ({
 
   // Filter matches by sport
   const filteredMatches = matches.filter((m) => {
-    if (selectedSport === 'ALL' || selectedSport === 'All') return true;
+    if (selectedSport === 'All') return true;
     return m.sport.toLowerCase() === selectedSport.toLowerCase();
   });
 
   // Group by Sport Category
   const groupedMatches: Record<string, LiveMatch[]> = {};
   filteredMatches.forEach((m) => {
-    const key = m.sport || 'CRICKET';
+    const key = m.sport || 'Cricket';
     if (!groupedMatches[key]) groupedMatches[key] = [];
     groupedMatches[key].push(m);
   });
@@ -126,12 +126,15 @@ export const FairplayEventList: React.FC<FairplayEventListProps> = ({
             {/* MATCHES LIST */}
             <div className="divide-y divide-[#282828]">
               {sportMatches.map((match) => {
+                const homeName = typeof match.homeTeam === 'object' ? match.homeTeam.name : String(match.homeTeam);
+                const awayName = typeof match.awayTeam === 'object' ? match.awayTeam.name : String(match.awayTeam);
+
                 const mainMarket = match.markets?.[0] || {
                   id: `MKT_${match.id}`,
                   name: 'Match Odds',
                   selections: [
-                    { id: '1', name: match.homeTeam, price: 1.95 },
-                    { id: '2', name: match.awayTeam, price: 2.05 }
+                    { id: '1', name: homeName, price: 1.95 },
+                    { id: '2', name: awayName, price: 2.05 }
                   ]
                 };
 
@@ -154,14 +157,14 @@ export const FairplayEventList: React.FC<FairplayEventListProps> = ({
                       className="flex-1 cursor-pointer group"
                     >
                       <div className="flex items-center space-x-2">
-                        {match.isLive && (
+                        {match.inPlay && (
                           <span className="flex items-center space-x-1 px-1.5 py-0.5 rounded bg-[#FF4148]/20 text-[#FF4148] text-[9px] font-black uppercase border border-[#FF4148]/30 animate-pulse">
                             <span className="w-1.5 h-1.5 rounded-full bg-[#FF4148]" />
                             <span>LIVE</span>
                           </span>
                         )}
                         <h4 className="font-black text-xs sm:text-[13px] text-white group-hover:text-[#f36c21] transition-colors">
-                          {match.homeTeam} vs {match.awayTeam}
+                          {homeName} vs {awayName}
                         </h4>
                         <img
                           src="/assets/hotspot-CjAKvLKa.webp"
@@ -177,7 +180,7 @@ export const FairplayEventList: React.FC<FairplayEventListProps> = ({
                       <div className="flex items-center space-x-3 mt-1 text-[11px] text-[#8e8e8e]">
                         <span>{match.league || 'International League'}</span>
                         <span>•</span>
-                        <span>{match.isLive ? `${match.clock || 'In-Play'}` : `${match.date || 'Today'} ${match.time || '9:00 PM'}`}</span>
+                        <span>{match.inPlay ? `${match.clock || 'In-Play'}` : `${match.matchDate || 'Today'} ${match.startTime || '9:00 PM'}`}</span>
                         <span>•</span>
                         <div className="flex items-center space-x-1 text-[10px] text-[#adadad]">
                           <span>Min: 100</span>

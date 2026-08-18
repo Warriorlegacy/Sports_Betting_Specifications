@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, Zap, Trophy, Flame } from 'lucide-react';
+import { ChevronDown, ChevronRight, Trophy, Flame } from 'lucide-react';
 import { SportCategory } from '../types/sportsbook';
 
 interface FairplaySidebarProps {
-  selectedSport: SportCategory | 'ALL';
-  onSelectSport: (sport: SportCategory | 'ALL') => void;
+  selectedSport: SportCategory;
+  onSelectSport: (sport: SportCategory) => void;
   sportCounts: Record<string, number>;
   onNavigateTab: (tab: string) => void;
 }
@@ -17,22 +17,16 @@ export const FairplaySidebar: React.FC<FairplaySidebarProps> = ({
 }) => {
   const [allSportsExpanded, setAllSportsExpanded] = useState(true);
 
-  const sportsList: { id: SportCategory | 'ALL'; label: string; icon: string; countKey: string }[] = [
-    { id: 'CRICKET', label: 'cricket', icon: '/assets/sports-cricket-Qf1NmI1h.png', countKey: 'cricket' },
-    { id: 'SOCCER', label: 'soccer', icon: '/assets/sports-soccer-CaiOK3CT.png', countKey: 'soccer' },
-    { id: 'TENNIS', label: 'tennis', icon: '/assets/sports-tennis-DzBamNaA.png', countKey: 'tennis' },
-    { id: 'HORSE_RACING', label: 'Horse racing', icon: '/assets/sports-no-YhxjmpH9.png', countKey: 'horse_racing' },
-    { id: 'TABLE_TENNIS', label: 'Table tennis', icon: '/assets/sports-no-YhxjmpH9.png', countKey: 'table_tennis' },
-    { id: 'BASEBALL', label: 'Baseball', icon: '/assets/sports-baseball-BIfs7vQf.png', countKey: 'baseball' },
-    { id: 'BASKETBALL', label: 'Basketball', icon: '/assets/sports-basketball-D8I6c545.png', countKey: 'basketball' },
-    { id: 'FOOTBALL', label: 'American Football', icon: '/assets/sports-no-YhxjmpH9.png', countKey: 'football' },
-    { id: 'SNOOKER', label: 'Snooker', icon: '/assets/sports-no-YhxjmpH9.png', countKey: 'snooker' },
-    { id: 'GREYHOUND', label: 'Greyhound racing', icon: '/assets/sports-no-YhxjmpH9.png', countKey: 'greyhound' },
-    { id: 'KABADDI', label: 'Kabaddi', icon: '/assets/sports-no-YhxjmpH9.png', countKey: 'kabaddi' },
-    { id: 'ELECTION', label: 'Election', icon: '/assets/sports-no-YhxjmpH9.png', countKey: 'election' },
-    { id: 'ESPORTS', label: 'Esports', icon: '/assets/sports-no-YhxjmpH9.png', countKey: 'esports' },
-    { id: 'MMA', label: 'Mixed Martial Arts', icon: '/assets/sports-no-YhxjmpH9.png', countKey: 'mma' },
-    { id: 'VOLLEYBALL', label: 'Volleyball', icon: '/assets/sports-no-YhxjmpH9.png', countKey: 'volleyball' }
+  const sportsList: { id: SportCategory; label: string; icon: string; countKey: string }[] = [
+    { id: 'Cricket', label: 'cricket', icon: '/assets/sports-cricket-Qf1NmI1h.png', countKey: 'cricket' },
+    { id: 'Football', label: 'soccer', icon: '/assets/sports-soccer-CaiOK3CT.png', countKey: 'soccer' },
+    { id: 'Tennis', label: 'tennis', icon: '/assets/sports-tennis-DzBamNaA.png', countKey: 'tennis' },
+    { id: 'Table Tennis', label: 'Table tennis', icon: '/assets/sports-no-YhxjmpH9.png', countKey: 'table_tennis' },
+    { id: 'Baseball', label: 'Baseball', icon: '/assets/sports-baseball-BIfs7vQf.png', countKey: 'baseball' },
+    { id: 'Basketball', label: 'Basketball', icon: '/assets/sports-basketball-D8I6c545.png', countKey: 'basketball' },
+    { id: 'American Football', label: 'American Football', icon: '/assets/sports-no-YhxjmpH9.png', countKey: 'football' },
+    { id: 'Esports', label: 'Esports', icon: '/assets/sports-no-YhxjmpH9.png', countKey: 'esports' },
+    { id: 'Ice Hockey', label: 'Ice Hockey', icon: '/assets/sports-no-YhxjmpH9.png', countKey: 'ice_hockey' }
   ];
 
   return (
@@ -55,9 +49,9 @@ export const FairplaySidebar: React.FC<FairplaySidebarProps> = ({
         {allSportsExpanded && (
           <div className="py-1">
             <button
-              onClick={() => onSelectSport('ALL')}
+              onClick={() => onSelectSport('All')}
               className={`w-full px-3 py-2 flex items-center justify-between text-left transition-colors ${
-                selectedSport === 'ALL'
+                selectedSport === 'All'
                   ? 'bg-[#f36c21] text-white font-bold'
                   : 'text-[#adadad] hover:text-white hover:bg-[#272727]'
               }`}
@@ -120,7 +114,14 @@ export const FairplaySidebar: React.FC<FairplaySidebarProps> = ({
           onClick={() => onNavigateTab('MATKA')}
           className="w-full p-2 rounded bg-gradient-to-r from-amber-600 to-amber-700 text-white flex items-center space-x-2 font-bold hover:brightness-110 transition-all text-[11px]"
         >
-          <img src="/assets/gold-pot-B7mS4MfM.webp" alt="Matka" className="w-4 h-4 object-contain" onError={(e) => { (e.target as any).style.display = 'none'; }} />
+          <img
+            src="/assets/gold-pot-B7mS4MfM.webp"
+            alt="Matka"
+            className="w-4 h-4 object-contain"
+            onError={(e) => {
+              (e.target as any).style.display = 'none';
+            }}
+          />
           <span>Indian Worli Matka (23 Bazars)</span>
         </button>
       </div>

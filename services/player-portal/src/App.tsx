@@ -221,15 +221,28 @@ function convertTelemetryToMatch(t: any): LiveMatch {
   };
 }
 
+type ViewType =
+  | 'SPORTSBOOK'
+  | 'INPLAY'
+  | 'EXCHANGE'
+  | 'MATKA'
+  | 'CASINO'
+  | 'CASHOUT'
+  | 'MY_BETS'
+  | 'CRASH'
+  | 'LIVECARD'
+  | 'FANTASY';
+
 export const App: React.FC = () => {
   // Navigation & User State
   const [currentUser, setCurrentUser] = useState<any | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [activeView, setActiveView] = useState<'SPORTSBOOK' | 'EXCHANGE' | 'MATKA' | 'CASINO' | 'CASHOUT' | 'MY_BETS'>(
-    'SPORTSBOOK'
-  );
+  const [activeView, setActiveView] = useState<ViewType>('INPLAY');
   const [selectedSport, setSelectedSport] = useState<SportCategory>('All');
   const [oddsFormat, setOddsFormat] = useState<OddsFormat>('DECIMAL');
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
+  const [oneClickBet, setOneClickBet] = useState<boolean>(false);
+  const [isPlacingBet, setIsPlacingBet] = useState<boolean>(false);
 
   // Real-world Live Sports Matches & Real Odds State (Zero mock data)
   const [liveMatches, setLiveMatches] = useState<LiveMatch[]>([]);
@@ -531,20 +544,23 @@ export const App: React.FC = () => {
     marketName: string,
     selectionId: string,
     selectionName: string,
-    price: number
+    price: number,
+    type: 'BACK' | 'LAY' | 'SPORTSBOOK' = 'BACK'
   ) => {
     const match = liveMatches.find((m) => m.id === matchId);
-    const eventName = match ? `${match.homeTeam.name} vs ${match.awayTeam.name}` : marketName;
+    const eventName = match
+      ? `${typeof match.homeTeam === 'object' ? match.homeTeam.name : match.homeTeam} vs ${typeof match.awayTeam === 'object' ? match.awayTeam.name : match.awayTeam}`
+      : marketName;
 
     const newItem: BetSlipItem = {
-      id: `${marketId}_${selectionId}`,
+      id: `${marketId}_${selectionId}_${type}`,
       matchId,
       eventName,
       marketId,
       marketName,
       selectionId,
       selectionName,
-      type: 'SPORTSBOOK',
+      type: type as any,
       price,
       stake: 500
     };
@@ -593,39 +609,45 @@ export const App: React.FC = () => {
       return;
     }
 
-    // Update user balance locally
-    setCurrentUser((prev: any) =>
-      prev
-        ? {
-            ...prev,
-            availableCredit: Math.max(0, prev.availableCredit - totalStake),
-            exposure: prev.exposure + totalStake
-          }
-        : prev
-    );
+    setIsPlacingBet(true);
+    try {
+      // Update user balance locally
+      setCurrentUser((prev: any) =>
+        prev
+          ? {
+              ...prev,
+              availableCredit: Math.max(0, prev.availableCredit - totalStake),
+              exposure: prev.exposure + totalStake
+            }
+          : prev
+      );
 
-    // Create new cash-out eligible bets from placed bets
-    const newCashOutBets: CashOutBet[] = items.map((item) => ({
-      id: `BET_CO_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
-      matchId: item.matchId,
-      eventName: item.eventName,
-      marketName: item.marketName,
-      selectionName: item.selectionName,
-      type: item.type,
-      placedOdds: item.price,
-      currentOdds: item.price,
-      stake: item.stake,
-      remainingStake: item.stake,
-      potentialReturn: Math.round(item.stake * item.price * 100) / 100,
-      cashOutOffer: Math.round(item.stake * 0.95 * 100) / 100,
-      status: 'OPEN',
-      cashedOutAmount: 0,
-      sgpLegsSummary: item.sgpTicket?.legs.map((l) => `• ${l.selectionName} (${l.marketName})`),
-      placedAt: 'Just now'
-    }));
+      // Create new cash-out eligible bets from placed bets
+      const newCashOutBets: CashOutBet[] = items.map((item) => ({
+        id: `BET_CO_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
+        matchId: item.matchId,
+        eventName: item.eventName,
+        marketName: item.marketName,
+        selectionName: item.selectionName,
+        type: item.type,
+        placedOdds: item.price,
+        currentOdds: item.price,
+        stake: item.stake,
+        remainingStake: item.stake,
+        potentialReturn: Math.round(item.stake * item.price * 100) / 100,
+        cashOutOffer: Math.round(item.stake * 0.95 * 100) / 100,
+        status: 'OPEN',
+        cashedOutAmount: 0,
+        sgpLegsSummary: item.sgpTicket?.legs.map((l) => `• ${l.selectionName} (${l.marketName})`),
+        placedAt: 'Just now'
+      }));
 
-    setCashOutBets((prev) => [...newCashOutBets, ...prev]);
-    await fetchUserData();
+      setCashOutBets((prev) => [...newCashOutBets, ...prev]);
+      setBetSlipItems([]);
+      await fetchUserData();
+    } finally {
+      setIsPlacingBet(false);
+    }
   };
 
   // Execute Dynamic Early Cash Out
@@ -798,7 +820,7 @@ export const App: React.FC = () => {
                     );
                   }}
                   selectedSelectionId={betSlipItems[0]?.selectionId}
-                  selectedOddsType={betSlipItems[0]?.type}
+                  selectedOddsType={betSlipItems[0]?.type as ('BACK' | 'LAY' | undefined)}
                 />
               )}
 
