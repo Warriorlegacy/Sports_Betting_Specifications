@@ -13,6 +13,7 @@ import { EnhancedBetSlip } from './components/EnhancedBetSlip';
 import { MyBets, UserBet } from './components/MyBets';
 import { CashierModal } from './components/CashierModal';
 import { LoginModal } from './components/LoginModal';
+import { CreditsModal } from './components/CreditsModal';
 import { ThemeCustomizerModal } from './components/ThemeCustomizerModal';
 import { api, setAuthToken, removeAuthToken, getAuthToken } from './services/api';
 import { playerSocket } from './services/socket';
@@ -260,6 +261,9 @@ export const App: React.FC = () => {
 
   // Sign In / Auth Modal State
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
+
+  // Creator & Godfather Credits Modal State
+  const [isCreditsModalOpen, setIsCreditsModalOpen] = useState<boolean>(false);
 
   // Theme & Brand Customizer Modal State
   const [isThemeModalOpen, setIsThemeModalOpen] = useState<boolean>(false);
@@ -745,6 +749,7 @@ export const App: React.FC = () => {
           setCashierTab(tab || 'DEPOSIT');
           setIsCashierOpen(true);
         }}
+        onOpenCredits={() => setIsCreditsModalOpen(true)}
         onLogout={handleLogout}
         openBetsCount={myBets.filter((b) => b.status === 'UNMATCHED' || b.status === 'MATCHED').length}
         oneClickBet={oneClickBet}
@@ -954,7 +959,7 @@ export const App: React.FC = () => {
       </div>
 
       {/* 3. FAIRPLAY FOOTER */}
-      <FairplayFooter />
+      <FairplayFooter onOpenCredits={() => setIsCreditsModalOpen(true)} />
 
       {/* Floating Mobile Bet Slip Toggle */}
       {betSlipItems.length > 0 && (
@@ -1034,6 +1039,12 @@ export const App: React.FC = () => {
         }}
         loading={loading}
         error={loginError}
+      />
+
+      {/* Creator & Godfather Credits Modal */}
+      <CreditsModal
+        isOpen={isCreditsModalOpen}
+        onClose={() => setIsCreditsModalOpen(false)}
       />
     </div>
   );

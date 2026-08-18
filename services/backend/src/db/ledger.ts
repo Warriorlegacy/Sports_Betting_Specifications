@@ -1248,7 +1248,7 @@ export async function getUserDeposits(
   const total = parseInt(countRes.rows[0].count, 10);
 
   const listRes = await pool.query(
-    `SELECT id, amount, payment_method, utr_reference, deposit_account_details, status, notes, created_at, processed_at
+    `SELECT id, amount, payment_method, utr_reference, deposit_account_details, status, proof_image_url, notes, created_at, processed_at
      FROM deposits
      WHERE user_id = $1
      ORDER BY created_at DESC

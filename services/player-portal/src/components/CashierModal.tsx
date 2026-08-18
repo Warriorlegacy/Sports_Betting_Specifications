@@ -18,7 +18,11 @@ import {
   RefreshCw,
   Clock,
   Sparkles,
-  Smartphone
+  Smartphone,
+  Upload,
+  Image as ImageIcon,
+  Trash2,
+  Eye
 } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -53,10 +57,16 @@ export const CashierModal: React.FC<CashierModalProps> = ({
   const [depositMethod, setDepositMethod] = useState<'UPI' | 'BANK' | 'CRYPTO'>('UPI');
   const [depositAmount, setDepositAmount] = useState<string>('2500');
   const [utrNumber, setUtrNumber] = useState<string>('');
+  const [proofImage, setProofImage] = useState<string | null>(null);
+  const [proofFileName, setProofFileName] = useState<string>('');
   const [depositLoading, setDepositLoading] = useState<boolean>(false);
   const [depositSuccess, setDepositSuccess] = useState<any | null>(null);
   const [depositError, setDepositError] = useState<string | null>(null);
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
+
+  // Lightbox Preview State
+  const [previewScreenshotUrl, setPreviewScreenshotUrl] = useState<string | null>(null);
+  const [previewScreenshotTitle, setPreviewScreenshotTitle] = useState<string | null>(null);
 
   // Withdraw State
   const [withdrawMethod, setWithdrawMethod] = useState<'UPI' | 'BANK' | 'CRYPTO'>('UPI');
@@ -75,6 +85,32 @@ export const CashierModal: React.FC<CashierModalProps> = ({
   const [myWithdrawals, setMyWithdrawals] = useState<any[]>([]);
   const [historyLoading, setHistoryLoading] = useState<boolean>(false);
   const [historyFilter, setHistoryFilter] = useState<'ALL' | 'DEPOSITS' | 'WITHDRAWALS'>('ALL');
+
+  // Handle Screenshot Upload
+  const handleProofUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setDepositError('Please select a valid image file (PNG, JPG, JPEG, WEBP).');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setDepositError('Screenshot file size must be under 5MB.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setProofImage(event.target?.result as string);
+      setProofFileName(file.name);
+      setDepositError(null);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveProof = () => {
+    setProofImage(null);
+    setProofFileName('');
+  };
 
   // Load Active Payment Methods
   const loadPaymentMethods = useCallback(async () => {
@@ -119,6 +155,8 @@ export const CashierModal: React.FC<CashierModalProps> = ({
       setDepositError(null);
       setWithdrawSuccess(null);
       setWithdrawError(null);
+      setProofImage(null);
+      setProofFileName('');
       loadPaymentMethods();
       loadHistory();
     }
@@ -156,16 +194,20 @@ export const CashierModal: React.FC<CashierModalProps> = ({
         amount,
         paymentMethod: depositMethod,
         utrReference: utrNumber.trim(),
-        depositAccountId: selectedAccount ? selectedAccount.id : undefined
+        depositAccountId: selectedAccount ? selectedAccount.id : undefined,
+        proofImageUrl: proofImage || undefined
       });
 
       setDepositSuccess({
         amount,
         utr: utrNumber.trim(),
         method: selectedAccount ? selectedAccount.displayName : depositMethod,
-        status: res.deposit ? res.deposit.status : 'PENDING'
+        status: res.deposit ? res.deposit.status : 'PENDING',
+        proofImage
       });
       setUtrNumber('');
+      setProofImage(null);
+      setProofFileName('');
       onBalanceUpdate();
       loadHistory();
     } catch (err: any) {
@@ -240,6 +282,67 @@ export const CashierModal: React.FC<CashierModalProps> = ({
       setWithdrawLoading(false);
     }
   };
+
+  const renderProofUpload = () => (
+    <div className="space-y-1.5 pt-2 border-t border-[#222]">
+      <div className="flex items-center justify-between">
+        <label className="text-[10px] font-bold uppercase text-[#adadad] flex items-center gap-1">
+          <ImageIcon className="w-3.5 h-3.5 text-[#f36c21]" />
+          <span>Upload Payment Proof / Screenshot (Optional)</span>
+        </label>
+        {proofImage && (
+          <button
+            type="button"
+            onClick={handleRemoveProof}
+            className="text-[10px] text-red-400 hover:text-red-300 font-bold flex items-center gap-0.5"
+          >
+            <Trash2 className="w-3 h-3" /> Remove
+          </button>
+        )}
+      </div>
+
+      {!proofImage ? (
+        <label className="border border-dashed border-[#444] hover:border-[#f36c21] rounded-xl p-2.5 bg-[#171717] hover:bg-[#1e1e1e] flex items-center justify-center space-x-2 cursor-pointer transition-all">
+          <Upload className="w-4 h-4 text-[#f36c21] shrink-0" />
+          <span className="text-xs text-[#adadad]">Click to attach payment screenshot / receipt (PNG, JPG)</span>
+          <input
+            type="file"
+            accept="image/png, image/jpeg, image/jpg, image/webp"
+            onChange={handleProofUpload}
+            className="hidden"
+          />
+        </label>
+      ) : (
+        <div className="flex items-center justify-between p-2 rounded-xl bg-[#1c1c1c] border border-emerald-500/40">
+          <div className="flex items-center space-x-2">
+            <img
+              src={proofImage}
+              alt="Screenshot Preview"
+              onClick={() => {
+                setPreviewScreenshotUrl(proofImage);
+                setPreviewScreenshotTitle('Uploaded Payment Receipt');
+              }}
+              className="w-10 h-10 object-cover rounded-lg border border-[#333] cursor-pointer hover:opacity-85"
+            />
+            <div className="text-left">
+              <span className="font-bold text-xs text-white block max-w-[200px] truncate">{proofFileName || 'screenshot.png'}</span>
+              <span className="text-[10px] text-[#27AE60] font-bold">Screenshot Attached • Click to zoom</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setPreviewScreenshotUrl(proofImage);
+              setPreviewScreenshotTitle('Uploaded Payment Receipt');
+            }}
+            className="px-2.5 py-1 rounded bg-[#272727] text-white hover:bg-[#333] text-[11px] font-bold flex items-center gap-1"
+          >
+            <Eye className="w-3.5 h-3.5" /> Preview
+          </button>
+        </div>
+      )}
+    </div>
+  );
 
   if (!isOpen) return null;
 
@@ -361,6 +464,21 @@ export const CashierModal: React.FC<CashierModalProps> = ({
                       <span>Status:</span>
                       <span className="text-amber-400 font-bold">QUEUED FOR APPROVAL</span>
                     </div>
+                    {depositSuccess.proofImage && (
+                      <div className="pt-2 border-t border-[#333] flex items-center justify-between">
+                        <span className="text-[#adadad]">Receipt Proof:</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPreviewScreenshotUrl(depositSuccess.proofImage);
+                            setPreviewScreenshotTitle(`Deposit Receipt (UTR: ${depositSuccess.utr})`);
+                          }}
+                          className="text-[#f36c21] hover:underline font-bold flex items-center gap-1"
+                        >
+                          <Eye className="w-3.5 h-3.5" /> View Receipt
+                        </button>
+                      </div>
+                    )}
                   </div>
                   <button
                     onClick={() => setDepositSuccess(null)}
@@ -522,14 +640,18 @@ export const CashierModal: React.FC<CashierModalProps> = ({
                             placeholder="e.g. 423987110943"
                             className="flex-1 bg-[#1e1e1e] border border-amber-500/50 rounded-lg px-3 py-2 text-white font-mono font-bold text-xs focus:outline-none"
                           />
-                          <button
-                            type="submit"
-                            disabled={depositLoading || !depositAmount}
-                            className="px-5 py-2 rounded-lg bg-[#f36c21] hover:bg-[#e05b12] disabled:opacity-50 text-white font-black text-xs uppercase transition-all shadow"
-                          >
-                            {depositLoading ? 'Submitting...' : 'Submit Deposit'}
-                          </button>
                         </div>
+
+                        {/* Payment Proof Screenshot Dropzone */}
+                        {renderProofUpload()}
+
+                        <button
+                          type="submit"
+                          disabled={depositLoading || !depositAmount}
+                          className="w-full mt-2 py-2.5 rounded-lg bg-[#f36c21] hover:bg-[#e05b12] disabled:opacity-50 text-white font-black text-xs uppercase transition-all shadow"
+                        >
+                          {depositLoading ? 'Submitting Deposit...' : 'Submit Deposit Request'}
+                        </button>
                       </form>
                     </div>
                   )}
@@ -586,14 +708,18 @@ export const CashierModal: React.FC<CashierModalProps> = ({
                             placeholder="e.g. IMPS423987110943"
                             className="flex-1 bg-[#1e1e1e] border border-blue-500/50 rounded-lg px-3 py-2 text-white font-mono font-bold text-xs focus:outline-none"
                           />
-                          <button
-                            type="submit"
-                            disabled={depositLoading || !depositAmount}
-                            className="px-5 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-black text-xs uppercase transition-all shadow"
-                          >
-                            {depositLoading ? 'Submitting...' : 'Submit IMPS UTR'}
-                          </button>
                         </div>
+
+                        {/* Payment Proof Screenshot Dropzone */}
+                        {renderProofUpload()}
+
+                        <button
+                          type="submit"
+                          disabled={depositLoading || !depositAmount}
+                          className="w-full mt-2 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white font-black text-xs uppercase transition-all shadow"
+                        >
+                          {depositLoading ? 'Submitting IMPS UTR...' : 'Submit Bank Deposit'}
+                        </button>
                       </form>
                     </div>
                   )}
@@ -631,14 +757,18 @@ export const CashierModal: React.FC<CashierModalProps> = ({
                             placeholder="e.g. 7c9a1b2e3f4d..."
                             className="flex-1 bg-[#1e1e1e] border border-amber-500/50 rounded-lg px-3 py-2 text-white font-mono font-bold text-xs"
                           />
-                          <button
-                            type="submit"
-                            disabled={depositLoading}
-                            className="px-5 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-black text-xs uppercase"
-                          >
-                            {depositLoading ? 'Verifying...' : 'Submit TxID'}
-                          </button>
                         </div>
+
+                        {/* Payment Proof Screenshot Dropzone */}
+                        {renderProofUpload()}
+
+                        <button
+                          type="submit"
+                          disabled={depositLoading}
+                          className="w-full mt-2 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-black font-black text-xs uppercase shadow"
+                        >
+                          {depositLoading ? 'Verifying TxID...' : 'Submit Crypto TxID'}
+                        </button>
                       </form>
                     </div>
                   )}
@@ -860,9 +990,24 @@ export const CashierModal: React.FC<CashierModalProps> = ({
                                   {dep.status}
                                 </span>
                               </div>
-                              <span className="text-[10px] text-[#8e8e8e] font-mono">
-                                UTR: {dep.utr_reference} • {dt}
-                              </span>
+                              <div className="flex items-center space-x-2 mt-0.5">
+                                <span className="text-[10px] text-[#8e8e8e] font-mono">
+                                  UTR: {dep.utr_reference} • {dt}
+                                </span>
+                                {dep.proof_image_url && (
+                                  <button
+                                    onClick={() => {
+                                      setPreviewScreenshotUrl(dep.proof_image_url);
+                                      setPreviewScreenshotTitle(`Deposit Receipt Proof (UTR: ${dep.utr_reference})`);
+                                    }}
+                                    className="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded bg-blue-950/80 hover:bg-blue-900 border border-blue-600/60 text-blue-300 text-[10px] font-bold"
+                                    title="View Uploaded Payment Proof"
+                                  >
+                                    <ImageIcon className="w-3 h-3" />
+                                    <span>Proof</span>
+                                  </button>
+                                )}
+                              </div>
                             </div>
                           </div>
                           <div className="text-right font-mono">
@@ -937,6 +1082,46 @@ export const CashierModal: React.FC<CashierModalProps> = ({
           <span>Instant Settlement Assurance</span>
         </div>
       </div>
+
+      {/* LIGHTBOX PREVIEW MODAL */}
+      {previewScreenshotUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-md animate-in fade-in select-none">
+          <div className="w-full max-w-2xl bg-[#1e1e1e] border border-[#333] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="p-3 bg-[#141414] border-b border-[#2d2d2d] flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <ImageIcon className="w-4 h-4 text-[#f36c21]" />
+                <span className="font-bold text-xs text-white">
+                  {previewScreenshotTitle || 'Payment Receipt Screenshot'}
+                </span>
+              </div>
+              <button
+                onClick={() => setPreviewScreenshotUrl(null)}
+                className="p-1 rounded bg-[#272727] text-[#adadad] hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex-1 p-3 bg-black/80 overflow-auto flex items-center justify-center min-h-[250px]">
+              <img
+                src={previewScreenshotUrl}
+                alt="Receipt Screenshot"
+                className="max-h-[60vh] max-w-full object-contain rounded border border-[#2d2d2d]"
+              />
+            </div>
+            <div className="p-2.5 bg-[#141414] border-t border-[#2d2d2d] flex items-center justify-between text-[11px] text-[#adadad]">
+              <span className="flex items-center gap-1 text-[#27AE60]">
+                <ShieldCheck className="w-3.5 h-3.5" /> Attached to Ledger Record
+              </span>
+              <button
+                onClick={() => setPreviewScreenshotUrl(null)}
+                className="px-3 py-1 rounded bg-[#f36c21] text-white font-bold text-xs uppercase"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

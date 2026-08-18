@@ -14,7 +14,11 @@ import {
   Coins,
   ShieldCheck,
   AlertCircle,
-  FileText
+  FileText,
+  Image as ImageIcon,
+  Eye,
+  ExternalLink,
+  X
 } from 'lucide-react';
 import { api } from '../services/api';
 
@@ -37,6 +41,10 @@ export const FinancialApprovalsDesk: React.FC = () => {
   const [depositAction, setDepositAction] = useState<'APPROVE' | 'REJECT' | null>(null);
   const [depositNote, setDepositNote] = useState<string>('');
   const [processingDeposit, setProcessingDeposit] = useState<boolean>(false);
+
+  // Lightbox Screenshot Preview
+  const [previewScreenshotUrl, setPreviewScreenshotUrl] = useState<string | null>(null);
+  const [previewScreenshotUser, setPreviewScreenshotUser] = useState<string | null>(null);
 
   const [selectedWithdrawal, setSelectedWithdrawal] = useState<any | null>(null);
   const [withdrawAction, setWithdrawAction] = useState<'APPROVE' | 'REJECT' | null>(null);
@@ -223,6 +231,7 @@ export const FinancialApprovalsDesk: React.FC = () => {
                     <th className="px-4 py-3 text-right">Amount (₹)</th>
                     <th className="px-4 py-3">12-Digit UTR / Ref</th>
                     <th className="px-4 py-3">Target Deposit Account</th>
+                    <th className="px-4 py-3 text-center">Payment Proof</th>
                     <th className="px-4 py-3 text-center">Status</th>
                     <th className="px-4 py-3 text-right">Actions</th>
                   </tr>
@@ -230,14 +239,14 @@ export const FinancialApprovalsDesk: React.FC = () => {
                 <tbody className="divide-y divide-slate-800/60 font-medium">
                   {depositsLoading ? (
                     <tr>
-                      <td colSpan={8} className="px-6 py-12 text-center text-slate-500">
+                      <td colSpan={9} className="px-6 py-12 text-center text-slate-500">
                         <RefreshCw className="w-6 h-6 animate-spin mx-auto text-blue-500 mb-2" />
                         <span>Loading deposit requests...</span>
                       </td>
                     </tr>
                   ) : deposits.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="px-6 py-12 text-center text-slate-500">
+                      <td colSpan={9} className="px-6 py-12 text-center text-slate-500">
                         <CheckCircle2 className="w-8 h-8 mx-auto text-slate-600 mb-2" />
                         <p className="font-bold text-slate-400">Deposit Queue Empty</p>
                         <p className="text-[11px] mt-1 text-slate-600">No deposit requests matching current filter.</p>
@@ -301,6 +310,24 @@ export const FinancialApprovalsDesk: React.FC = () => {
                               </span>
                             ) : (
                               <span className="text-slate-500">Default Gateway</span>
+                            )}
+                          </td>
+
+                          <td className="px-4 py-3 text-center whitespace-nowrap">
+                            {dep.proof_image_url ? (
+                              <button
+                                onClick={() => {
+                                  setPreviewScreenshotUrl(dep.proof_image_url);
+                                  setPreviewScreenshotUser(`${dep.username} • ₹${parseFloat(dep.amount).toLocaleString()} (UTR: ${dep.utr_reference})`);
+                                }}
+                                className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-blue-950/80 hover:bg-blue-900 border border-blue-600/60 text-blue-300 font-bold text-[11px] transition-all hover:scale-105 shadow-sm"
+                                title="View Payment Screenshot Proof"
+                              >
+                                <ImageIcon className="w-3.5 h-3.5 text-blue-400" />
+                                <span>View Proof</span>
+                              </button>
+                            ) : (
+                              <span className="text-slate-600 text-[10px] italic">No Image</span>
                             )}
                           </td>
 
@@ -584,6 +611,42 @@ export const FinancialApprovalsDesk: React.FC = () => {
                 <span>UTR Reference:</span>
                 <span className="font-mono font-bold text-white">{selectedDeposit.utr_reference}</span>
               </div>
+
+              {selectedDeposit.proof_image_url && (
+                <div className="pt-2 border-t border-slate-800 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-blue-400 flex items-center gap-1">
+                      <ImageIcon className="w-3.5 h-3.5" /> Uploaded Payment Screenshot
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPreviewScreenshotUrl(selectedDeposit.proof_image_url);
+                        setPreviewScreenshotUser(`${selectedDeposit.username} (UTR: ${selectedDeposit.utr_reference})`);
+                      }}
+                      className="text-[10px] text-blue-400 hover:text-blue-300 font-bold underline"
+                    >
+                      Enlarge Proof
+                    </button>
+                  </div>
+                  <div
+                    onClick={() => {
+                      setPreviewScreenshotUrl(selectedDeposit.proof_image_url);
+                      setPreviewScreenshotUser(`${selectedDeposit.username} (UTR: ${selectedDeposit.utr_reference})`);
+                    }}
+                    className="cursor-pointer rounded-lg overflow-hidden border border-slate-700 bg-black/60 max-h-36 flex items-center justify-center relative group"
+                  >
+                    <img
+                      src={selectedDeposit.proof_image_url}
+                      alt="Deposit Proof"
+                      className="w-full h-full object-contain group-hover:scale-105 transition-transform"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-[11px] font-bold gap-1 transition-opacity">
+                      <Eye className="w-4 h-4" /> Click to Inspect
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="space-y-1.5">
@@ -718,6 +781,53 @@ export const FinancialApprovalsDesk: React.FC = () => {
                 }`}
               >
                 {processingWithdrawal ? 'Dispatching...' : withdrawAction === 'APPROVE' ? 'Confirm Payout' : 'Confirm & Refund Wallet'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* HIGH-RES LIGHTBOX SCREENSHOT PREVIEW MODAL */}
+      {/* ========================================================================= */}
+      {previewScreenshotUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/90 backdrop-blur-md animate-in fade-in select-none">
+          <div className="w-full max-w-4xl bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
+              <div className="flex items-center space-x-2.5">
+                <div className="w-8 h-8 rounded-lg bg-blue-600/20 border border-blue-500/30 flex items-center justify-center">
+                  <ImageIcon className="w-4 h-4 text-blue-400" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-sm text-white">Payment Receipt / Screenshot Inspection</h3>
+                  {previewScreenshotUser && (
+                    <p className="text-xs text-slate-400 font-mono">{previewScreenshotUser}</p>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={() => setPreviewScreenshotUrl(null)}
+                className="p-1.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 p-4 overflow-auto bg-black/80 flex items-center justify-center min-h-[300px]">
+              <img
+                src={previewScreenshotUrl}
+                alt="Payment Receipt"
+                className="max-h-[68vh] max-w-full object-contain rounded-lg shadow-2xl border border-slate-800"
+              />
+            </div>
+            <div className="p-3 bg-slate-950 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
+              <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">
+                <ShieldCheck className="w-4 h-4" /> Operator Verified Banking Proof
+              </span>
+              <button
+                onClick={() => setPreviewScreenshotUrl(null)}
+                className="px-4 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs"
+              >
+                Close Preview
               </button>
             </div>
           </div>

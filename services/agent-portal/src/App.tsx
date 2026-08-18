@@ -11,9 +11,10 @@ import { FinancialApprovalsDesk } from './components/FinancialApprovalsDesk';
 import { PaymentAccountsManager } from './components/PaymentAccountsManager';
 import { RolesMatrixModal } from './components/RolesMatrixModal';
 import { ResetPasswordModal } from './components/ResetPasswordModal';
+import { CreditsModal } from './components/CreditsModal';
 import { api, setAuthToken, removeAuthToken, getAuthToken } from './services/api';
 import { socketService } from './services/socket';
-import { Shield, Zap, Lock, User, RefreshCw, KeyRound, ChevronRight, Bell } from 'lucide-react';
+import { Shield, Zap, Lock, User, RefreshCw, KeyRound, ChevronRight, Bell, Award, Sparkles } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<any | null>(null);
@@ -36,6 +37,7 @@ export const App: React.FC = () => {
   const [rolesModalOpen, setRolesModalOpen] = useState<boolean>(false);
   const [resetPasswordModalOpen, setResetPasswordModalOpen] = useState<boolean>(false);
   const [resetPasswordUser, setResetPasswordUser] = useState<TreeNode | null>(null);
+  const [creditsModalOpen, setCreditsModalOpen] = useState<boolean>(false);
 
   // Notification Toast State
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -319,8 +321,25 @@ export const App: React.FC = () => {
             >
               {loading ? 'Authenticating...' : 'Sign In to Agent Portal'}
             </button>
+
+            {/* Creator Badge in Login */}
+            <div className="pt-2 text-center">
+              <button
+                type="button"
+                onClick={() => setCreditsModalOpen(true)}
+                className="inline-flex items-center space-x-1.5 text-xs text-amber-400/90 hover:text-amber-300 font-medium transition-colors"
+              >
+                <Award className="w-3.5 h-3.5 text-[#f36c21]" />
+                <span>Architected & Built by Piyush Raj Singh</span>
+              </button>
+            </div>
           </form>
         </div>
+
+        <CreditsModal
+          isOpen={creditsModalOpen}
+          onClose={() => setCreditsModalOpen(false)}
+        />
       </div>
     );
   }
@@ -342,6 +361,7 @@ export const App: React.FC = () => {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onOpenRolesMatrix={() => setRolesModalOpen(true)}
+        onOpenCredits={() => setCreditsModalOpen(true)}
       />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -419,6 +439,12 @@ export const App: React.FC = () => {
         onClose={() => setResetPasswordModalOpen(false)}
         user={resetPasswordUser}
         onSuccess={fetchDashboardData}
+      />
+
+      {/* Creator Credits Modal */}
+      <CreditsModal
+        isOpen={creditsModalOpen}
+        onClose={() => setCreditsModalOpen(false)}
       />
     </div>
   );

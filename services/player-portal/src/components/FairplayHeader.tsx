@@ -20,7 +20,8 @@ import {
   Star,
   CheckCircle2,
   ExternalLink,
-  Zap
+  Zap,
+  Award
 } from 'lucide-react';
 import { SportCategory } from '../types/sportsbook';
 
@@ -39,6 +40,7 @@ interface FairplayHeaderProps {
   onOpenLogin: () => void;
   onOpenRegister: () => void;
   onOpenCashier: (tab?: 'DEPOSIT' | 'WITHDRAW' | 'HISTORY') => void;
+  onOpenCredits?: () => void;
   onLogout: () => void;
   openBetsCount: number;
   oneClickBet: boolean;
@@ -54,6 +56,7 @@ export const FairplayHeader: React.FC<FairplayHeaderProps> = ({
   onOpenLogin,
   onOpenRegister,
   onOpenCashier,
+  onOpenCredits,
   onLogout,
   openBetsCount,
   oneClickBet,
@@ -79,6 +82,14 @@ export const FairplayHeader: React.FC<FairplayHeaderProps> = ({
         <div className="flex items-center space-x-4">
           <button onClick={() => setActiveNavTab('SPORTSBOOK')} className="hover:text-[#f36c21] transition-colors">
             Market
+          </button>
+          <span>|</span>
+          <button
+            onClick={() => onOpenCredits && onOpenCredits()}
+            className="flex items-center space-x-1 text-amber-400 hover:text-amber-300 font-bold transition-colors"
+          >
+            <Award className="w-3.5 h-3.5 text-[#f36c21]" />
+            <span>Creator Credits</span>
           </button>
           <span>|</span>
           <a href="#about" className="hover:text-[#f36c21] transition-colors">About Us</a>
@@ -329,6 +340,12 @@ export const FairplayHeader: React.FC<FairplayHeaderProps> = ({
                 <div className="flex items-center space-x-2">
                   <Settings className="w-4 h-4 text-amber-400" />
                   <span>Early Cash Out Terminal</span>
+                </div>
+              </button>
+              <button onClick={() => { onOpenCredits && onOpenCredits(); setUserDrawerOpen(false); }} className="w-full flex items-center justify-between p-2.5 rounded hover:bg-[#272727] text-left">
+                <div className="flex items-center space-x-2">
+                  <Award className="w-4 h-4 text-[#f36c21]" />
+                  <span className="text-amber-300 font-bold">Creator Credits & Architect</span>
                 </div>
               </button>
             </div>

@@ -10,7 +10,9 @@ import {
   Building,
   CheckCircle2,
   ListFilter,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Award,
+  Sparkles
 } from 'lucide-react';
 
 interface HeaderProps {
@@ -27,6 +29,7 @@ interface HeaderProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   onOpenRolesMatrix: () => void;
+  onOpenCredits: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -35,7 +38,8 @@ export const Header: React.FC<HeaderProps> = ({
   onRefresh,
   activeTab,
   setActiveTab,
-  onOpenRolesMatrix
+  onOpenRolesMatrix,
+  onOpenCredits
 }) => {
   const getRoleBadge = (role: string) => {
     switch (role) {
@@ -108,6 +112,16 @@ export const Header: React.FC<HeaderProps> = ({
           {/* User Status & Balance Widget */}
           {user && (
             <div className="flex items-center space-x-3">
+              {/* Creator Credits Button */}
+              <button
+                onClick={onOpenCredits}
+                className="hidden sm:flex items-center space-x-1.5 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-orange-950/60 via-amber-950/40 to-slate-900 border border-[#f36c21]/40 hover:border-[#f36c21] text-amber-300 text-xs font-bold transition-all shadow-sm hover:shadow-orange-500/20"
+                title="Solo Creator & Godfather of Platform"
+              >
+                <Award className="w-3.5 h-3.5 text-[#f36c21]" />
+                <span>Creator Credits</span>
+              </button>
+
               {/* Roles Matrix Button */}
               <button
                 onClick={onOpenRolesMatrix}

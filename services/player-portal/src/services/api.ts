@@ -100,6 +100,7 @@ export const api = {
       paymentMethod: string;
       utrReference: string;
       depositAccountId?: string;
+      proofImageUrl?: string;
       proofUrl?: string;
     }) => request('/ledger/deposit-request', { method: 'POST', body: JSON.stringify(payload) }),
     requestWithdrawal: (payload: {
