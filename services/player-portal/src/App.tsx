@@ -673,13 +673,21 @@ export const App: React.FC = () => {
       // 1. Submit each order to backend API ledger & matching engine
       for (const item of items) {
         try {
-          await api.bets.placeBet({
+          const res = await api.bets.placeBet({
             marketId: item.marketId,
-            selectionId: typeof item.selectionId === 'number' ? item.selectionId : 1,
+            selectionId: item.selectionId,
             type: item.type === 'LAY' ? 'LAY' : 'BACK',
             price: item.price,
-            stake: item.stake
+            stake: item.stake,
+            eventName: item.eventName,
+            selectionName: item.selectionName,
+            sport: selectedSport !== 'All' ? selectedSport : 'Football'
           });
+          if (res && res.availableCredit !== undefined) {
+            setCurrentUser((prev: any) =>
+              prev ? { ...prev, availableCredit: res.availableCredit, exposure: res.exposure } : prev
+            );
+          }
         } catch (apiErr) {
           console.log('Backend ledger sync notice (using local execution):', apiErr);
         }
@@ -793,6 +801,10 @@ export const App: React.FC = () => {
     cashOutAmount: number,
     percentage: number
   ): Promise<void> => {
+    try {
+      await api.bets.cashoutBet(betId, { cashOutAmount, percentage }).catch(() => {});
+    } catch {}
+
     // Immediate wallet balance payout
     setCurrentUser((prev: any) =>
       prev
