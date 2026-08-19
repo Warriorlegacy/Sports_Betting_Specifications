@@ -9,14 +9,15 @@ import { failoverFeedOrchestrator } from '../../sportsFeeds/FailoverFeedOrchestr
 export const marketRouter = Router();
 
 /**
- * GET /api/markets/live/telemetry
+ * GET /api/markets/live/telemetry or /api/markets/live-telemetry
  * Returns all live telemetry from all active tiers (Tier 1-5 merged).
  */
-marketRouter.get('/live/telemetry', (_req, res: Response) => {
+marketRouter.get(['/live/telemetry', '/live-telemetry'], (_req, res: Response) => {
   const allMatches = liveFeedManager.getAllLiveMatches();
   res.json({
     telemetry: allMatches,       // Key frontend fetchLiveTelemetry() reads
     liveMatches: allMatches,     // Legacy compat key
+    matches: allMatches,         // Key realSportsClient reads
     count: allMatches.length,
     timestamp: Date.now()
   });

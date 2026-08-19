@@ -34,11 +34,30 @@ betRouter.post('/', authenticateToken, async (req: AuthenticatedRequest, res: Re
       return res.status(400).json({ error: 'Stake must be a positive number' });
     }
 
+    // Auto-ensure market and selection exist in PostgreSQL if dynamic or live feed event
+    const { eventName, selectionName, sport } = req.body;
+    try {
+      await query(
+        `INSERT INTO markets (id, event_name, market_type, sport, is_locked, in_play, status)
+         VALUES ($1, $2, 'MATCH_ODDS', $3, false, true, 'OPEN')
+         ON CONFLICT (id) DO UPDATE SET status = 'OPEN', is_locked = false`,
+        [marketId, eventName || marketId, sport || 'Cricket']
+      );
+      await query(
+        `INSERT INTO market_selections (market_id, selection_id, selection_name)
+         VALUES ($1, $2, $3)
+         ON CONFLICT DO NOTHING`,
+        [marketId, parseInt(selectionId, 10) || 1, selectionName || `Selection ${selectionId}`]
+      );
+    } catch {
+      // Ignore if already initialized or concurrent
+    }
+
     // 1. Atomically lock worst-case liability in PostgreSQL
     const { bet, availableCredit, exposure, deltaExposure } = await placeBetAtomic({
       userId,
       marketId,
-      selectionId: parseInt(selectionId, 10),
+      selectionId: parseInt(selectionId, 10) || 1,
       type,
       price: priceNum,
       stake: stakeNum

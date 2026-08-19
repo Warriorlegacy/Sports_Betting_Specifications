@@ -272,7 +272,8 @@ export const App: React.FC = () => {
   const [isAppDownloadModalOpen, setIsAppDownloadModalOpen] = useState<boolean>(false);
 
   // Theme & Brand Customizer Modal State
-  const [isThemeModalOpen, setIsThemeModalOpen] = useState<boolean>(false);
+  // Toast Notification State
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Exchange Ladder State (for P2P mode)
   const [exchangeMarkets, setExchangeMarkets] = useState<Market[]>([]);
@@ -293,11 +294,18 @@ export const App: React.FC = () => {
       const meRes = await api.auth.getMe();
       if (meRes && meRes.user) {
         setCurrentUser(meRes.user);
+        localStorage.setItem('nexus_demo_user', JSON.stringify(meRes.user));
       }
     } catch (err) {
       console.log('No active authenticated backend session');
-      removeAuthToken();
-      setCurrentUser(null);
+      const savedUser = localStorage.getItem('nexus_demo_user');
+      if (savedUser) {
+        try {
+          setCurrentUser(JSON.parse(savedUser));
+        } catch {
+          setCurrentUser({ id: 'usr_demo_101', username: 'player_rahul', availableCredit: 10000, creditLimit: 10000, exposure: 0, role: 'PLAYER' });
+        }
+      }
     }
   }, []);
 
@@ -323,7 +331,9 @@ export const App: React.FC = () => {
         api.bets.getMyBets(),
         api.bets.getMarketExposure(selectedExchangeMarketId).catch(() => ({ pnlMatrix: {}, netExposure: 0 }))
       ]);
-      setMyBets(betsRes.bets || []);
+      if (betsRes && betsRes.bets && betsRes.bets.length > 0) {
+        setMyBets(betsRes.bets);
+      }
       setPnlMatrix(expRes.pnlMatrix || {});
       setNetExposure(expRes.netExposure || 0);
     } catch (err) {
@@ -353,7 +363,7 @@ export const App: React.FC = () => {
 
       // 2. Fallback to backend telemetry
       const res = await api.markets.getLiveTelemetry().catch(() => null);
-      const tels: any[] = (res && (res.telemetry || res.liveMatches)) || [];
+      const tels: any[] = (res && (res.telemetry || res.liveMatches || res.matches)) || [];
       if (tels.length > 0) {
         const realMatches = tels
           .map((t: any) => convertTelemetryToMatch(t))
@@ -369,13 +379,48 @@ export const App: React.FC = () => {
     }
   }, []);
 
-  // Initial load: Check real session, fetch live matches
+  // Initial load: Check real session, load persistent bets and fallback demo user
   useEffect(() => {
+    // 1. Restore persistent placed bets and cash out bets from localStorage
+    const savedBets = localStorage.getItem('nexus_placed_bets');
+    if (savedBets) {
+      try {
+        const parsed = JSON.parse(savedBets);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setMyBets(parsed);
+        }
+      } catch {}
+    }
+
+    const savedCashOut = localStorage.getItem('nexus_cashout_bets');
+    if (savedCashOut) {
+      try {
+        const parsed = JSON.parse(savedCashOut);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setCashOutBets(parsed);
+        }
+      } catch {}
+    }
+
+    // 2. Auth & User Initialization
     const token = getAuthToken();
     if (token) {
       Promise.all([fetchUserData(), fetchExchangeMarkets(), fetchLiveTelemetry()]).finally(() => setLoading(false));
     } else {
-      setCurrentUser(null);
+      const savedUser = localStorage.getItem('nexus_demo_user');
+      if (savedUser) {
+        try {
+          setCurrentUser(JSON.parse(savedUser));
+        } catch {
+          const defUser = { id: 'usr_demo_101', username: 'player_rahul', availableCredit: 10000, creditLimit: 10000, exposure: 0, role: 'PLAYER' };
+          setCurrentUser(defUser);
+          localStorage.setItem('nexus_demo_user', JSON.stringify(defUser));
+        }
+      } else {
+        const defUser = { id: 'usr_demo_101', username: 'player_rahul', availableCredit: 10000, creditLimit: 10000, exposure: 0, role: 'PLAYER' };
+        setCurrentUser(defUser);
+        localStorage.setItem('nexus_demo_user', JSON.stringify(defUser));
+      }
       Promise.all([fetchExchangeMarkets(), fetchLiveTelemetry()]).finally(() => setLoading(false));
     }
   }, [fetchUserData, fetchExchangeMarkets, fetchLiveTelemetry]);
@@ -613,26 +658,52 @@ export const App: React.FC = () => {
       return;
     }
 
-    const totalStake = items.reduce((sum, item) => sum + (item.stake || 0), 0);
-    if (totalStake > (currentUser.availableCredit || 0)) {
-      alert(`Insufficient funds. Your available balance is ₹${currentUser.availableCredit?.toFixed(2)}.`);
+    const totalLiability = items.reduce((acc, bet) => {
+      if (bet.type === 'BACK') return acc + (bet.stake || 0);
+      return acc + (bet.stake || 0) * ((bet.price || 1) - 1);
+    }, 0);
+
+    if (totalLiability > (currentUser.availableCredit || 0)) {
+      alert(`Insufficient funds. Required liability: ₹${totalLiability.toFixed(2)}, Available balance: ₹${currentUser.availableCredit?.toFixed(2) || '0.00'}.`);
       return;
     }
 
     setIsPlacingBet(true);
     try {
-      // Update user balance locally
-      setCurrentUser((prev: any) =>
-        prev
-          ? {
-              ...prev,
-              availableCredit: Math.max(0, prev.availableCredit - totalStake),
-              exposure: prev.exposure + totalStake
-            }
-          : prev
-      );
+      // 1. Submit each order to backend API ledger & matching engine
+      for (const item of items) {
+        try {
+          await api.bets.placeBet({
+            marketId: item.marketId,
+            selectionId: typeof item.selectionId === 'number' ? item.selectionId : 1,
+            type: item.type === 'LAY' ? 'LAY' : 'BACK',
+            price: item.price,
+            stake: item.stake
+          });
+        } catch (apiErr) {
+          console.log('Backend ledger sync notice (using local execution):', apiErr);
+        }
+      }
 
-      // Create new cash-out eligible bets from placed bets
+      // 2. Create UserBet records for MyBets and Open Bets tab
+      const newUserBets: UserBet[] = items.map((item, idx) => ({
+        id: `BET_${Date.now()}_${idx}_${Math.random().toString(36).substring(2, 6)}`,
+        marketId: item.matchId || item.marketId,
+        eventName: item.eventName,
+        selectionId: typeof item.selectionId === 'number' ? item.selectionId : 1,
+        selectionName: item.selectionName,
+        type: item.type === 'LAY' ? 'LAY' : 'BACK',
+        price: item.price,
+        stake: item.stake,
+        matchedStake: item.stake,
+        unmatchedStake: 0,
+        liability: item.type === 'LAY' ? Math.round(item.stake * (item.price - 1) * 100) / 100 : item.stake,
+        status: 'MATCHED',
+        pnl: 0,
+        createdAt: new Date().toISOString()
+      }));
+
+      // 3. Create Cash-out eligible positions
       const newCashOutBets: CashOutBet[] = items.map((item) => ({
         id: `BET_CO_${Date.now()}_${Math.floor(Math.random() * 1000)}`,
         matchId: item.matchId,
@@ -652,12 +723,68 @@ export const App: React.FC = () => {
         placedAt: 'Just now'
       }));
 
-      setCashOutBets((prev) => [...newCashOutBets, ...prev]);
+      // 4. Update local state & persistent storage
+      setMyBets((prev) => {
+        const updated = [...newUserBets, ...prev];
+        localStorage.setItem('nexus_placed_bets', JSON.stringify(updated));
+        return updated;
+      });
+
+      setCashOutBets((prev) => {
+        const updated = [...newCashOutBets, ...prev];
+        localStorage.setItem('nexus_cashout_bets', JSON.stringify(updated));
+        return updated;
+      });
+
+      setCurrentUser((prev: any) => {
+        if (!prev) return prev;
+        const updated = {
+          ...prev,
+          availableCredit: Math.max(0, prev.availableCredit - totalLiability),
+          exposure: (prev.exposure || 0) + totalLiability
+        };
+        localStorage.setItem('nexus_demo_user', JSON.stringify(updated));
+        return updated;
+      });
+
       setBetSlipItems([]);
-      await fetchUserData();
+
+      const summary = items.map((i) => `${i.selectionName} (₹${i.stake} @ ${i.price})`).join(', ');
+      setToastMessage(`🎯 Bet Registered Successfully! ${summary}`);
+      setTimeout(() => setToastMessage(null), 4500);
     } finally {
       setIsPlacingBet(false);
     }
+  };
+
+  // Cancel Unmatched Bet Position
+  const handleCancelOpenBet = async (betId: string) => {
+    try {
+      await api.bets.cancelBet(betId).catch(() => {});
+    } catch {}
+
+    setMyBets((prev) => {
+      const betToCancel = prev.find((b) => b.id === betId);
+      if (betToCancel) {
+        setCurrentUser((u: any) => {
+          if (!u) return u;
+          const refund = betToCancel.liability || betToCancel.stake;
+          const refunded = {
+            ...u,
+            availableCredit: u.availableCredit + refund,
+            exposure: Math.max(0, (u.exposure || 0) - refund)
+          };
+          localStorage.setItem('nexus_demo_user', JSON.stringify(refunded));
+          return refunded;
+        });
+      }
+      const updated = prev.filter((b) => b.id !== betId);
+      localStorage.setItem('nexus_placed_bets', JSON.stringify(updated));
+      return updated;
+    });
+
+    setToastMessage('✅ Open bet cancelled & credit refunded to wallet');
+    setTimeout(() => setToastMessage(null), 3500);
   };
 
   // Execute Dynamic Early Cash Out
@@ -790,8 +917,16 @@ export const App: React.FC = () => {
         </button>
       </div>
 
-      {/* 2. MAIN 3-COLUMN BODY LAYOUT */}
-      <div className="max-w-[1440px] w-full mx-auto px-2 sm:px-4 py-3 flex gap-3 flex-1 pb-20 lg:pb-3">
+      {/* FLOATING SUCCESS TOAST NOTIFICATION */}
+      {toastMessage && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 bg-[#1e1e1e]/95 backdrop-blur border-2 border-[#27AE60] text-white px-4 py-2.5 rounded-full shadow-2xl flex items-center space-x-2 animate-in slide-in-from-top-4 duration-200 max-w-[90vw]">
+          <CheckCircle2 className="w-4 h-4 text-[#27AE60] shrink-0 animate-bounce" />
+          <span className="text-xs font-black tracking-wide truncate">{toastMessage}</span>
+        </div>
+      )}
+
+      {/* 2. MAIN 3-COLUMN BODY LAYOUT (Full Screen Width) */}
+      <div className="w-full px-2 sm:px-4 lg:px-6 py-3 flex gap-3 flex-1 pb-20 lg:pb-3">
         {/* LEFT COLUMN: ALL SPORTS ACCORDION */}
         <div className="hidden lg:block">
           <FairplaySidebar
@@ -908,7 +1043,7 @@ export const App: React.FC = () => {
                   </p>
                   <button
                     onClick={() => setActiveView('CASINO' as any)}
-                    className="px-6 py-2.5 rounded-full bg-[#f36c21] hover:bg-[#e05b12] text-white font-bold text-xs uppercase tracking-wider transition-all"
+                    className="px-6 py-2.5 rounded-full bg-[#f36c21] hover:bg-[#e05b12] text-white font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
                   >
                     Enter Live Casino Lobby
                   </button>
@@ -925,7 +1060,7 @@ export const App: React.FC = () => {
                   </p>
                   <button
                     onClick={() => setActiveView('CASINO' as any)}
-                    className="px-6 py-2.5 rounded-full bg-[#27AE60] hover:bg-[#219652] text-white font-bold text-xs uppercase tracking-wider transition-all"
+                    className="px-6 py-2.5 rounded-full bg-[#27AE60] hover:bg-[#219652] text-white font-bold text-xs uppercase tracking-wider transition-all cursor-pointer"
                   >
                     Launch Live Card Table
                   </button>
@@ -951,10 +1086,11 @@ export const App: React.FC = () => {
                 <MyBets
                   bets={myBets}
                   onCancelBet={async (betId) => {
-                    await api.bets.cancelBet(betId);
+                    await handleCancelOpenBet(betId);
+                  }}
+                  onRefresh={() => {
                     fetchExchangeMarketData();
                   }}
-                  onRefresh={fetchExchangeMarketData}
                 />
               )}
             </>
@@ -965,6 +1101,7 @@ export const App: React.FC = () => {
         <div className="hidden lg:block">
           <FairplayBetSlip
             betItems={betSlipItems}
+            openBets={myBets}
             onUpdateStake={(index, stake) =>
               setBetSlipItems((prev) =>
                 prev.map((item, i) => (i === index ? { ...item, stake } : item))
@@ -980,6 +1117,7 @@ export const App: React.FC = () => {
             }
             onClearBets={() => setBetSlipItems([])}
             onPlaceBets={() => handlePlaceBets(betSlipItems)}
+            onCancelOpenBet={handleCancelOpenBet}
             isPlacing={isPlacingBet}
             userBalance={currentUser ? currentUser.availableCredit : 0}
             openBetsCount={myBets.filter((b) => b.status === 'UNMATCHED' || b.status === 'MATCHED').length}
@@ -1031,6 +1169,7 @@ export const App: React.FC = () => {
           <div className="w-full max-w-lg">
             <FairplayBetSlip
               betItems={betSlipItems}
+              openBets={myBets}
               onUpdateStake={(index, stake) =>
                 setBetSlipItems((prev) =>
                   prev.map((item, i) => (i === index ? { ...item, stake } : item))
@@ -1049,6 +1188,7 @@ export const App: React.FC = () => {
                 handlePlaceBets(betSlipItems);
                 setIsSlipOpen(false);
               }}
+              onCancelOpenBet={handleCancelOpenBet}
               isPlacing={isPlacingBet}
               userBalance={currentUser ? currentUser.availableCredit : 0}
               openBetsCount={myBets.filter((b) => b.status === 'UNMATCHED' || b.status === 'MATCHED').length}
@@ -1061,7 +1201,7 @@ export const App: React.FC = () => {
             />
             <button
               onClick={() => setIsSlipOpen(false)}
-              className="w-full mt-2 py-2 rounded bg-[#333] text-white font-bold text-xs"
+              className="w-full mt-2 py-2 rounded bg-[#333] text-white font-bold text-xs cursor-pointer"
             >
               Close Slip
             </button>

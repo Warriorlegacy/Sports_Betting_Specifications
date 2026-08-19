@@ -10,8 +10,8 @@ export const FairplayFooter: React.FC<FairplayFooterProps> = ({ onOpenCredits, o
   return (
     <footer className="w-full bg-[#181818] border-t border-[#2d2d2d] select-none text-white mt-8">
       {/* 1. DOWNLOAD THE APP BANNER */}
-      <div className="bg-gradient-to-r from-[#f36c21] via-[#e05b12] to-[#f36c21] py-4 px-4 shadow-lg">
-        <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
+      <div className="bg-gradient-to-r from-[#f36c21] via-[#e05b12] to-[#f36c21] py-4 px-4 sm:px-8 shadow-lg">
+        <div className="w-full flex flex-col md:flex-row items-center justify-between gap-3 text-center md:text-left">
           <div className="flex items-center space-x-3">
             <div className="p-2.5 rounded-full bg-black/20 text-white">
               <Smartphone className="w-6 h-6" />
@@ -38,7 +38,7 @@ export const FairplayFooter: React.FC<FairplayFooterProps> = ({ onOpenCredits, o
       </div>
 
       {/* 2. PAYMENT METHODS & TRUST BADGES */}
-      <div className="max-w-[1440px] mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-4 gap-6 text-xs text-[#adadad]">
+      <div className="w-full px-4 sm:px-8 py-8 grid grid-cols-1 md:grid-cols-4 gap-6 text-xs text-[#adadad]">
         {/* About Nexusvip */}
         <div className="space-y-2">
           <div className="flex items-center space-x-2">
@@ -119,8 +119,8 @@ export const FairplayFooter: React.FC<FairplayFooterProps> = ({ onOpenCredits, o
       </div>
 
       {/* 3. CREATOR & GODFATHER ATTRIBUTION RIBBON */}
-      <div className="bg-[#101010] py-3 px-4 border-t border-[#222]">
-        <div className="max-w-[1440px] mx-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+      <div className="bg-[#101010] py-3 px-4 sm:px-8 border-t border-[#222]">
+        <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
           <div className="flex items-center space-x-2">
             <span className="text-[#888]">Architected & Engineered with</span>
             <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500 inline animate-pulse" />

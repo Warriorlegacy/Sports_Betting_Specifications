@@ -483,14 +483,15 @@ export async function fetchRealWorldSports(): Promise<LiveMatch[]> {
   tomorrowObj.setDate(tomorrowObj.getDate() + 1);
   const tomorrowStr = tomorrowObj.toISOString().split('T')[0];
 
-  // 1. Try backend live telemetry endpoint (Render backend has server-side ESPN & real feed scrapper)
+  // 1. Try backend live telemetry endpoint
   try {
     const backendUrl = import.meta.env.VITE_API_URL || 'https://sports-exchange-backend-j1aj.onrender.com';
-    const res = await fetch(`${backendUrl}/api/markets/live-telemetry`, { signal: AbortSignal.timeout(3000) });
+    const res = await fetch(`${backendUrl}/api/markets/live/telemetry`, { signal: AbortSignal.timeout(4000) });
     if (res.ok) {
       const data = await res.json();
-      if (data.matches && data.matches.length > 0) {
-        return data.matches;
+      const list = data.matches || data.telemetry || data.liveMatches;
+      if (Array.isArray(list) && list.length > 0) {
+        return list;
       }
     }
   } catch {

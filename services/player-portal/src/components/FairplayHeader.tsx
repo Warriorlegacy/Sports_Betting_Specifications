@@ -158,12 +158,12 @@ export const FairplayHeader: React.FC<FairplayHeaderProps> = ({
       </div>
 
       {/* 2. MAIN HEADER BAR */}
-      <div className="max-w-[1440px] mx-auto px-3 sm:px-4 py-2 flex items-center justify-between gap-3">
+      <div className="w-full px-3 sm:px-6 py-2 flex items-center justify-between gap-3">
         {/* Logo & Mobile Menu Toggle */}
         <div className="flex items-center space-x-3">
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-1.5 rounded-lg bg-[#272727] text-white"
+            className="lg:hidden p-1.5 rounded-lg bg-[#272727] text-white cursor-pointer"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
@@ -209,13 +209,13 @@ export const FairplayHeader: React.FC<FairplayHeaderProps> = ({
             {/* Deposit & Withdraw Buttons */}
             <button
               onClick={() => onOpenCashier('DEPOSIT')}
-              className="px-3 py-1.5 rounded-md bg-[#f36c21] hover:bg-[#e05b12] text-white font-bold text-xs uppercase tracking-wider transition-all shadow"
+              className="px-3 py-1.5 rounded-md bg-[#f36c21] hover:bg-[#e05b12] text-white font-bold text-xs uppercase tracking-wider transition-all shadow cursor-pointer"
             >
               Deposit
             </button>
             <button
               onClick={() => onOpenCashier('WITHDRAW')}
-              className="hidden sm:inline-block px-3 py-1.5 rounded-md bg-[#27AE60] hover:bg-[#219652] text-white font-bold text-xs uppercase tracking-wider transition-all shadow"
+              className="hidden sm:inline-block px-3 py-1.5 rounded-md bg-[#27AE60] hover:bg-[#219652] text-white font-bold text-xs uppercase tracking-wider transition-all shadow cursor-pointer"
             >
               Withdraw
             </button>
@@ -223,7 +223,7 @@ export const FairplayHeader: React.FC<FairplayHeaderProps> = ({
             {/* Profile Drawer Toggle */}
             <button
               onClick={() => setUserDrawerOpen(true)}
-              className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-md bg-[#272727] hover:bg-[#333] border border-[#333] text-xs font-bold transition-all"
+              className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-md bg-[#272727] hover:bg-[#333] border border-[#333] text-xs font-bold transition-all cursor-pointer"
             >
               <div className="w-6 h-6 rounded-full bg-[#f36c21] text-white flex items-center justify-center font-black text-[11px]">
                 {user.username.substring(0, 2).toUpperCase()}
@@ -248,7 +248,7 @@ export const FairplayHeader: React.FC<FairplayHeaderProps> = ({
 
       {/* 3. GAME CATEGORY SUB-NAV TABS */}
       <div className="w-full bg-[#272727] border-t border-[#333] px-2 sm:px-4 overflow-x-auto no-scrollbar">
-        <div className="max-w-[1440px] mx-auto flex items-center space-x-1 sm:space-x-2 py-1">
+        <div className="w-full flex items-center space-x-1 sm:space-x-2 py-1">
           {navTabs.map((tab) => {
             const isActive = activeNavTab === tab.id;
             return (
