@@ -1,12 +1,19 @@
 import React from 'react';
 import { Download, ShieldCheck, HelpCircle, PhoneCall, Smartphone, Lock, Award, Sparkles, Heart } from 'lucide-react';
 
+export type InfoModalTab = 'ABOUT' | 'PRIVACY' | 'TERMS' | 'RULES' | 'FAQ' | 'RESPONSIBLE';
+
 interface FairplayFooterProps {
   onOpenCredits?: () => void;
   onOpenAppDownload?: () => void;
+  onOpenInfoTab?: (tab: InfoModalTab) => void;
 }
 
-export const FairplayFooter: React.FC<FairplayFooterProps> = ({ onOpenCredits, onOpenAppDownload }) => {
+export const FairplayFooter: React.FC<FairplayFooterProps> = ({
+  onOpenCredits,
+  onOpenAppDownload,
+  onOpenInfoTab
+}) => {
   return (
     <footer className="w-full bg-[#181818] border-t border-[#2d2d2d] select-none text-white mt-8">
       {/* 1. DOWNLOAD THE APP BANNER */}
@@ -60,14 +67,56 @@ export const FairplayFooter: React.FC<FairplayFooterProps> = ({ onOpenCredits, o
         <div className="space-y-2">
           <h4 className="font-black text-white uppercase text-xs">Quick Links</h4>
           <ul className="space-y-1.5 text-[11px]">
-            <li><a href="#about" className="hover:text-[#f36c21]">About Us</a></li>
-            <li><a href="#privacy" className="hover:text-[#f36c21]">Privacy Policy</a></li>
-            <li><a href="#terms" className="hover:text-[#f36c21]">Terms & Conditions</a></li>
-            <li><a href="#rules" className="hover:text-[#f36c21]">Rules & Regulations</a></li>
             <li>
               <button
+                type="button"
+                onClick={() => onOpenInfoTab?.('ABOUT')}
+                className="hover:text-[#f36c21] transition-colors cursor-pointer text-left"
+              >
+                About Us
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                onClick={() => onOpenInfoTab?.('PRIVACY')}
+                className="hover:text-[#f36c21] transition-colors cursor-pointer text-left"
+              >
+                Privacy Policy
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                onClick={() => onOpenInfoTab?.('TERMS')}
+                className="hover:text-[#f36c21] transition-colors cursor-pointer text-left"
+              >
+                Terms & Conditions
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                onClick={() => onOpenInfoTab?.('RULES')}
+                className="hover:text-[#f36c21] transition-colors cursor-pointer text-left"
+              >
+                Rules & Regulations
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
+                onClick={() => onOpenInfoTab?.('FAQ')}
+                className="hover:text-[#f36c21] transition-colors cursor-pointer text-left"
+              >
+                FAQ
+              </button>
+            </li>
+            <li>
+              <button
+                type="button"
                 onClick={onOpenCredits}
-                className="text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1"
+                className="text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1 cursor-pointer"
               >
                 <Award className="w-3.5 h-3.5 text-[#f36c21]" />
                 <span>Creator Credits (Piyush Raj Singh)</span>

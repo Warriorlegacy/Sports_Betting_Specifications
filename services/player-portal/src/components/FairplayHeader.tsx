@@ -25,6 +25,8 @@ import {
 } from 'lucide-react';
 import { SportCategory } from '../types/sportsbook';
 
+export type InfoModalTab = 'ABOUT' | 'PRIVACY' | 'TERMS' | 'RULES' | 'FAQ' | 'RESPONSIBLE';
+
 interface FairplayHeaderProps {
   user: {
     id: string;
@@ -42,6 +44,7 @@ interface FairplayHeaderProps {
   onOpenCashier: (tab?: 'DEPOSIT' | 'WITHDRAW' | 'HISTORY') => void;
   onOpenCredits?: () => void;
   onOpenAppDownload?: () => void;
+  onOpenInfoTab?: (tab: InfoModalTab) => void;
   onLogout: () => void;
   openBetsCount: number;
   oneClickBet: boolean;
@@ -59,6 +62,7 @@ export const FairplayHeader: React.FC<FairplayHeaderProps> = ({
   onOpenCashier,
   onOpenCredits,
   onOpenAppDownload,
+  onOpenInfoTab,
   onLogout,
   openBetsCount,
   oneClickBet,
@@ -82,25 +86,54 @@ export const FairplayHeader: React.FC<FairplayHeaderProps> = ({
       {/* 1. TOP MINI-BAR */}
       <div className="hidden lg:flex items-center justify-between px-4 py-1 bg-[#141414] text-[11px] text-[#adadad] border-b border-[#222]">
         <div className="flex items-center space-x-4">
-          <button onClick={() => setActiveNavTab('SPORTSBOOK')} className="hover:text-[#f36c21] transition-colors">
+          <button
+            type="button"
+            onClick={() => setActiveNavTab('SPORTSBOOK')}
+            className="hover:text-[#f36c21] transition-colors cursor-pointer"
+          >
             Market
           </button>
           <span>|</span>
           <button
+            type="button"
             onClick={() => onOpenCredits && onOpenCredits()}
-            className="flex items-center space-x-1 text-amber-400 hover:text-amber-300 font-bold transition-colors"
+            className="flex items-center space-x-1 text-amber-400 hover:text-amber-300 font-bold transition-colors cursor-pointer"
           >
             <Award className="w-3.5 h-3.5 text-[#f36c21]" />
             <span>Creator Credits</span>
           </button>
           <span>|</span>
-          <a href="#about" className="hover:text-[#f36c21] transition-colors">About Us</a>
+          <button
+            type="button"
+            onClick={() => onOpenInfoTab?.('ABOUT')}
+            className="hover:text-[#f36c21] transition-colors cursor-pointer"
+          >
+            About Us
+          </button>
           <span>|</span>
-          <a href="#privacy" className="hover:text-[#f36c21] transition-colors">Privacy Policy</a>
+          <button
+            type="button"
+            onClick={() => onOpenInfoTab?.('PRIVACY')}
+            className="hover:text-[#f36c21] transition-colors cursor-pointer"
+          >
+            Privacy Policy
+          </button>
           <span>|</span>
-          <a href="#faqs" className="hover:text-[#f36c21] transition-colors">FAQ</a>
+          <button
+            type="button"
+            onClick={() => onOpenInfoTab?.('FAQ')}
+            className="hover:text-[#f36c21] transition-colors cursor-pointer"
+          >
+            FAQ
+          </button>
           <span>|</span>
-          <a href="#terms" className="hover:text-[#f36c21] transition-colors">T&C</a>
+          <button
+            type="button"
+            onClick={() => onOpenInfoTab?.('TERMS')}
+            className="hover:text-[#f36c21] transition-colors cursor-pointer"
+          >
+            T&C
+          </button>
         </div>
 
         <div className="flex items-center space-x-4">

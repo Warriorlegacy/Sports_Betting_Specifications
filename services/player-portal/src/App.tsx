@@ -17,6 +17,7 @@ import { CreditsModal } from './components/CreditsModal';
 import { ThemeCustomizerModal } from './components/ThemeCustomizerModal';
 import { NewsTicker } from './components/NewsTicker';
 import { AppDownloadModal } from './components/AppDownloadModal';
+import { InfoModal, InfoModalTab } from './components/InfoModal';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { api, setAuthToken, removeAuthToken, getAuthToken } from './services/api';
 import { playerSocket } from './services/socket';
@@ -270,6 +271,10 @@ export const App: React.FC = () => {
 
   // App Download Modal State
   const [isAppDownloadModalOpen, setIsAppDownloadModalOpen] = useState<boolean>(false);
+
+  // Info, Rules, Privacy, T&C & FAQ Modal State
+  const [isInfoModalOpen, setIsInfoModalOpen] = useState<boolean>(false);
+  const [infoModalTab, setInfoModalTab] = useState<InfoModalTab>('ABOUT');
 
   // Theme & Brand Customizer Modal State
   // Toast Notification State
@@ -907,6 +912,10 @@ export const App: React.FC = () => {
         }}
         onOpenCredits={() => setIsCreditsModalOpen(true)}
         onOpenAppDownload={() => setIsAppDownloadModalOpen(true)}
+        onOpenInfoTab={(tab) => {
+          setInfoModalTab(tab);
+          setIsInfoModalOpen(true);
+        }}
         onLogout={handleLogout}
         openBetsCount={myBets.filter((b) => b.status === 'UNMATCHED' || b.status === 'MATCHED').length}
         oneClickBet={oneClickBet}
@@ -1164,6 +1173,10 @@ export const App: React.FC = () => {
       <FairplayFooter
         onOpenCredits={() => setIsCreditsModalOpen(true)}
         onOpenAppDownload={() => setIsAppDownloadModalOpen(true)}
+        onOpenInfoTab={(tab) => {
+          setInfoModalTab(tab);
+          setIsInfoModalOpen(true);
+        }}
       />
 
       {/* 4. MOBILE FLOATING BOTTOM NAVIGATION DOCK */}
@@ -1273,6 +1286,21 @@ export const App: React.FC = () => {
       <AppDownloadModal
         isOpen={isAppDownloadModalOpen}
         onClose={() => setIsAppDownloadModalOpen(false)}
+      />
+
+      {/* Info, Rules, Privacy, T&C & FAQ Modal */}
+      <InfoModal
+        isOpen={isInfoModalOpen}
+        initialTab={infoModalTab}
+        onClose={() => setIsInfoModalOpen(false)}
+        onOpenCredits={() => {
+          setIsInfoModalOpen(false);
+          setIsCreditsModalOpen(true);
+        }}
+        onOpenAppDownload={() => {
+          setIsInfoModalOpen(false);
+          setIsAppDownloadModalOpen(true);
+        }}
       />
     </div>
   );
