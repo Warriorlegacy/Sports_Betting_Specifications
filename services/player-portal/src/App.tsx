@@ -35,7 +35,7 @@ import {
   CashOutBet,
   BettingMarket
 } from './types/sportsbook';
-import { Zap, User, Lock, ArrowRight, Shield } from 'lucide-react';
+import { Zap, User, Lock, ArrowRight, Shield, CheckCircle2 } from 'lucide-react';
 
 function convertTelemetryToMatch(t: any): LiveMatch {
   const sportMap: Record<string, SportCategory> = {
