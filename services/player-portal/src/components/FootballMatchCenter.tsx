@@ -7,8 +7,15 @@ interface FootballMatchCenterProps {
 }
 
 export const FootballMatchCenter: React.FC<FootballMatchCenterProps> = ({ match }) => {
-  const isFootball = match.sport === 'Football';
+  const isFootball = match?.sport === 'Football';
   if (!isFootball) return null;
+
+  const home = (match && typeof match.homeTeam === 'object' && match.homeTeam !== null)
+    ? match.homeTeam
+    : { name: 'Home Team', shortName: 'HOM' };
+  const away = (match && typeof match.awayTeam === 'object' && match.awayTeam !== null)
+    ? match.awayTeam
+    : { name: 'Away Team', shortName: 'AWY' };
 
   return (
     <div className="bg-gradient-to-br from-slate-900/95 via-slate-900/90 to-blue-950/40 border border-blue-500/20 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-5 backdrop-blur-xl">
@@ -21,18 +28,18 @@ export const FootballMatchCenter: React.FC<FootballMatchCenterProps> = ({ match 
           </span>
           <span className="px-2 py-0.5 rounded bg-blue-950/80 text-blue-300 text-[10px] font-bold border border-blue-700/50 flex items-center space-x-1">
             <Clock className="w-3 h-3 text-blue-400" />
-            <span>{match.clock || "68'"}</span>
+            <span>{match?.clock || "68'"}</span>
           </span>
         </div>
-        <span className="text-[11px] font-bold text-slate-400">{match.league}</span>
+        <span className="text-[11px] font-bold text-slate-400">{match?.league || 'International League'}</span>
       </div>
 
       {/* Live Possession & Attack Pressure Bar */}
       <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-800/60 space-y-3">
         <div className="flex items-center justify-between text-xs font-bold">
-          <span className="text-blue-400">{match.homeTeam.name} (58%)</span>
+          <span className="text-blue-400">{home.name || 'Home'} (58%)</span>
           <span className="text-[10px] uppercase tracking-wider text-slate-400">Possession</span>
-          <span className="text-rose-400">(42%) {match.awayTeam.name}</span>
+          <span className="text-rose-400">(42%) {away.name || 'Away'}</span>
         </div>
         {/* Dual Progress Bar */}
         <div className="w-full h-2.5 rounded-full bg-slate-800 overflow-hidden flex">

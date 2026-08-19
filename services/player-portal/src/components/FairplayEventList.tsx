@@ -30,9 +30,11 @@ export const FairplayEventList: React.FC<FairplayEventListProps> = ({
   const [feedType, setFeedType] = useState<'LIVE' | 'VIRTUAL'>('LIVE');
 
   // Filter matches by sport
-  const filteredMatches = matches.filter((m) => {
+  const safeMatches = Array.isArray(matches) ? matches : [];
+  const filteredMatches = safeMatches.filter((m) => {
+    if (!m) return false;
     if (selectedSport === 'All') return true;
-    return m.sport.toLowerCase() === selectedSport.toLowerCase();
+    return (m.sport || '').toLowerCase() === (selectedSport || '').toLowerCase();
   });
 
   // Group by Sport Category
@@ -44,7 +46,7 @@ export const FairplayEventList: React.FC<FairplayEventListProps> = ({
   });
 
   const getSportIcon = (sportKey: string) => {
-    const key = sportKey.toUpperCase();
+    const key = (sportKey || '').toUpperCase();
     switch (key) {
       case 'CRICKET':
         return '/assets/sports-cricket-Qf1NmI1h.png';
@@ -126,10 +128,16 @@ export const FairplayEventList: React.FC<FairplayEventListProps> = ({
             {/* MATCHES LIST */}
             <div className="divide-y divide-[#282828]">
               {sportMatches.map((match) => {
-                const homeName = typeof match.homeTeam === 'object' ? match.homeTeam.name : String(match.homeTeam);
-                const awayName = typeof match.awayTeam === 'object' ? match.awayTeam.name : String(match.awayTeam);
+                if (!match) return null;
+                const homeName = (typeof match.homeTeam === 'object' && match.homeTeam !== null)
+                  ? (match.homeTeam.name || 'Home')
+                  : String(match.homeTeam || 'Home');
+                const awayName = (typeof match.awayTeam === 'object' && match.awayTeam !== null)
+                  ? (match.awayTeam.name || 'Away')
+                  : String(match.awayTeam || 'Away');
 
-                const mainMarket = match.markets?.[0] || {
+                const rawMarkets = Array.isArray(match.markets) ? match.markets : [];
+                const mainMarket = rawMarkets[0] || {
                   id: `MKT_${match.id}`,
                   name: 'Match Odds',
                   selections: [
@@ -138,12 +146,13 @@ export const FairplayEventList: React.FC<FairplayEventListProps> = ({
                   ]
                 };
 
-                const s1 = mainMarket.selections[0];
-                const s2 = mainMarket.selections[1];
+                const safeSelections = Array.isArray(mainMarket.selections) ? mainMarket.selections : [];
+                const s1 = safeSelections[0];
+                const s2 = safeSelections[1];
 
-                const s1Back = s1?.price || 1.95;
+                const s1Back = (s1 && typeof s1.price === 'number') ? s1.price : 1.95;
                 const s1Lay = Math.round((s1Back + 0.03) * 100) / 100;
-                const s2Back = s2?.price || 2.05;
+                const s2Back = (s2 && typeof s2.price === 'number') ? s2.price : 2.05;
                 const s2Lay = Math.round((s2Back + 0.04) * 100) / 100;
 
                 return (

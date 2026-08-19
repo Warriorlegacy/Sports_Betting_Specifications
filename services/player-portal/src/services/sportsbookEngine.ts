@@ -106,34 +106,50 @@ export class SportsbookEngine {
     updatedMatches: LiveMatch[];
     updatedCashOutBets: CashOutBet[];
   } {
+    if (!Array.isArray(matches)) {
+      return { updatedMatches: [], updatedCashOutBets: Array.isArray(cashOutBets) ? cashOutBets : [] };
+    }
+
     // 1. Update live matches
     const updatedMatches: LiveMatch[] = matches.map((m) => {
-      if (!m.inPlay || m.isLocked) return m;
+      if (!m || !m.inPlay || m.isLocked) return m;
+
+      // Safe ball position
+      const ballPos = (m && typeof m.ballPosition === 'object' && m.ballPosition !== null)
+        ? m.ballPosition
+        : { x: 50, y: 50 };
+      const currentX = typeof ballPos.x === 'number' ? ballPos.x : 50;
+      const currentY = typeof ballPos.y === 'number' ? ballPos.y : 50;
 
       // Slight random ball movement
-      const newBallX = Math.min(95, Math.max(5, m.ballPosition.x + (Math.random() - 0.48) * 8));
-      const newBallY = Math.min(90, Math.max(10, m.ballPosition.y + (Math.random() - 0.5) * 10));
+      const newBallX = Math.min(95, Math.max(5, currentX + (Math.random() - 0.48) * 8));
+      const newBallY = Math.min(90, Math.max(10, currentY + (Math.random() - 0.5) * 10));
 
       // Attack Phase determination based on ball position
-      let phase = m.attackPhase;
+      let phase = m.attackPhase || 'BUILD_UP';
       if (newBallX > 80) phase = 'DANGEROUS_ATTACK';
       else if (newBallX > 60) phase = 'BUILD_UP';
       else if (newBallX < 30) phase = 'SAFE';
 
       // Fluctuate market odds slightly
-      const updatedMarkets = m.markets.map((market) => {
-        const updatedSelections = market.selections.map((sel) => {
+      const rawMarkets = Array.isArray(m.markets) ? m.markets : [];
+      const updatedMarkets = rawMarkets.map((market) => {
+        if (!market) return market;
+        const rawSelections = Array.isArray(market.selections) ? market.selections : [];
+        const updatedSelections = rawSelections.map((sel) => {
+          if (!sel) return sel;
           // 35% chance of price wiggle per selection per tick
           if (Math.random() < 0.35) {
             const delta = (Math.random() - 0.5) * 0.06;
-            const newPrice = Math.max(1.02, Math.round((sel.price + delta) * 100) / 100);
+            const curPrice = typeof sel.price === 'number' ? sel.price : 1.95;
+            const newPrice = Math.max(1.02, Math.round((curPrice + delta) * 100) / 100);
             let tickDirection: 'up' | 'down' | 'same' = 'same';
-            if (newPrice > sel.price) tickDirection = 'up';
-            else if (newPrice < sel.price) tickDirection = 'down';
+            if (newPrice > curPrice) tickDirection = 'up';
+            else if (newPrice < curPrice) tickDirection = 'down';
 
             return {
               ...sel,
-              prevPrice: sel.price,
+              prevPrice: curPrice,
               price: newPrice,
               tick: tickDirection
             };
@@ -148,10 +164,11 @@ export class SportsbookEngine {
       });
 
       // Win probability minor fluctuation
-      const lastProb = m.winProbabilityHistory[m.winProbabilityHistory.length - 1];
-      let newHomeProb = lastProb ? lastProb.homeProb : 50;
-      let newDrawProb = lastProb ? lastProb.drawProb : 25;
-      let newAwayProb = lastProb ? lastProb.awayProb : 25;
+      const probHistory = Array.isArray(m.winProbabilityHistory) ? m.winProbabilityHistory : [];
+      const lastProb = probHistory.length > 0 ? probHistory[probHistory.length - 1] : null;
+      let newHomeProb = lastProb && typeof lastProb.homeProb === 'number' ? lastProb.homeProb : 50;
+      let newDrawProb = lastProb && typeof lastProb.drawProb === 'number' ? lastProb.drawProb : 25;
+      let newAwayProb = lastProb && typeof lastProb.awayProb === 'number' ? lastProb.awayProb : 25;
 
       if (phase === 'DANGEROUS_ATTACK' && m.possessionTeam === 'HOME') {
         newHomeProb = Math.min(96, newHomeProb + 0.3);
@@ -168,19 +185,21 @@ export class SportsbookEngine {
     });
 
     // 2. Update dynamic cash out bets
-    const updatedCashOutBets: CashOutBet[] = cashOutBets.map((bet) => {
-      if (bet.status !== 'OPEN' && bet.status !== 'PARTIALLY_CASHED_OUT') {
+    const safeCashOut = Array.isArray(cashOutBets) ? cashOutBets : [];
+    const updatedCashOutBets: CashOutBet[] = safeCashOut.map((bet) => {
+      if (!bet || (bet.status !== 'OPEN' && bet.status !== 'PARTIALLY_CASHED_OUT')) {
         return bet;
       }
 
       // Find current market odds if available
-      const match = updatedMatches.find((m) => m.id === bet.matchId);
-      let currentOdds = bet.currentOdds;
+      const match = updatedMatches.find((m) => m && m.id === bet.matchId);
+      let currentOdds = typeof bet.currentOdds === 'number' ? bet.currentOdds : (bet.placedOdds || 1.95);
 
-      if (match) {
+      if (match && Array.isArray(match.markets)) {
         for (const market of match.markets) {
-          const matchingSel = market.selections.find((s) => s.name === bet.selectionName);
-          if (matchingSel) {
+          if (!market || !Array.isArray(market.selections)) continue;
+          const matchingSel = market.selections.find((s) => s && s.name === bet.selectionName);
+          if (matchingSel && typeof matchingSel.price === 'number') {
             currentOdds = matchingSel.price;
             break;
           }
@@ -193,8 +212,9 @@ export class SportsbookEngine {
 
       const newOffer = this.calculateCashOutOffer(bet, currentOdds);
       let tick: 'up' | 'down' | 'same' = 'same';
-      if (newOffer > bet.cashOutOffer) tick = 'up';
-      else if (newOffer < bet.cashOutOffer) tick = 'down';
+      const prevOffer = typeof bet.cashOutOffer === 'number' ? bet.cashOutOffer : 0;
+      if (newOffer > prevOffer) tick = 'up';
+      else if (newOffer < prevOffer) tick = 'down';
 
       return {
         ...bet,

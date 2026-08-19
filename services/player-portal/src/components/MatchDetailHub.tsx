@@ -59,9 +59,21 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
     };
   }, [match.id]);
 
+  const home = (match && typeof match.homeTeam === 'object' && match.homeTeam !== null)
+    ? match.homeTeam
+    : { name: 'Home Team', shortName: 'HOM', color: '#3b82f6', score: 0 };
+  const away = (match && typeof match.awayTeam === 'object' && match.awayTeam !== null)
+    ? match.awayTeam
+    : { name: 'Away Team', shortName: 'AWY', color: '#ef4444', score: 0 };
+  const sport = match?.sport || 'Football';
+  const league = match?.league || 'International League';
+  const clock = match?.clock || 'Live';
+  const currentPeriod = match?.currentPeriod || '1st Half';
+  const events = Array.isArray(match?.events) ? match.events : [];
+
   const categories = [
     { id: 'ALL', label: 'All Markets' },
-    ...(match.sport === 'Cricket' ? [{ id: 'TOSS', label: '🪙 Toss Winner' }] : []),
+    ...(sport === 'Cricket' ? [{ id: 'TOSS', label: '🪙 Toss Winner' }] : []),
     { id: 'MAIN', label: 'Main Lines' },
     { id: 'HANDICAPS', label: 'Spreads & Handicaps' },
     { id: 'TOTALS', label: 'Totals (Over/Under)' },
@@ -70,15 +82,16 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
   ];
 
   // Auto-inject Toss Market for Cricket if not present (as in IndianBet77 TossBook)
-  const allMarkets = [...match.markets];
-  if (match.sport === 'Cricket' && !allMarkets.some((m) => m.category === 'TOSS')) {
+  const rawMarkets = Array.isArray(match?.markets) ? match.markets : [];
+  const allMarkets = [...rawMarkets];
+  if (sport === 'Cricket' && !allMarkets.some((m) => m.category === 'TOSS')) {
     allMarkets.unshift({
       id: `MKT_TOSS_${match.id}`,
       name: 'Coin Toss Winner (Back & Lay)',
       category: 'TOSS',
       selections: [
-        { id: `toss_h_${match.id}`, name: `${match.homeTeam.name} (Win Toss)`, price: 1.95, tick: 'same' },
-        { id: `toss_a_${match.id}`, name: `${match.awayTeam.name} (Win Toss)`, price: 1.95, tick: 'same' }
+        { id: `toss_h_${match.id}`, name: `${home.name} (Win Toss)`, price: 1.95, tick: 'same' },
+        { id: `toss_a_${match.id}`, name: `${away.name} (Win Toss)`, price: 1.95, tick: 'same' }
       ]
     });
   }
@@ -102,9 +115,9 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
         </button>
 
         <div className="flex items-center space-x-2 text-xs font-bold text-slate-400">
-          <span className="text-slate-500">{match.sport}</span>
+          <span className="text-slate-500">{sport}</span>
           <span>/</span>
-          <span className="text-slate-300">{match.league}</span>
+          <span className="text-slate-300">{league}</span>
         </div>
       </div>
 
@@ -113,11 +126,11 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
         {/* Glow Effects */}
         <div
           className="absolute -top-20 -left-20 w-64 h-64 rounded-full blur-3xl opacity-20 pointer-events-none"
-          style={{ backgroundColor: match.homeTeam.color }}
+          style={{ backgroundColor: home.color || '#3b82f6' }}
         />
         <div
           className="absolute -bottom-20 -right-20 w-64 h-64 rounded-full blur-3xl opacity-20 pointer-events-none"
-          style={{ backgroundColor: match.awayTeam.color }}
+          style={{ backgroundColor: away.color || '#ef4444' }}
         />
 
         <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
@@ -125,19 +138,19 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
           <div className="flex items-center space-x-4 flex-1 justify-start">
             <div
               className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center font-black text-xl text-white shadow-xl border border-white/10"
-              style={{ backgroundColor: match.homeTeam.color }}
+              style={{ backgroundColor: home.color || '#3b82f6' }}
             >
-              {match.homeTeam.shortName}
+              {home.shortName}
             </div>
             <div>
-              <h2 className="text-xl sm:text-2xl font-black text-white">{match.homeTeam.name}</h2>
+              <h2 className="text-xl sm:text-2xl font-black text-white">{home.name}</h2>
               <span className="text-xs text-slate-400 font-semibold">Home Team</span>
             </div>
           </div>
 
           {/* Center Score & Clock */}
           <div className="flex flex-col items-center text-center px-6">
-            {match.inPlay && (
+            {match?.inPlay && (
               <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-black uppercase mb-2 animate-pulse">
                 <span className="w-2 h-2 rounded-full bg-emerald-400" />
                 <span>IN-PLAY LIVE</span>
@@ -145,39 +158,39 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
             )}
 
             <div className="flex items-center space-x-4">
-              <span className="mono-num text-3xl sm:text-5xl font-black text-white">{match.homeTeam.score}</span>
+              <span className="mono-num text-3xl sm:text-5xl font-black text-white">{home.score}</span>
               <span className="text-2xl sm:text-3xl font-black text-slate-600">-</span>
-              <span className="mono-num text-3xl sm:text-5xl font-black text-white">{match.awayTeam.score}</span>
+              <span className="mono-num text-3xl sm:text-5xl font-black text-white">{away.score}</span>
             </div>
 
             <div className="flex items-center space-x-2 mt-2 text-xs font-bold text-slate-300">
               <Clock className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="mono-num text-emerald-400 font-extrabold">{match.clock}</span>
+              <span className="mono-num text-emerald-400 font-extrabold">{clock}</span>
               <span className="text-slate-600">•</span>
-              <span>{match.currentPeriod}</span>
+              <span>{currentPeriod}</span>
             </div>
           </div>
 
           {/* Away Team */}
           <div className="flex items-center space-x-4 flex-1 justify-end">
             <div className="text-right">
-              <h2 className="text-xl sm:text-2xl font-black text-white">{match.awayTeam.name}</h2>
+              <h2 className="text-xl sm:text-2xl font-black text-white">{away.name}</h2>
               <span className="text-xs text-slate-400 font-semibold">Away Team</span>
             </div>
             <div
               className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center font-black text-xl text-white shadow-xl border border-white/10"
-              style={{ backgroundColor: match.awayTeam.color }}
+              style={{ backgroundColor: away.color || '#ef4444' }}
             >
-              {match.awayTeam.shortName}
+              {away.shortName}
             </div>
           </div>
         </div>
 
         {/* Live Event Marquee Strip */}
-        {match.events.length > 0 && (
+        {events.length > 0 && (
           <div className="mt-6 pt-4 border-t border-slate-800/80 flex items-center space-x-3 overflow-x-auto no-scrollbar">
             <span className="text-[10px] uppercase font-bold text-slate-500 whitespace-nowrap">Live Events:</span>
-            {match.events.map((e) => (
+            {events.map((e) => (
               <div
                 key={e.id}
                 className="px-3 py-1 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-300 font-bold whitespace-nowrap flex items-center space-x-1.5"
@@ -208,7 +221,7 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
             }`}
           >
             <Layers className="w-4 h-4" />
-            <span>Live Markets ({match.markets.length})</span>
+            <span>Live Markets ({allMarkets.length})</span>
           </button>
 
           {match.sport === 'Cricket' && (

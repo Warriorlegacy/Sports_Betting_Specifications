@@ -7,14 +7,24 @@ interface CricketMatchCenterProps {
 }
 
 export const CricketMatchCenter: React.FC<CricketMatchCenterProps> = ({ match }) => {
-  const isCricket = match.sport === 'Cricket';
+  const isCricket = match?.sport === 'Cricket';
   if (!isCricket) return null;
+
+  const home = (match && typeof match.homeTeam === 'object' && match.homeTeam !== null)
+    ? match.homeTeam
+    : { name: 'Home Team', shortName: 'HOM', score: 0, subScore: '' };
+  const away = (match && typeof match.awayTeam === 'object' && match.awayTeam !== null)
+    ? match.awayTeam
+    : { name: 'Away Team', shortName: 'AWY', score: 0, subScore: '' };
+
+  const homeName = home.name || 'Home Team';
+  const awayName = away.name || 'Away Team';
 
   // Generate realistic live over progression balls (e.g. from score or dynamic telemetry)
   const currentOverBalls = ['1', '0', '4', '2', 'W', '6'];
-  const strikerName = match.homeTeam.name?.includes('vs') ? 'Striker' : `${match.homeTeam.name} Batsman 1`;
-  const nonStrikerName = `${match.homeTeam.name} Batsman 2`;
-  const bowlerName = `${match.awayTeam.name} Bowler`;
+  const strikerName = homeName.includes('vs') ? 'Striker' : `${homeName} Batsman 1`;
+  const nonStrikerName = `${homeName} Batsman 2`;
+  const bowlerName = `${awayName} Bowler`;
 
   return (
     <div className="bg-gradient-to-br from-slate-900/95 via-slate-900/90 to-emerald-950/40 border border-emerald-500/20 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-5 backdrop-blur-xl">
@@ -26,7 +36,7 @@ export const CricketMatchCenter: React.FC<CricketMatchCenterProps> = ({ match })
             Live Ball-by-Ball Match Center
           </span>
           <span className="px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 text-[10px] font-bold border border-emerald-700/50">
-            {match.clock || 'Live In-Play'}
+            {match?.clock || 'Live In-Play'}
           </span>
         </div>
         <div className="text-[11px] font-bold text-slate-400 flex items-center space-x-3">
@@ -38,10 +48,10 @@ export const CricketMatchCenter: React.FC<CricketMatchCenterProps> = ({ match })
       {/* Current Score & Target Breakdown */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 bg-slate-950/60 p-4 rounded-2xl border border-slate-800/60">
         <div className="flex flex-col">
-          <span className="text-[10px] uppercase font-bold text-slate-400">{match.homeTeam.name}</span>
+          <span className="text-[10px] uppercase font-bold text-slate-400">{homeName}</span>
           <div className="flex items-baseline space-x-2 mt-0.5">
-            <span className="text-2xl font-black text-emerald-400 mono-num">{match.homeTeam.score}</span>
-            <span className="text-xs text-slate-400 font-semibold">{match.homeTeam.subScore || '(17.4 Ov)'}</span>
+            <span className="text-2xl font-black text-emerald-400 mono-num">{home.score}</span>
+            <span className="text-xs text-slate-400 font-semibold">{home.subScore || '(17.4 Ov)'}</span>
           </div>
         </div>
 

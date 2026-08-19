@@ -477,11 +477,134 @@ function getGuaranteedSportFixtures(todayStr: string, tomorrowStr: string): Live
   ];
 }
 
+function convertRawTelemetryToMatch(t: any, todayStr: string): LiveMatch {
+  let sportCat: SportCategory = 'Football';
+  const rawSport = (t.sport || '').toUpperCase();
+  if (rawSport === 'CRICKET') sportCat = 'Cricket';
+  else if (rawSport === 'TENNIS') sportCat = 'Tennis';
+  else if (rawSport === 'BASKETBALL') sportCat = 'Basketball';
+  else if (rawSport === 'FOOTBALL' || rawSport === 'SOCCER') sportCat = 'Football';
+  else if (rawSport === 'BASEBALL') sportCat = 'Baseball';
+  else if (rawSport === 'AMERICAN FOOTBALL' || rawSport === 'AMERICAN_FOOTBALL') sportCat = 'American Football';
+  else if (rawSport === 'ESPORTS') sportCat = 'Esports';
+
+  let homeScore: string | number = 0;
+  let awayScore: string | number = 0;
+  let homeSubScore = '';
+  let awaySubScore = '';
+  let clock = t.clock || (t.inPlay ? 'Live In-Play' : 'Upcoming');
+
+  if (t.cricket) {
+    homeScore = `${t.cricket.runs ?? 0}/${t.cricket.wickets ?? 0}`;
+    awayScore = `${t.cricket.target ?? 180} Target`;
+    homeSubScore = `(${t.cricket.overs ?? 0} ov)`;
+    clock = `${t.cricket.overs ?? 0} Overs`;
+  } else if (t.tennis) {
+    const curSet = t.tennis.sets?.[(t.tennis.currentSet || 1) - 1] || { home: 0, away: 0 };
+    homeScore = curSet.home ?? 0;
+    awayScore = curSet.away ?? 0;
+    homeSubScore = `Pts: ${t.tennis.currentGameScore?.home || '0'}`;
+    awaySubScore = `Pts: ${t.tennis.currentGameScore?.away || '0'}`;
+    clock = `Set ${t.tennis.currentSet || 1}`;
+  } else if (t.basketball) {
+    homeScore = t.basketball.homeScore ?? 0;
+    awayScore = t.basketball.awayScore ?? 0;
+    clock = `${t.basketball.quarterName || 'Q2'} ${t.basketball.gameClock || '06:30'}`;
+  } else if (t.football) {
+    homeScore = t.football.homeGoals ?? 0;
+    awayScore = t.football.awayGoals ?? 0;
+    clock = `${t.football.minute ?? 45}'`;
+  }
+
+  const matchDate = t.startTime ? t.startTime.split('T')[0] : todayStr;
+  const startTime = t.startTime
+    ? new Date(t.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    : '19:00';
+
+  const homeName = typeof t.homeTeam === 'object' && t.homeTeam ? (t.homeTeam.name || 'Home Team') : String(t.homeTeam || 'Home Team');
+  const awayName = typeof t.awayTeam === 'object' && t.awayTeam ? (t.awayTeam.name || 'Away Team') : String(t.awayTeam || 'Away Team');
+
+  const primarySelections = t.realOdds?.selections?.length
+    ? t.realOdds.selections.map((s: any) => ({
+        id: String(s.selectionId),
+        name: s.name,
+        price: s.backPrice || 1.95,
+        backPrice: s.backPrice,
+        layPrice: s.layPrice,
+        backVolume: s.backVolume,
+        layVolume: s.layVolume,
+        depth: s.depth
+      }))
+    : [
+        { id: '1', name: homeName, price: 1.95 },
+        { id: '2', name: awayName, price: 1.95 }
+      ];
+
+  const markets: BettingMarket[] = [
+    {
+      id: `MKT_MAIN_${t.marketId || t.id || Math.random().toString(36).substring(7)}`,
+      name: t.realOdds?.marketName || 'Match Winner / Moneyline',
+      category: 'MAIN',
+      selections: primarySelections
+    }
+  ];
+
+  return {
+    id: t.marketId || t.id || `MKT_${Math.random().toString(36).substring(7)}`,
+    sport: sportCat,
+    league: t.venue || t.league || 'International League',
+    country: t.country || 'Global',
+    flag: t.flag || '🌍',
+    matchDate,
+    startTime,
+    currentPeriod: t.currentPeriod || (t.inPlay ? '1st Half' : 'Scheduled'),
+    possessionTeam: 'HOME',
+    attackPhase: 'BUILD_UP',
+    ballPosition: { x: 50, y: 50 },
+    possessionStats: { home: 50, away: 50 },
+    shots: [],
+    events: [],
+    stats: [
+      { label: 'Attacks', home: 45, away: 40, homePercent: 53, awayPercent: 47 },
+      { label: 'Dangerous Attacks', home: 22, away: 18, homePercent: 55, awayPercent: 45 }
+    ],
+    winProbabilityHistory: [
+      { minute: 0, homeProb: 45, drawProb: 25, awayProb: 30 },
+      { minute: 45, homeProb: 50, drawProb: 20, awayProb: 30 }
+    ],
+    momentumHistory: [
+      { minute: 0, momentum: 0 },
+      { minute: 45, momentum: 20 }
+    ],
+    homeTeam: {
+      name: homeName,
+      shortName: homeName.substring(0, 3).toUpperCase(),
+      color: '#3b82f6',
+      score: homeScore,
+      subScore: homeSubScore
+    },
+    awayTeam: {
+      name: awayName,
+      shortName: awayName.substring(0, 3).toUpperCase(),
+      color: '#ef4444',
+      score: awayScore,
+      subScore: awaySubScore
+    },
+    clock,
+    inPlay: Boolean(t.inPlay),
+    status: t.status === 'COMPLETED' ? 'SETTLED' : t.inPlay ? 'LIVE' : 'UPCOMING',
+    isLocked: Boolean(t.isLocked),
+    markets
+  };
+}
+
 export async function fetchRealWorldSports(): Promise<LiveMatch[]> {
   const todayStr = new Date().toISOString().split('T')[0];
   const tomorrowObj = new Date();
   tomorrowObj.setDate(tomorrowObj.getDate() + 1);
   const tomorrowStr = tomorrowObj.toISOString().split('T')[0];
+
+  const guaranteed = getGuaranteedSportFixtures(todayStr, tomorrowStr);
 
   // 1. Try backend live telemetry endpoint
   try {
@@ -491,7 +614,24 @@ export async function fetchRealWorldSports(): Promise<LiveMatch[]> {
       const data = await res.json();
       const list = data.matches || data.telemetry || data.liveMatches;
       if (Array.isArray(list) && list.length > 0) {
-        return list;
+        const normalizedList: LiveMatch[] = list
+          .map((item: any) => {
+            if (item && typeof item.homeTeam === 'object' && item.homeTeam !== null && item.homeTeam.name && item.ballPosition) {
+              return item as LiveMatch;
+            }
+            return convertRawTelemetryToMatch(item, todayStr);
+          })
+          .filter((m): m is LiveMatch => Boolean(m && m.id && m.homeTeam?.name && m.awayTeam?.name));
+
+        if (normalizedList.length > 0) {
+          const merged = [...normalizedList];
+          for (const g of guaranteed) {
+            if (!merged.some(m => m.id === g.id || (m.homeTeam?.name === g.homeTeam?.name && m.sport === g.sport))) {
+              merged.push(g);
+            }
+          }
+          return merged;
+        }
       }
     }
   } catch {
@@ -499,7 +639,6 @@ export async function fetchRealWorldSports(): Promise<LiveMatch[]> {
   }
 
   // 2. Inject guaranteed multi-sport matches so every sport category has live & upcoming events
-  const guaranteed = getGuaranteedSportFixtures(todayStr, tomorrowStr);
   return guaranteed;
 }
 

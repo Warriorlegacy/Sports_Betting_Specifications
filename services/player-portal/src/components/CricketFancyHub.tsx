@@ -13,12 +13,18 @@ interface CricketFancyHubProps {
 }
 
 export const CricketFancyHub: React.FC<CricketFancyHubProps> = ({ match, onSelectFancy }) => {
+  const home = (match && typeof match.homeTeam === 'object' && match.homeTeam !== null)
+    ? match.homeTeam
+    : { name: 'Home Team', shortName: 'HOM' };
+  const homeName = home.name || 'Home Team';
+  const homeShortName = home.shortName || 'HOM';
+
   // Generate realistic, dynamic cricket session fancy markets based on match teams
   const fancies = [
     {
       id: 'FNC_6OV',
       category: 'SESSION (6 OVERS)',
-      name: `6 Overs Session ${match.homeTeam.name}`,
+      name: `6 Overs Session ${homeName}`,
       noRuns: 48,
       noRate: 100,
       yesRuns: 50,
@@ -29,7 +35,7 @@ export const CricketFancyHub: React.FC<CricketFancyHubProps> = ({ match, onSelec
     {
       id: 'FNC_10OV',
       category: 'SESSION (10 OVERS)',
-      name: `10 Overs Session ${match.homeTeam.name}`,
+      name: `10 Overs Session ${homeName}`,
       noRuns: 82,
       noRate: 95,
       yesRuns: 85,
@@ -40,7 +46,7 @@ export const CricketFancyHub: React.FC<CricketFancyHubProps> = ({ match, onSelec
     {
       id: 'FNC_20OV',
       category: 'INNINGS TOTAL',
-      name: `20 Overs Total Runs ${match.homeTeam.name}`,
+      name: `20 Overs Total Runs ${homeName}`,
       noRuns: 174,
       noRate: 100,
       yesRuns: 178,
@@ -51,7 +57,7 @@ export const CricketFancyHub: React.FC<CricketFancyHubProps> = ({ match, onSelec
     {
       id: 'FNC_WKT1',
       category: 'WICKET FANCY',
-      name: `Fall of 1st Wicket ${match.homeTeam.name}`,
+      name: `Fall of 1st Wicket ${homeName}`,
       noRuns: 24,
       noRate: 110,
       yesRuns: 26,
@@ -62,7 +68,7 @@ export const CricketFancyHub: React.FC<CricketFancyHubProps> = ({ match, onSelec
     {
       id: 'FNC_BAT1',
       category: 'BATSMAN FANCY',
-      name: `Top Opener Runs (${match.homeTeam.shortName})`,
+      name: `Top Opener Runs (${homeShortName})`,
       noRuns: 32,
       noRate: 100,
       yesRuns: 34,

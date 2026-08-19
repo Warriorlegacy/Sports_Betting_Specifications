@@ -26,16 +26,36 @@ export const LiveVisualizerHub: React.FC<LiveVisualizerHubProps> = ({ match }) =
   const [selectedShot, setSelectedShot] = useState<ShotLocation | null>(null);
   const [shotFilter, setShotFilter] = useState<'ALL' | 'HOME' | 'AWAY'>('ALL');
 
-  const filteredShots = match.shots.filter((s) => {
+  const shots = Array.isArray(match?.shots) ? match.shots : [];
+  const filteredShots = shots.filter((s) => {
     if (shotFilter === 'ALL') return true;
     return s.team === shotFilter;
   });
 
-  const lastWinProb = match.winProbabilityHistory[match.winProbabilityHistory.length - 1] || {
+  const winProbHistory = Array.isArray(match?.winProbabilityHistory) ? match.winProbabilityHistory : [];
+  const lastWinProb = winProbHistory.length > 0 ? winProbHistory[winProbHistory.length - 1] : {
     homeProb: 50,
     drawProb: 25,
     awayProb: 25
   };
+
+  const home = (match && typeof match.homeTeam === 'object' && match.homeTeam !== null)
+    ? match.homeTeam
+    : { name: 'Home Team', shortName: 'HOM', color: '#3b82f6', score: 0 };
+  const away = (match && typeof match.awayTeam === 'object' && match.awayTeam !== null)
+    ? match.awayTeam
+    : { name: 'Away Team', shortName: 'AWY', color: '#ef4444', score: 0 };
+  const poss = (match && typeof match.possessionStats === 'object' && match.possessionStats !== null)
+    ? match.possessionStats
+    : { home: 50, away: 50 };
+  const ball = (match && typeof match.ballPosition === 'object' && match.ballPosition !== null)
+    ? match.ballPosition
+    : { x: 50, y: 50 };
+  const attackPhase = match?.attackPhase || 'BUILD_UP';
+  const clock = match?.clock || 'Live';
+  const currentPeriod = match?.currentPeriod || '1st Half';
+  const momentum = Array.isArray(match?.momentumHistory) ? match.momentumHistory : [];
+  const stats = Array.isArray(match?.stats) ? match.stats : [];
 
   return (
     <div className="bg-slate-900/95 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl backdrop-blur-xl">
@@ -63,13 +83,13 @@ export const LiveVisualizerHub: React.FC<LiveVisualizerHubProps> = ({ match }) =
           {/* Quick Score & Possession Pill */}
           <div className="flex items-center space-x-4 bg-slate-950/80 px-4 py-2 rounded-2xl border border-slate-800">
             <div className="text-right">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">{match.homeTeam.shortName}</span>
-              <span className="mono-num text-sm font-black text-white">{match.possessionStats.home}% Poss</span>
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">{home.shortName}</span>
+              <span className="mono-num text-sm font-black text-white">{poss.home ?? 50}% Poss</span>
             </div>
             <div className="h-6 w-px bg-slate-800" />
             <div className="text-left">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block">{match.awayTeam.shortName}</span>
-              <span className="mono-num text-sm font-black text-white">{match.possessionStats.away}% Poss</span>
+              <span className="text-[10px] uppercase font-bold text-slate-400 block">{away.shortName}</span>
+              <span className="mono-num text-sm font-black text-white">{poss.away ?? 50}% Poss</span>
             </div>
           </div>
         </div>
@@ -99,7 +119,7 @@ export const LiveVisualizerHub: React.FC<LiveVisualizerHubProps> = ({ match }) =
             }`}
           >
             <Target className="w-3.5 h-3.5" />
-            <span>Interactive Shot Map ({match.shots.length})</span>
+            <span>Interactive Shot Map ({shots.length})</span>
           </button>
 
           <button
@@ -172,17 +192,17 @@ export const LiveVisualizerHub: React.FC<LiveVisualizerHubProps> = ({ match }) =
               </svg>
 
               {/* Heatmap / Danger Zone Pulse */}
-              {match.attackPhase === 'DANGEROUS_ATTACK' && (
+              {attackPhase === 'DANGEROUS_ATTACK' && (
                 <div
                   className="absolute w-40 h-40 rounded-full bg-rose-500/20 blur-2xl pointer-events-none transition-all duration-700 animate-pulse"
-                  style={{ left: `${match.ballPosition.x - 20}%`, top: `${match.ballPosition.y - 20}%` }}
+                  style={{ left: `${ball.x - 20}%`, top: `${ball.y - 20}%` }}
                 />
               )}
 
               {/* Live Ball Marker */}
               <div
                 className="absolute transition-all duration-700 ease-out z-20 flex flex-col items-center -translate-x-1/2 -translate-y-1/2"
-                style={{ left: `${match.ballPosition.x}%`, top: `${match.ballPosition.y}%` }}
+                style={{ left: `${ball.x}%`, top: `${ball.y}%` }}
               >
                 <div className="relative">
                   <div className="w-5 h-5 rounded-full bg-white shadow-xl shadow-white/50 border-2 border-emerald-500 flex items-center justify-center">
@@ -191,7 +211,7 @@ export const LiveVisualizerHub: React.FC<LiveVisualizerHubProps> = ({ match }) =
                   <span className="absolute -inset-1 rounded-full bg-white/40 animate-ping" />
                 </div>
                 <div className="mt-1 px-2 py-0.5 rounded bg-slate-950/90 border border-slate-700 text-[9px] font-black text-white uppercase whitespace-nowrap shadow-lg">
-                  {match.possessionTeam === 'HOME' ? match.homeTeam.name : match.awayTeam.name} Ball
+                  {match?.possessionTeam === 'HOME' ? home.name : away.name} Ball
                 </div>
               </div>
 
@@ -199,42 +219,42 @@ export const LiveVisualizerHub: React.FC<LiveVisualizerHubProps> = ({ match }) =
               <div className="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-800 text-xs flex items-center space-x-2">
                 <span
                   className={`w-2 h-2 rounded-full ${
-                    match.attackPhase === 'DANGEROUS_ATTACK'
+                    attackPhase === 'DANGEROUS_ATTACK'
                       ? 'bg-rose-500 animate-ping'
-                      : match.attackPhase === 'BUILD_UP'
+                      : attackPhase === 'BUILD_UP'
                       ? 'bg-amber-400'
                       : 'bg-emerald-400'
                   }`}
                 />
                 <span className="font-extrabold text-white uppercase tracking-wider text-[11px]">
-                  {match.attackPhase.replace('_', ' ')}
+                  {attackPhase.replace('_', ' ')}
                 </span>
               </div>
 
               {/* Live Clock & Match Time */}
               <div className="absolute top-3 right-3 bg-slate-950/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-800 text-xs flex items-center space-x-1.5">
                 <Clock className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="mono-num font-extrabold text-emerald-400">{match.clock}</span>
+                <span className="mono-num font-extrabold text-emerald-400">{clock}</span>
                 <span className="text-slate-500">•</span>
-                <span className="text-slate-300 font-semibold">{match.currentPeriod}</span>
+                <span className="text-slate-300 font-semibold">{currentPeriod}</span>
               </div>
             </div>
 
             {/* Possession Split Bar */}
             <div className="bg-slate-950/60 p-3.5 rounded-2xl border border-slate-800 space-y-2">
               <div className="flex justify-between text-xs font-extrabold">
-                <span className="text-rose-400">{match.homeTeam.name} ({match.possessionStats.home}%)</span>
+                <span className="text-rose-400">{home.name} ({poss.home ?? 50}%)</span>
                 <span className="text-slate-400 uppercase tracking-widest text-[10px]">Match Possession</span>
-                <span className="text-blue-400">{match.awayTeam.name} ({match.possessionStats.away}%)</span>
+                <span className="text-blue-400">{away.name} ({poss.away ?? 50}%)</span>
               </div>
               <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden flex p-0.5">
                 <div
                   className="h-full bg-gradient-to-r from-rose-600 to-rose-400 rounded-l-full transition-all duration-500"
-                  style={{ width: `${match.possessionStats.home}%` }}
+                  style={{ width: `${poss.home ?? 50}%` }}
                 />
                 <div
                   className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-r-full transition-all duration-500"
-                  style={{ width: `${match.possessionStats.away}%` }}
+                  style={{ width: `${poss.away ?? 50}%` }}
                 />
               </div>
             </div>
@@ -261,8 +281,8 @@ export const LiveVisualizerHub: React.FC<LiveVisualizerHubProps> = ({ match }) =
                     {filter === 'ALL'
                       ? 'All Shots'
                       : filter === 'HOME'
-                      ? `${match.homeTeam.shortName} Only`
-                      : `${match.awayTeam.shortName} Only`}
+                      ? `${home.shortName} Only`
+                      : `${away.shortName} Only`}
                   </button>
                 ))}
               </div>
@@ -358,7 +378,7 @@ export const LiveVisualizerHub: React.FC<LiveVisualizerHubProps> = ({ match }) =
 
                   <h4 className="text-sm font-black text-white">{selectedShot.player}</h4>
                   <p className="text-xs text-slate-400">
-                    {selectedShot.team === 'HOME' ? match.homeTeam.name : match.awayTeam.name}
+                    {selectedShot.team === 'HOME' ? home.name : away.name}
                   </p>
 
                   <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-slate-800 text-center">
@@ -389,7 +409,7 @@ export const LiveVisualizerHub: React.FC<LiveVisualizerHubProps> = ({ match }) =
             {/* Live Prob Summary Pills */}
             <div className="grid grid-cols-3 gap-3">
               <div className="p-3.5 rounded-2xl bg-rose-950/30 border border-rose-800/60 text-center">
-                <span className="text-[10px] uppercase font-bold text-rose-300 block">{match.homeTeam.name} Win %</span>
+                <span className="text-[10px] uppercase font-bold text-rose-300 block">{home.name} Win %</span>
                 <span className="mono-num text-xl font-black text-rose-400">{lastWinProb.homeProb}%</span>
               </div>
               <div className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800 text-center">
@@ -397,7 +417,7 @@ export const LiveVisualizerHub: React.FC<LiveVisualizerHubProps> = ({ match }) =
                 <span className="mono-num text-xl font-black text-slate-300">{lastWinProb.drawProb}%</span>
               </div>
               <div className="p-3.5 rounded-2xl bg-blue-950/30 border border-blue-800/60 text-center">
-                <span className="text-[10px] uppercase font-bold text-blue-300 block">{match.awayTeam.name} Win %</span>
+                <span className="text-[10px] uppercase font-bold text-blue-300 block">{away.name} Win %</span>
                 <span className="mono-num text-xl font-black text-blue-400">{lastWinProb.awayProb}%</span>
               </div>
             </div>
@@ -407,9 +427,9 @@ export const LiveVisualizerHub: React.FC<LiveVisualizerHubProps> = ({ match }) =
               <div className="flex justify-between items-center mb-3">
                 <span className="text-xs font-bold text-slate-400">Match Progression Probability Timeline</span>
                 <div className="flex items-center space-x-3 text-[11px] font-bold">
-                  <span className="text-rose-400">● {match.homeTeam.shortName}</span>
+                  <span className="text-rose-400">● {home.shortName}</span>
                   <span className="text-slate-400">● Draw</span>
-                  <span className="text-blue-400">● {match.awayTeam.shortName}</span>
+                  <span className="text-blue-400">● {away.shortName}</span>
                 </div>
               </div>
 
@@ -426,9 +446,9 @@ export const LiveVisualizerHub: React.FC<LiveVisualizerHubProps> = ({ match }) =
                     fill="none"
                     stroke="#f43f5e"
                     strokeWidth="2"
-                    points={match.winProbabilityHistory
+                    points={winProbHistory
                       .map((p, idx) => {
-                        const x = (idx / (match.winProbabilityHistory.length - 1 || 1)) * 100;
+                        const x = (idx / (winProbHistory.length - 1 || 1)) * 100;
                         const y = 60 - (p.homeProb / 100) * 55;
                         return `${x},${y}`;
                       })
@@ -441,9 +461,9 @@ export const LiveVisualizerHub: React.FC<LiveVisualizerHubProps> = ({ match }) =
                     stroke="#94a3b8"
                     strokeWidth="1.5"
                     strokeDasharray="3,2"
-                    points={match.winProbabilityHistory
+                    points={winProbHistory
                       .map((p, idx) => {
-                        const x = (idx / (match.winProbabilityHistory.length - 1 || 1)) * 100;
+                        const x = (idx / (winProbHistory.length - 1 || 1)) * 100;
                         const y = 60 - (p.drawProb / 100) * 55;
                         return `${x},${y}`;
                       })
@@ -455,9 +475,9 @@ export const LiveVisualizerHub: React.FC<LiveVisualizerHubProps> = ({ match }) =
                     fill="none"
                     stroke="#3b82f6"
                     strokeWidth="2"
-                    points={match.winProbabilityHistory
+                    points={winProbHistory
                       .map((p, idx) => {
-                        const x = (idx / (match.winProbabilityHistory.length - 1 || 1)) * 100;
+                        const x = (idx / (winProbHistory.length - 1 || 1)) * 100;
                         const y = 60 - (p.awayProb / 100) * 55;
                         return `${x},${y}`;
                       })
@@ -465,9 +485,9 @@ export const LiveVisualizerHub: React.FC<LiveVisualizerHubProps> = ({ match }) =
                   />
 
                   {/* Event Milestone Points */}
-                  {match.winProbabilityHistory.map((p, idx) => {
+                  {winProbHistory.map((p, idx) => {
                     if (!p.event) return null;
-                    const x = (idx / (match.winProbabilityHistory.length - 1 || 1)) * 100;
+                    const x = (idx / (winProbHistory.length - 1 || 1)) * 100;
                     const y = 60 - (p.homeProb / 100) * 55;
                     return (
                       <g key={idx}>
@@ -480,7 +500,7 @@ export const LiveVisualizerHub: React.FC<LiveVisualizerHubProps> = ({ match }) =
 
               {/* Milestones List */}
               <div className="flex items-center space-x-2 mt-3 overflow-x-auto no-scrollbar text-[11px]">
-                {match.winProbabilityHistory
+                {winProbHistory
                   .filter((p) => p.event)
                   .map((p, idx) => (
                     <div
@@ -512,8 +532,8 @@ export const LiveVisualizerHub: React.FC<LiveVisualizerHubProps> = ({ match }) =
                   <line x1="0" y1="30" x2="100" y2="30" stroke="#475569" strokeWidth="1" strokeDasharray="3,3" />
 
                   {/* Momentum Bar Area */}
-                  {match.momentumHistory.map((m, idx) => {
-                    const x = (idx / (match.momentumHistory.length - 1 || 1)) * 96 + 2;
+                  {momentum.map((m, idx) => {
+                    const x = (idx / (momentum.length - 1 || 1)) * 96 + 2;
                     const height = Math.abs(m.momentum) * 0.25;
                     const y = m.momentum >= 0 ? 30 - height : 30;
                     const isHome = m.momentum >= 0;
@@ -546,8 +566,8 @@ export const LiveVisualizerHub: React.FC<LiveVisualizerHubProps> = ({ match }) =
               </div>
 
               <div className="flex justify-between text-xs font-bold pt-1">
-                <span className="text-rose-400">▲ {match.homeTeam.name} Attacking Pressure</span>
-                <span className="text-blue-400">▼ {match.awayTeam.name} Attacking Pressure</span>
+                <span className="text-rose-400">▲ {home.name} Attacking Pressure</span>
+                <span className="text-blue-400">▼ {away.name} Attacking Pressure</span>
               </div>
             </div>
           </div>
@@ -556,7 +576,7 @@ export const LiveVisualizerHub: React.FC<LiveVisualizerHubProps> = ({ match }) =
         {/* ===================== TAB 5: ADVANCED STATS ===================== */}
         {activeVisualTab === 'STATS' && (
           <div className="space-y-3">
-            {match.stats.map((stat, idx) => (
+            {stats.map((stat, idx) => (
               <div key={idx} className="p-3 bg-slate-950/60 rounded-xl border border-slate-800 space-y-1.5">
                 <div className="flex justify-between items-center text-xs font-bold">
                   <span className="mono-num text-rose-400 text-sm">{stat.home}</span>

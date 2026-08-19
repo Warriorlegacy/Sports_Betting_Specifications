@@ -348,10 +348,18 @@ export const App: React.FC = () => {
       const fpMatches = await fetchFairplayExchangeMatches().catch(() => []);
       const espnMatches = await fetchRealWorldSports().catch(() => []);
 
-      const combined = [...fpMatches];
-      for (const em of espnMatches) {
-        if (!combined.some(c => c.sport === em.sport && c.homeTeam.name === em.homeTeam.name)) {
-          combined.push(em);
+      const combined = [...(Array.isArray(fpMatches) ? fpMatches : [])];
+      if (Array.isArray(espnMatches)) {
+        for (const em of espnMatches) {
+          if (!em) continue;
+          const emHome = typeof em.homeTeam === 'object' && em.homeTeam !== null ? (em.homeTeam.name || '') : String(em.homeTeam || '');
+          if (!combined.some(c => {
+            if (!c) return false;
+            const cHome = typeof c.homeTeam === 'object' && c.homeTeam !== null ? (c.homeTeam.name || '') : String(c.homeTeam || '');
+            return c.sport === em.sport && cHome === emHome;
+          })) {
+            combined.push(em);
+          }
         }
       }
 
@@ -367,7 +375,7 @@ export const App: React.FC = () => {
       if (tels.length > 0) {
         const realMatches = tels
           .map((t: any) => convertTelemetryToMatch(t))
-          .filter((m: LiveMatch) => Boolean(m.homeTeam?.name && m.awayTeam?.name));
+          .filter((m: LiveMatch) => Boolean(m && m.homeTeam?.name && m.awayTeam?.name));
         if (realMatches.length > 0) {
           setLiveMatches(realMatches);
         }
@@ -430,11 +438,13 @@ export const App: React.FC = () => {
     const tickInterval = setInterval(() => {
       setLiveMatches((prevMatches) => {
         if (!prevMatches || prevMatches.length === 0) return prevMatches;
+        let nextCashOut: CashOutBet[] = [];
         setCashOutBets((prevCashOut) => {
-          const { updatedCashOutBets } = SportsbookEngine.simulateTick(prevMatches, prevCashOut);
+          const { updatedCashOutBets } = SportsbookEngine.simulateTick(prevMatches, prevCashOut || []);
+          nextCashOut = updatedCashOutBets;
           return updatedCashOutBets;
         });
-        const { updatedMatches } = SportsbookEngine.simulateTick(prevMatches, cashOutBets);
+        const { updatedMatches } = SportsbookEngine.simulateTick(prevMatches, nextCashOut);
         return updatedMatches;
       });
     }, 4000);
@@ -602,10 +612,10 @@ export const App: React.FC = () => {
     price: number,
     type: 'BACK' | 'LAY' | 'SPORTSBOOK' = 'BACK'
   ) => {
-    const match = liveMatches.find((m) => m.id === matchId);
-    const eventName = match
-      ? `${typeof match.homeTeam === 'object' ? match.homeTeam.name : match.homeTeam} vs ${typeof match.awayTeam === 'object' ? match.awayTeam.name : match.awayTeam}`
-      : marketName;
+    const match = liveMatches.find((m) => m && m.id === matchId);
+    const homeName = (match && typeof match.homeTeam === 'object' && match.homeTeam !== null) ? (match.homeTeam.name || 'Home') : String(match?.homeTeam || 'Home');
+    const awayName = (match && typeof match.awayTeam === 'object' && match.awayTeam !== null) ? (match.awayTeam.name || 'Away') : String(match?.awayTeam || 'Away');
+    const eventName = match ? `${homeName} vs ${awayName}` : marketName;
 
     const newItem: BetSlipItem = {
       id: `${marketId}_${selectionId}_${type}`,
@@ -841,13 +851,14 @@ export const App: React.FC = () => {
     );
   };
 
+  const safeLiveMatches = Array.isArray(liveMatches) ? liveMatches : [];
   const sportCounts: Record<string, number> = {
-    cricket: liveMatches.filter((m) => m.sport === 'Cricket').length,
-    soccer: liveMatches.filter((m) => m.sport === 'Football').length,
-    tennis: liveMatches.filter((m) => m.sport === 'Tennis').length,
-    basketball: liveMatches.filter((m) => m.sport === 'Basketball').length,
-    baseball: liveMatches.filter((m) => m.sport === 'Baseball').length,
-    table_tennis: liveMatches.filter((m) => m.sport === 'Table Tennis').length,
+    cricket: safeLiveMatches.filter((m) => m && m.sport === 'Cricket').length,
+    soccer: safeLiveMatches.filter((m) => m && m.sport === 'Football').length,
+    tennis: safeLiveMatches.filter((m) => m && m.sport === 'Tennis').length,
+    basketball: safeLiveMatches.filter((m) => m && m.sport === 'Basketball').length,
+    baseball: safeLiveMatches.filter((m) => m && m.sport === 'Baseball').length,
+    table_tennis: safeLiveMatches.filter((m) => m && m.sport === 'Table Tennis').length,
     horse_racing: 4,
     greyhound: 2,
     kabaddi: 1,
@@ -856,7 +867,7 @@ export const App: React.FC = () => {
     mma: 2,
     volleyball: 2,
     snooker: 1,
-    football: liveMatches.filter((m) => m.sport === 'American Football').length
+    football: safeLiveMatches.filter((m) => m && m.sport === 'American Football').length
   };
 
   const selectedMatch = liveMatches.find((m) => m.id === selectedMatchId);
