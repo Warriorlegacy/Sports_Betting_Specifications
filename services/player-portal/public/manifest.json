@@ -8,13 +8,18 @@
   "description": "Ultra-High Performance Live Sports Betting Exchange, Casino & Worli Matka",
   "icons": [
     {
-      "src": "/assets/fairplayvip8252.png",
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/favicon-192x192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/assets/fairplayvip8252.png",
+      "src": "/favicon-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
