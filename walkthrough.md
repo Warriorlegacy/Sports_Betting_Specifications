@@ -61,4 +61,17 @@ This walkthrough documents all completed enhancements, design parity updates, ma
 | :--- | :--- | :--- | :--- |
 | **Player Portal (Sportsbook & Casino)** | Vercel | [https://player-portal-kappa.vercel.app](https://player-portal-kappa.vercel.app) | 🟢 Live |
 | **Agent / Admin Portal** | Vercel | [https://agent-portal-one-omega.vercel.app](https://agent-portal-one-omega.vercel.app) | 🟢 Live |
-| **Backend API & WebSocket Server** | Render | [https://sports-exchange-backend-jiaj.onrender.com](https://sports-exchange-backend-jiaj.onrender.com) | 🟢 Live |
+| **Backend API & WebSocket Server** | Render | [https://sports-exchange-backend-j1aj.onrender.com](https://sports-exchange-backend-j1aj.onrender.com) | 🟢 Live |
+
+---
+
+## 🔑 4. Dedicated Credentials per Role & User
+
+| Role Tier | Username | Dedicated Password | Initial Balance | Powers & Capabilities |
+|---|---|---|---|---|
+| **Level 0: Global Admin** | `admin` | `Admin@Nexus2026!` | ₹10,000,000.00 | Full platform ownership, banking gateway manager, deposit/withdrawal clearing, global bet records, market settlement |
+| **Level 1: Super Master** | `supermaster_asia` | `SuperAsia#7788$` | ₹500,000.00 | Regional agency manager, creates Masters, allocates credit |
+| **Level 2: Master** | `master_mumbai` | `MasterMum*9922#` | ₹100,000.00 | City agency operator, creates retail Agents, allocates credit |
+| **Level 3: Retail Agent** | `agent_vikram` | `AgentVikram@4411` | ₹25,000.00 | Local bookmaker, creates real Players, allocates credit |
+| **Level 4: Player 1** | `player_rahul` | `RahulWin@2026` | ₹10,000.00 | Back/Lay bets, deposits via UPI/Bank, withdraws winnings |
+| **Level 4: Player 2** | `player_amit` | `AmitBet@7788` | ₹10,000.00 | Back/Lay bets, hedging, cashouts |
