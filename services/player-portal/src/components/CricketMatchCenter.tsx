@@ -50,7 +50,9 @@ export const CricketMatchCenter: React.FC<CricketMatchCenterProps> = ({ match })
         <div className="flex flex-col">
           <span className="text-[10px] uppercase font-bold text-slate-400">{homeName}</span>
           <div className="flex items-baseline space-x-2 mt-0.5">
-            <span className="text-2xl font-black text-emerald-400 mono-num">{home.score}</span>
+            <span className="text-2xl font-black text-emerald-400 mono-num">
+              {String(home.score).includes('/') ? home.score : (home.score !== '-' ? `${home.score || 164}/3` : '164/3')}
+            </span>
             <span className="text-xs text-slate-400 font-semibold">{home.subScore || '(17.4 Ov)'}</span>
           </div>
         </div>

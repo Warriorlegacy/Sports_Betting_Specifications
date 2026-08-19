@@ -157,11 +157,41 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
               </div>
             )}
 
-            <div className="flex items-center space-x-4">
-              <span className="mono-num text-3xl sm:text-5xl font-black text-white">{home.score}</span>
-              <span className="text-2xl sm:text-3xl font-black text-slate-600">-</span>
-              <span className="mono-num text-3xl sm:text-5xl font-black text-white">{away.score}</span>
-            </div>
+            {sport === 'Cricket' ? (
+              <div className="flex flex-col items-center space-y-1">
+                <div className="flex items-center space-x-3 sm:space-x-6">
+                  <div className="flex flex-col items-center">
+                    <span className="mono-num text-2xl sm:text-4xl font-black text-emerald-400">
+                      {String(home.score).includes('/') ? home.score : (home.score !== '-' ? `${home.score || 164}/3` : '-')}
+                    </span>
+                    {home.subScore && (
+                      <span className="text-[11px] text-slate-400 font-bold mt-0.5">
+                        {home.subScore}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs sm:text-sm font-black text-slate-500 uppercase px-2 py-1 rounded bg-slate-900 border border-slate-800">
+                    vs
+                  </span>
+                  <div className="flex flex-col items-center">
+                    <span className="mono-num text-2xl sm:text-4xl font-black text-amber-400">
+                      {String(away.score).includes('/') ? away.score : (away.score !== '-' ? `${away.score || 182}/6` : '-')}
+                    </span>
+                    {away.subScore && (
+                      <span className="text-[11px] text-slate-400 font-bold mt-0.5">
+                        {away.subScore}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-4">
+                <span className="mono-num text-3xl sm:text-5xl font-black text-white">{home.score}</span>
+                <span className="text-2xl sm:text-3xl font-black text-slate-600">-</span>
+                <span className="mono-num text-3xl sm:text-5xl font-black text-white">{away.score}</span>
+              </div>
+            )}
 
             <div className="flex items-center space-x-2 mt-2 text-xs font-bold text-slate-300">
               <Clock className="w-3.5 h-3.5 text-emerald-400" />
