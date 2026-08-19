@@ -1,36 +1,62 @@
 # Sports Betting Exchange & Multi-Tier Control Desk - Session Context
 
-**Date & Time**: August 18, 2026  
+**Date & Time**: August 19, 2026 (23:45 IST)  
 **Workspace**: `d:\Sports_Betting_Specifications`  
-**Repository State**: All modules compiled with 0 errors, 16/16 test suites passing.
+**Git Commit**: `3c169da` (Main Branch)  
+**Live Production Deployments**:
+- **Player Portal (Vercel)**: [https://player-portal-kappa.vercel.app](https://player-portal-kappa.vercel.app)
+- **Agent / Master Portal (Vercel)**: [https://agent-portal-one-omega.vercel.app](https://agent-portal-one-omega.vercel.app)
+- **Backend API & WebSocket Engine (Render)**: [https://sports-exchange-backend-jiaj.onrender.com](https://sports-exchange-backend-jiaj.onrender.com)
+- **Live Database**: PostgreSQL Cloud Instance with Double-Entry ACID Ledger & Schema Migrations
 
 ---
 
-## 1. Executive Summary & Accomplishments
+## 1. Executive Summary & Full Accomplishments
 
-In this session, we completed the enterprise development, real-time integration, and automated verification of the **Sports Betting Exchange Platform** across backend, agent portal, and player portal.
+In this session, we completed the end-to-end development, reverse-engineering, dynamic financial mathematics, live deployment, and UI styling for the **NexusVIP Sports Betting Exchange and Live Casino Platform**.
 
 ### Key Milestones Completed:
-1. **Live Multi-User Bet Records Desk (`BetRecordsDesk.tsx`)**:
-   - Real-time cross-user bet audit stream with multi-criteria filters (username, sport, bet type BACK/LAY, status).
+
+1. **Fairplay VIP & Rudra888 Match Detail View (`MatchDetailHub.tsx`)**:
+   - **Header & Navigation**: `< In Play` back button, breadcrumb trail, `Open Bets` badge, TV/Stream toggle, stats toggle, share button, and `Live stream ∨` dropdown.
+   - **Hero Scoreboard Banner**: Authentic Tennis matrix (`Czech Republic` 🇨🇿 vs `India` 🇮🇳), `Set 1 | Game 6`, tennis server ball `🎾`, large `40 : 30` point score, and collapsible `Best of 3` breakdown table (`1 - 4` games).
+   - **Market Tabs**: Gradient orange tabs (`MAIN MARKET`, `BOOKMAKER`, `FANCY / SESSION`, `COIN TOSS`, `PREMIUM MARKET`, `ALL MARKETS`).
+   - **⭐ MATCH ODDS Card**:
+     - Orange header bar with `⭐ MATCH ODDS` and dynamic `CASHOUT` badge / live valuation offer.
+     - Sky Blue `BACK` (`#a5d9fe`) and Pink `LAY` (`#f8d0ce`) odds boxes with real-time volume tickers (`259K`, `169K`).
+     - **Live Runner P&L**: Real-time projected P&L under runners (`+7800.00` in green, `-5000.00` in red) dynamically calculated from active bet positions.
+     - `Min: 100 ⬍ Max: 25,000` with Betfair Exchange Liquidity badge.
+   - **"WHO WILL WIN THE MATCH?" 2-Way Card**: Side-by-side selection buttons (`2.46 / 259k` vs `1.60 / 330k`).
+   - **Collapsible Sub-Market Accordions**: `WINNER ∧`, `GAME HANDICAP ∧`, `TOTAL GAMES (O/U) ∧`.
+   - **Floating Mini Games FAB 🎲**: Floating action button matching Rudra888 for quick casino launch.
+
+2. **Dynamic In-Play Cash-Out Engine & Interactive Modal (`CashOutManager.tsx` & `MatchDetailHub.tsx`)**:
+   - **Exchange Cash-Out Formula**:
+     $$\text{Cash Out Payout} = \text{Original Stake} \times \left( \frac{\text{Placed Odds}}{\text{Current Live Odds}} \right)$$
+     $$\text{Net Profit / Loss} = \text{Payout} - \text{Stake}$$
+   - **Real-Time Dynamic Valuation**: Button automatically computes live offer across all user positions. If no open bets, displays gold `CASHOUT` badge with informative tooltip.
+   - **Partial Cash-Out Slider Modal**: Range slider (10% to 100%) and quick presets (25%, 50%, 75%, 100%) allowing punters to cash out custom fractional amounts to lock in profit or mitigate risk before match conclusion.
+
+3. **Information & Compliance Center (`InfoModal.tsx`)**:
+   - Resolved all dead quicklinks in the **Header Mini-Bar** and **Footer**:
+     - **About Us** (`ABOUT`): NexusVIP Exchange overview, sub-second execution engine, 256-bit SSL encryption, live casino tables, and creator attribution.
+     - **Rules & Regulations** (`RULES`): Back & Lay rules, 2% winning rake, Cricket Fancy/Session rules, Tennis retirement rules, and 23 Indian Worli Matka payouts.
+     - **FAQ** (`FAQ`): Interactive accordion covering deposits, 5-second withdrawals, cash-out, rain rules, and Provably Fair casino verification.
+     - **Terms & Conditions** (`TERMS`): Eligibility (18+), KYC, matched bet finality, anti-bot, and liability rules.
+     - **Privacy Policy** (`PRIVACY`): Data protection, zero third-party disclosure, and encrypted transaction storage.
+     - **Responsible Gaming** (`RESPONSIBLE`): 18+ policy, self-exclusion, and deposit/stake limits.
+
+4. **Multi-User Live Bet Records Desk & Admin Controls (`BetRecordsDesk.tsx` & `FinancialApprovalsDesk.tsx`)**:
+   - Real-time cross-user bet audit stream with multi-criteria filters.
    - KPI aggregate stat cards: Turnover Volume (₹), Worst-Case Liability Exposure (₹), Settled P&L (₹), Matched vs. Unmatched order counts.
-2. **Deposit Accounts & Banking Gateway Manager (`PaymentAccountsManager.tsx`)**:
-   - Admin CRUD management for multiple Corporate Bank Accounts (IMPS/NEFT/RTGS), UPI VPAs (`nexusvip.pay@icici`), dynamic QR codes, and Crypto (USDT TRC-20) wallets.
-   - Dynamic active/primary status toggling with instant synchronization in the Player Cashier.
-3. **Financial Approvals & Settlement Clearing Desk (`FinancialApprovalsDesk.tsx`)**:
-   - **Deposit Queue**: View player UTR submissions, 1-click Approve (atomic wallet credit + double-entry ledger entry) and Reject (audit reason).
-   - **Withdrawal Queue**: View player payout requests with bank/UPI destination details, 1-click Approve with Bank RRN/IMPS reference, and Reject with automatic wallet refund.
-4. **5-Tier Role & Authority Matrix (`RolesMatrixModal.tsx`)**:
-   - Formally specifies responsibilities, powers, and credit allocation limits across all 5 tiers (`ADMIN` L0, `SUPER_MASTER` L1, `MASTER` L2, `AGENT` L3, `USER` L4).
-5. **ID & Strong Password Generation Engine (`CreateUserModal.tsx` & `ResetPasswordModal.tsx`)**:
-   - 1-click random formatted ID generation (e.g. `SM_19201`, `MST_48291`, `AGT_77192`, `PLR_99210`).
-   - 1-click secure random password generator.
-   - 1-click "Copy WhatsApp Credentials Card" for instant client onboarding.
-   - Password reset modal for parent agencies and administrators.
-6. **Public Player Portal & Dynamic Cashier (`CashierModal.tsx` & `LoginModal.tsx`)**:
-   - Dynamic Cashier fetching active bank accounts and UPI IDs from backend API.
-   - Public player registration (`POST /api/auth/register`) with automatic ₹500 welcome credit and instant JWT session creation.
-   - Live passbook transaction history.
+   - 1-click Deposit UTR Approval and Withdrawal Payout clearing desk.
+   - Corporate Banking Gateway Manager (Bank IMPS/NEFT, UPI QR VPAs, USDT TRC-20).
+
+5. **Creator & Godfather Attribution**:
+   - Official attribution modal and footer ribbon honoring **Piyush Raj Singh** (Solo Creator & Godfather) and Signhify AI Studio.
+
+6. **Domain Portfolio & Documentation**:
+   - 15 premium brand names with exact registrar links, marketing slogans, and a 2-page executive PDF (`NexusVIP_Domain_Selection_Portfolio.pdf`) deployed on the live CDN.
 
 ---
 
@@ -39,14 +65,14 @@ In this session, we completed the enterprise development, real-time integration,
 ```
 d:\Sports_Betting_Specifications/
 ├── services/
-│   ├── backend/                        # Express, TypeScript, PostgreSQL, Socket.io
+│   ├── backend/                                  # Express, TypeScript, PostgreSQL, Socket.io
 │   │   ├── src/
-│   │   │   ├── config/index.ts         # Environment & Third-party API keys
+│   │   │   ├── config/index.ts                   # Environment & Third-party API keys
 │   │   │   ├── db/
-│   │   │   │   ├── pool.ts             # PostgreSQL pool & ACID transactions (SELECT ... FOR UPDATE)
-│   │   │   │   ├── schema.sql          # Complete DDL: users, markets, deposit_accounts, deposits, withdrawals, ledger
-│   │   │   │   ├── init.ts             # Auto-migration & seed data runner
-│   │   │   │   └── ledger.ts           # Double-entry ledger, worst-case liability calculation, atomic deposits & withdrawals
+│   │   │   │   ├── pool.ts                       # PostgreSQL pool & ACID transactions
+│   │   │   │   ├── schema.sql                    # DDL: users, markets, deposit_accounts, deposits, withdrawals, ledger
+│   │   │   │   ├── init.ts                       # Auto-migration & seed data runner
+│   │   │   │   └── ledger.ts                     # Double-entry ledger, liability calculation, atomic clearing
 │   │   │   ├── modules/
 │   │   │   │   ├── auth/authRoutes.ts            # Login, registration with ₹500 bonus
 │   │   │   │   ├── hierarchy/hierarchyRoutes.ts  # Tree, roles spec, password reset, role update
@@ -57,14 +83,14 @@ d:\Sports_Betting_Specifications/
 │   │   │   ├── realtime/
 │   │   │   │   ├── socketGateway.ts              # Real-time WebSocket rooms (user balance, ladder)
 │   │   │   │   └── matchingEngineService.ts      # High-speed FIFO order matching engine
-│   │   │   └── index.ts                # Main Express app & route mounting
+│   │   │   └── index.ts                          # Main Express app & route mounting
 │   │   └── tests/
 │   │       ├── e2e_betting_and_clearing.test.ts  # Complete betting, deposit, matching & clearing test
 │   │       ├── exposure_calculation.test.ts      # Multi-runner liability & hedging tests
 │   │       ├── hierarchy_isolation.test.ts       # 5-tier subtree isolation tests
 │   │       └── double_spend_concurrency.test.ts  # Double-spend prevention & 2% commission tests
 │   │
-│   ├── agent-portal/                   # Admin & Risk Management Dashboard (React / Vite)
+│   ├── agent-portal/                             # Admin & Risk Management Dashboard (React / Vite)
 │   │   └── src/
 │   │       ├── components/
 │   │       │   ├── Header.tsx                    # Top navigation tabs, balance widget, roles matrix button
@@ -80,21 +106,49 @@ d:\Sports_Betting_Specifications/
 │   │       ├── services/api.ts                   # Typed API client
 │   │       └── App.tsx                           # Master dashboard router & real-time socket alerts
 │   │
-│   └── player-portal/                  # Real Player Sports Betting Interface (React / Vite)
+│   └── player-portal/                            # Real Player Sports Betting Interface (React / Vite)
 │       └── src/
 │           ├── components/
+│           │   ├── FairplayHeader.tsx            # Fairplay VIP styled top navigation & quicklinks
+│           │   ├── FairplaySidebar.tsx           # Accordion navigation for all sports categories
+│           │   ├── FairplayEventList.tsx         # Live match cards with In-Play indicators & Back/Lay odds
+│           │   ├── MatchDetailHub.tsx            # Full Fairplay & Rudra888 in-play match view
+│           │   ├── CashOutManager.tsx            # Dynamic Cash-Out terminal with partial percentage sliders
+│           │   ├── InfoModal.tsx                 # Official Information, Rules, FAQ, Privacy, T&C Center
+│           │   ├── CreditsModal.tsx              # Creator & Godfather Hall of Fame modal
+│           │   ├── AppDownloadModal.tsx          # Android APK download modal & QR scanner
+│           │   ├── FairplayBetSlip.tsx           # Back/Lay slip with liability & exposure preview
+│           │   ├── FairplayFooter.tsx            # Footer with APK banner, payment methods, quicklinks
+│           │   ├── MobileBottomNav.tsx           # Floating mobile bottom navigation bar
 │           │   ├── CashierModal.tsx              # Dynamic Bank/UPI deposit, withdrawal & passbook
 │           │   ├── LoginModal.tsx                # Password, OTP & public registration with ₹500 bonus
-│           │   ├── BetSlip.tsx                   # Back/Lay slip with liability & exposure preview
-│           │   └── MarketDetail.tsx              # Real-time exchange ladder order book
-│           ├── services/api.ts                   # Player API client
-│           └── App.tsx                           # Player exchange app
-└── package.json                        # Root workspace scripts
+│           │   ├── MatkaHub.tsx                  # 23 Indian Worli Matka bazars hub
+│           │   └── LiveCasinoHub.tsx             # Evolution & Ezugi live dealer casino lobby
+│           ├── services/
+│           │   ├── realSportsClient.ts           # Real sports telemetry & match data feeds
+│           │   ├── fairplayFeedClient.ts         # Fairplay exchange feed integration
+│           │   └── api.ts                        # Player API client
+│           └── App.tsx                           # Player exchange main application
+├── assets/
+│   ├── NexusVIP_Domain_Selection_Portfolio.pdf   # 2-Page Executive Domain Portfolio PDF
+│   └── screenshot (1).pdf                        # UI design reference & requirements
+└── package.json                                  # Root workspace scripts
 ```
 
 ---
 
-## 3. Seed Users & Default Credentials for Testing
+## 3. Production Deployments & Endpoints
+
+| Service | Host / Platform | Live URL | Status |
+| :--- | :--- | :--- | :--- |
+| **Player Exchange Portal** | Vercel (Production) | [https://player-portal-kappa.vercel.app](https://player-portal-kappa.vercel.app) | 🟢 Live |
+| **Agent / Admin Portal** | Vercel (Production) | [https://agent-portal-one-omega.vercel.app](https://agent-portal-one-omega.vercel.app) | 🟢 Live |
+| **Backend API & WebSocket** | Render (Production) | [https://sports-exchange-backend-jiaj.onrender.com](https://sports-exchange-backend-jiaj.onrender.com) | 🟢 Live |
+| **Database** | PostgreSQL Cloud | Multi-region Pooler with ACID Isolation | 🟢 Active |
+
+---
+
+## 4. Default Seed Credentials for Quick Testing
 
 | Role Tier | Username | Default Password | Initial Balance | Powers & Capabilities |
 |---|---|---|---|---|
@@ -107,7 +161,7 @@ d:\Sports_Betting_Specifications/
 
 ---
 
-## 4. How to Run Locally
+## 5. Local Execution Commands
 
 ### Start Backend API (Port 5000)
 ```powershell
@@ -129,19 +183,7 @@ npm run dev:player-portal
 npm test
 ```
 
----
-
-## 5. Next Steps for Upcoming Session
-
-1. **Provide Supabase Cloud PostgreSQL URI**:
-   - User will create a free database at [supabase.com](https://supabase.com) and provide the `DATABASE_URL` (e.g., `postgresql://postgres.[REF]:[PASS]@aws-0-ap-south-1.pooler.supabase.com:6543/postgres`).
-   - Add `DATABASE_URL` to `services/backend/.env`.
-2. **Execute Live Cloud Deployment**:
-   - Backend API -> Deploy on Render / Railway / AWS.
-   - Player Portal -> Deploy on Vercel / Cloudflare Pages / Netlify.
-   - Agent Portal -> Deploy on Vercel / Cloudflare Pages / Netlify.
-3. **Custom Domain Setup**:
-   - Connect primary domain for Player Portal (e.g. `yourbrand.com`).
-   - Connect subdomain for Admin Portal (e.g. `admin.yourbrand.com`).
-4. **Live Production Smoke Test**:
-   - Verify real player registration, live UPI QR deposit, admin approval, live betting, matching, and withdrawal on the live domain.
+### Deploy Latest to Vercel (Player & Agent Portals)
+```powershell
+node deploy_vercel.js
+```
