@@ -148,16 +148,16 @@ d:\Sports_Betting_Specifications/
 
 ---
 
-## 4. Default Seed Credentials for Quick Testing
+## 4. Dedicated Credentials per Role & User
 
-| Role Tier | Username | Default Password | Initial Balance | Powers & Capabilities |
+| Role Tier | Username | Dedicated Password | Initial Balance | Powers & Capabilities |
 |---|---|---|---|---|
-| **Level 0: Global Admin** | `admin` | `password123` | ₹10,000,000.00 | Full platform ownership, banking gateway manager, deposit/withdrawal clearing, global bet records, market settlement |
-| **Level 1: Super Master** | `supermaster_asia` | `password123` | ₹500,000.00 | Regional agency manager, creates Masters, allocates credit |
-| **Level 2: Master** | `master_mumbai` | `password123` | ₹100,000.00 | City agency operator, creates retail Agents, allocates credit |
-| **Level 3: Retail Agent** | `agent_vikram` | `password123` | ₹25,000.00 | Local bookmaker, creates real Players, allocates credit |
-| **Level 4: Player** | `player_rahul` | `password123` | ₹10,000.00 | Back/Lay bets, deposits via UPI/Bank, withdraws winnings |
-| **Level 4: Player 2** | `player_amit` | `password123` | ₹10,000.00 | Back/Lay bets, hedging, cashouts |
+| **Level 0: Global Admin** | `admin` | `Admin@Nexus2026!` | ₹10,000,000.00 | Full platform ownership, banking gateway manager, deposit/withdrawal clearing, global bet records, market settlement |
+| **Level 1: Super Master** | `supermaster_asia` | `SuperAsia#7788$` | ₹500,000.00 | Regional agency manager, creates Masters, allocates credit |
+| **Level 2: Master** | `master_mumbai` | `MasterMum*9922#` | ₹100,000.00 | City agency operator, creates retail Agents, allocates credit |
+| **Level 3: Retail Agent** | `agent_vikram` | `AgentVikram@4411` | ₹25,000.00 | Local bookmaker, creates real Players, allocates credit |
+| **Level 4: Player 1** | `player_rahul` | `RahulWin@2026` | ₹10,000.00 | Back/Lay bets, deposits via UPI/Bank, withdraws winnings |
+| **Level 4: Player 2** | `player_amit` | `AmitBet@7788` | ₹10,000.00 | Back/Lay bets, hedging, cashouts |
 
 ---
 

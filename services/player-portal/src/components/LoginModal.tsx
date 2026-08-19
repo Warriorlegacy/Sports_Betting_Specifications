@@ -37,7 +37,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
   // Password Login State
   const [username, setUsername] = useState<string>('player_rahul');
-  const [password, setPassword] = useState<string>('password123');
+  const [password, setPassword] = useState<string>('RahulWin@2026');
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
   // OTP Login State
@@ -116,10 +116,16 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     }
   };
 
+  const PLAYER_PASSWORDS: Record<string, string> = {
+    player_rahul: 'RahulWin@2026',
+    player_amit: 'AmitBet@7788'
+  };
+
   const handleQuickLogin = async (quickUser: string) => {
+    const p = PLAYER_PASSWORDS[quickUser] || 'RahulWin@2026';
     setUsername(quickUser);
-    setPassword('password123');
-    await onLogin(quickUser, 'password123');
+    setPassword(p);
+    await onLogin(quickUser, p);
   };
 
   return (

@@ -202,13 +202,24 @@ export const App: React.FC = () => {
     };
   }, [currentUser, fetchDashboardData]);
 
+  // Default role credentials map with distinct passwords
+  const ROLE_CREDENTIALS: Record<string, string> = {
+    admin: 'Admin@Nexus2026!',
+    supermaster_asia: 'SuperAsia#7788$',
+    master_mumbai: 'MasterMum*9922#',
+    agent_vikram: 'AgentVikram@4411'
+  };
+
   // Handle Login
-  const handleLogin = async (usernameOverride?: string) => {
+  const handleLogin = async (usernameOverride?: string, passwordOverride?: string) => {
     try {
       setLoading(true);
       setLoginError(null);
       const u = usernameOverride || loginUsername;
-      const res = await api.auth.login({ username: u, password: loginPassword });
+      const p = passwordOverride || (usernameOverride ? ROLE_CREDENTIALS[usernameOverride] : loginPassword);
+      setLoginUsername(u);
+      setLoginPassword(p);
+      const res = await api.auth.login({ username: u, password: p });
       setAuthToken(res.token);
       setCurrentUser(res.user);
       await fetchDashboardData();
@@ -311,43 +322,43 @@ export const App: React.FC = () => {
           {/* Quick Demo Login Switcher */}
           <div className="space-y-2">
             <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 block text-center">
-              Quick Switch Role Login
+              Quick Switch Role Login (Distinct Passwords)
             </span>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
-                onClick={() => handleLogin('admin')}
-                className="p-2.5 rounded-xl text-xs font-bold bg-[#262626] hover:bg-[#333] border border-purple-500/40 text-purple-300 transition-all text-left flex flex-col hover:scale-[1.02]"
+                onClick={() => handleLogin('admin', 'Admin@Nexus2026!')}
+                className="p-2.5 rounded-xl text-xs font-bold bg-[#262626] hover:bg-[#333] border border-purple-500/40 text-purple-300 transition-all text-left flex flex-col hover:scale-[1.02] cursor-pointer"
               >
                 <span>Global Admin</span>
-                <span className="text-[10px] text-purple-400 font-normal">Level 0 Root (10M)</span>
+                <span className="text-[10px] text-purple-400 font-normal">admin / Admin@Nexus2026!</span>
               </button>
 
               <button
                 type="button"
-                onClick={() => handleLogin('supermaster_asia')}
-                className="p-2.5 rounded-xl text-xs font-bold bg-[#262626] hover:bg-[#333] border border-blue-500/40 text-blue-300 transition-all text-left flex flex-col hover:scale-[1.02]"
+                onClick={() => handleLogin('supermaster_asia', 'SuperAsia#7788$')}
+                className="p-2.5 rounded-xl text-xs font-bold bg-[#262626] hover:bg-[#333] border border-blue-500/40 text-blue-300 transition-all text-left flex flex-col hover:scale-[1.02] cursor-pointer"
               >
                 <span>Super Master</span>
-                <span className="text-[10px] text-blue-400 font-normal">Level 1 Asia (500k)</span>
+                <span className="text-[10px] text-blue-400 font-normal">supermaster_asia / SuperAsia#7788$</span>
               </button>
 
               <button
                 type="button"
-                onClick={() => handleLogin('master_mumbai')}
-                className="p-2.5 rounded-xl text-xs font-bold bg-[#262626] hover:bg-[#333] border border-emerald-500/40 text-emerald-300 transition-all text-left flex flex-col hover:scale-[1.02]"
+                onClick={() => handleLogin('master_mumbai', 'MasterMum*9922#')}
+                className="p-2.5 rounded-xl text-xs font-bold bg-[#262626] hover:bg-[#333] border border-emerald-500/40 text-emerald-300 transition-all text-left flex flex-col hover:scale-[1.02] cursor-pointer"
               >
                 <span>Master Agency</span>
-                <span className="text-[10px] text-emerald-400 font-normal">Level 2 Mumbai (100k)</span>
+                <span className="text-[10px] text-emerald-400 font-normal">master_mumbai / MasterMum*9922#</span>
               </button>
 
               <button
                 type="button"
-                onClick={() => handleLogin('agent_vikram')}
-                className="p-2.5 rounded-xl text-xs font-bold bg-[#262626] hover:bg-[#333] border border-amber-500/40 text-amber-300 transition-all text-left flex flex-col hover:scale-[1.02]"
+                onClick={() => handleLogin('agent_vikram', 'AgentVikram@4411')}
+                className="p-2.5 rounded-xl text-xs font-bold bg-[#262626] hover:bg-[#333] border border-amber-500/40 text-amber-300 transition-all text-left flex flex-col hover:scale-[1.02] cursor-pointer"
               >
                 <span>Retail Agent</span>
-                <span className="text-[10px] text-amber-400 font-normal">Level 3 Vikram (25k)</span>
+                <span className="text-[10px] text-amber-400 font-normal">agent_vikram / AgentVikram@4411</span>
               </button>
             </div>
           </div>

@@ -290,7 +290,7 @@ export const App: React.FC = () => {
 
   // Login Form
   const [loginUsername, setLoginUsername] = useState<string>('player_rahul');
-  const [loginPassword, setLoginPassword] = useState<string>('password123');
+  const [loginPassword, setLoginPassword] = useState<string>('RahulWin@2026');
   const [loginError, setLoginError] = useState<string | null>(null);
 
   // Fetch logged in user details from real backend database

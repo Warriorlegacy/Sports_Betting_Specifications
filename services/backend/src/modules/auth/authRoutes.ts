@@ -33,8 +33,8 @@ authRouter.post('/login', async (req, res: Response) => {
       return res.status(403).json({ error: 'Account has been suspended by administration' });
     }
 
-    // Verify password with bcrypt (fallback to plaintext match for demo convenience if needed)
-    const isValid = await bcrypt.compare(password, user.password_hash).catch(() => false) || password === 'password123';
+    // Verify password strictly with bcrypt
+    const isValid = await bcrypt.compare(password, user.password_hash).catch(() => false);
 
     if (!isValid) {
       return res.status(401).json({ error: 'Invalid username or password' });
