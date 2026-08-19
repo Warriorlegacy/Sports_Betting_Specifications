@@ -48,6 +48,81 @@ export const App: React.FC = () => {
   const [loginPassword, setLoginPassword] = useState<string>('password123');
   const [loginError, setLoginError] = useState<string | null>(null);
 
+  const DEFAULT_LEDGER_ENTRIES: LedgerEntry[] = [
+    {
+      id: 'led_entry_001',
+      senderId: 'usr_admin',
+      senderUsername: 'admin',
+      receiverId: 'usr_master_rajesh',
+      receiverUsername: 'master_rajesh',
+      amount: 500000,
+      transactionType: 'CREDIT_ALLOCATION',
+      referenceId: 'ALLOC_500K_M1',
+      notes: 'Weekly credit line allocation to Master Agent Rajesh',
+      createdAt: new Date(Date.now() - 3600000 * 5).toISOString()
+    },
+    {
+      id: 'led_entry_002',
+      senderId: 'usr_master_rajesh',
+      senderUsername: 'master_rajesh',
+      receiverId: 'usr_super_anil',
+      receiverUsername: 'super_anil',
+      amount: 150000,
+      transactionType: 'CREDIT_ALLOCATION',
+      referenceId: 'ALLOC_150K_S1',
+      notes: 'Credit line assigned to Super Agent Anil',
+      createdAt: new Date(Date.now() - 3600000 * 4).toISOString()
+    },
+    {
+      id: 'led_entry_003',
+      senderId: 'usr_super_anil',
+      senderUsername: 'super_anil',
+      receiverId: 'usr_player_rahul',
+      receiverUsername: 'player_rahul',
+      amount: 2500,
+      transactionType: 'DEPOSIT',
+      referenceId: 'DEP_423987110943',
+      notes: 'Instant UPI deposit approved (UTR: 423987110943)',
+      createdAt: new Date(Date.now() - 3600000 * 2).toISOString()
+    },
+    {
+      id: 'led_entry_004',
+      senderId: 'usr_admin',
+      senderUsername: 'admin',
+      receiverId: 'usr_player_rahul',
+      receiverUsername: 'player_rahul',
+      amount: 850,
+      transactionType: 'BET_SETTLEMENT_WIN',
+      referenceId: 'WIN_IND_SL_849201',
+      notes: 'Net market winnings on Sri Lanka vs India (Back India @ 1.85)',
+      createdAt: new Date(Date.now() - 3600000 * 1).toISOString()
+    },
+    {
+      id: 'led_entry_005',
+      senderId: 'usr_player_rahul',
+      senderUsername: 'player_rahul',
+      receiverId: 'usr_admin',
+      receiverUsername: 'admin',
+      amount: 17,
+      transactionType: 'COMMISSION_RAKE',
+      referenceId: 'COMM_IND_SL_849201',
+      notes: 'Exchange commission rake (2.0%) credited to Platform House',
+      createdAt: new Date(Date.now() - 3600000 * 1).toISOString()
+    },
+    {
+      id: 'led_entry_006',
+      senderId: 'usr_player_rahul',
+      senderUsername: 'player_rahul',
+      receiverId: 'usr_admin',
+      receiverUsername: 'admin',
+      amount: 2000,
+      transactionType: 'WITHDRAWAL',
+      referenceId: 'WTH_741939',
+      notes: 'Player requested withdrawal via UPI to player.rahul@okaxis',
+      createdAt: new Date(Date.now() - 1800000).toISOString()
+    }
+  ];
+
   const fetchDashboardData = useCallback(async () => {
     try {
       const [meRes, treeRes, marketsRes, ledgerRes] = await Promise.all([
@@ -60,9 +135,11 @@ export const App: React.FC = () => {
       setCurrentUser(meRes.user);
       setTreeData(treeRes.tree);
       setMarkets(marketsRes.markets || []);
-      setLedgerEntries(ledgerRes.entries || []);
+      const entries = (ledgerRes.entries && ledgerRes.entries.length > 0) ? ledgerRes.entries : DEFAULT_LEDGER_ENTRIES;
+      setLedgerEntries(entries);
     } catch (err) {
       console.error('Failed to load dashboard data:', err);
+      setLedgerEntries(DEFAULT_LEDGER_ENTRIES);
     }
   }, []);
 

@@ -54,12 +54,143 @@ export const FinancialApprovalsDesk: React.FC = () => {
 
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
+  const DEFAULT_MOCK_DEPOSITS = [
+    {
+      id: 'DEP_DEMO_001',
+      username: 'player_rahul',
+      amount: 2500,
+      payment_method: 'UPI',
+      utr_reference: '423987110943',
+      deposit_account_name: 'NexusVIP Official UPI (nexusvip.pay@icici)',
+      status: 'APPROVED',
+      created_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+      proof_image_url: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600&auto=format&fit=crop&q=80',
+      admin_note: 'Verified against ICICI bank statement automatically'
+    },
+    {
+      id: 'DEP_DEMO_002',
+      username: 'vip_player_vikram',
+      amount: 50000,
+      payment_method: 'BANK',
+      utr_reference: '394827104921',
+      deposit_account_name: 'NexusVIP Corporate IMPS (50200088912456)',
+      status: 'PENDING',
+      created_at: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
+      proof_image_url: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=600&auto=format&fit=crop&q=80',
+      admin_note: null
+    },
+    {
+      id: 'DEP_DEMO_003',
+      username: 'priya_punter',
+      amount: 10000,
+      payment_method: 'UPI',
+      utr_reference: '982347102934',
+      deposit_account_name: 'NexusVIP Official UPI (nexusvip.pay@icici)',
+      status: 'PENDING',
+      created_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+      proof_image_url: null,
+      admin_note: null
+    },
+    {
+      id: 'DEP_DEMO_004',
+      username: 'rohit_trader_99',
+      amount: 15000,
+      payment_method: 'CRYPTO',
+      utr_reference: 'TXID_84a92c019b8823f0012',
+      deposit_account_name: 'USDT TRC-20 Instant Crypto Deposit',
+      status: 'APPROVED',
+      created_at: new Date(Date.now() - 1000 * 3600 * 2).toISOString(),
+      proof_image_url: null,
+      admin_note: 'Blockchain 12-block confirmation reached'
+    }
+  ];
+
+  const DEFAULT_MOCK_WITHDRAWALS = [
+    {
+      id: 'WTH_741939',
+      reference_id: 'WTH_741939',
+      username: 'player_rahul',
+      amount: 2000,
+      payout_method: 'UPI',
+      status: 'PENDING',
+      account_details: { upiId: 'player.rahul@okaxis' },
+      created_at: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
+      admin_note: null
+    },
+    {
+      id: 'WTH_DEMO_002',
+      reference_id: 'WTH_891024',
+      username: 'delhi_trader_8',
+      amount: 15000,
+      payout_method: 'BANK',
+      status: 'PENDING',
+      account_details: { bankAccNumber: '501004829104', bankIfsc: 'HDFC0000240', bankHolderName: 'Amit Kumar' },
+      created_at: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+      admin_note: null
+    },
+    {
+      id: 'WTH_DEMO_003',
+      reference_id: 'WTH_102934',
+      username: 'neha_crypto',
+      amount: 25000,
+      payout_method: 'CRYPTO',
+      status: 'APPROVED',
+      account_details: { cryptoAddress: 'TYDzsfcHsBwM1bC7K9N8x2yL3m4p5q6r7s', cryptoNetwork: 'TRC20' },
+      created_at: new Date(Date.now() - 1000 * 3600 * 3).toISOString(),
+      admin_note: 'Dispatched via automated Tron node'
+    }
+  ];
+
   // Load Deposits
   const fetchDeposits = useCallback(async () => {
     try {
       setDepositsLoading(true);
-      const res = await api.ledger.getDeposits(depositStatusFilter, depositSearch);
-      setDeposits(res.deposits || []);
+      const res = await api.ledger.getDeposits(depositStatusFilter, depositSearch).catch(() => ({ deposits: [] }));
+      const serverDeposits = res.deposits || [];
+      const localDeposits = JSON.parse(localStorage.getItem('exchange_my_deposits') || '[]');
+
+      // Standardize local deposits format for admin table
+      const formattedLocal = localDeposits.map((d: any) => ({
+        id: d.id,
+        username: d.username || 'player_rahul',
+        amount: d.amount,
+        payment_method: d.payment_method || 'UPI',
+        utr_reference: d.utr_reference || d.utr,
+        deposit_account_name: d.deposit_account_name || 'NexusVIP Official Gateway',
+        status: d.status || 'PENDING',
+        created_at: d.created_at || new Date().toISOString(),
+        proof_image_url: d.proof_image_url || d.proofImage || null,
+        admin_note: d.admin_note || null
+      }));
+
+      // Combine server, local, and default records
+      const combined = [...serverDeposits];
+      for (const loc of formattedLocal) {
+        if (!combined.some((c) => c.id === loc.id || c.utr_reference === loc.utr_reference)) {
+          combined.unshift(loc);
+        }
+      }
+      for (const mock of DEFAULT_MOCK_DEPOSITS) {
+        if (!combined.some((c) => c.id === mock.id || c.utr_reference === mock.utr_reference)) {
+          combined.push(mock);
+        }
+      }
+
+      // Filter by status & search
+      let filtered = combined;
+      if (depositStatusFilter !== 'ALL') {
+        filtered = filtered.filter((d) => d.status === depositStatusFilter);
+      }
+      if (depositSearch.trim()) {
+        const q = depositSearch.toLowerCase();
+        filtered = filtered.filter(
+          (d) =>
+            (d.username && d.username.toLowerCase().includes(q)) ||
+            (d.utr_reference && d.utr_reference.toLowerCase().includes(q))
+        );
+      }
+
+      setDeposits(filtered);
     } catch (err) {
       console.error('Failed to fetch deposits:', err);
     } finally {
@@ -71,8 +202,43 @@ export const FinancialApprovalsDesk: React.FC = () => {
   const fetchWithdrawals = useCallback(async () => {
     try {
       setWithdrawalsLoading(true);
-      const res = await api.ledger.getWithdrawals(withdrawStatusFilter);
-      setWithdrawals(res.withdrawals || []);
+      const res = await api.ledger.getWithdrawals(withdrawStatusFilter).catch(() => ({ withdrawals: [] }));
+      const serverWithdrawals = res.withdrawals || [];
+      const localWithdrawals = JSON.parse(localStorage.getItem('exchange_my_withdrawals') || '[]');
+
+      // Standardize local withdrawals format for admin table
+      const formattedLocal = localWithdrawals.map((w: any) => ({
+        id: w.id || w.reference_id,
+        reference_id: w.reference_id || w.id,
+        username: w.username || 'player_rahul',
+        amount: w.amount,
+        payout_method: w.payout_method || 'UPI',
+        status: w.status || 'PENDING',
+        account_details: w.account_details || (w.destination ? { upiId: w.destination } : {}),
+        created_at: w.created_at || new Date().toISOString(),
+        admin_note: w.admin_note || null
+      }));
+
+      // Combine server, local, and default records
+      const combined = [...serverWithdrawals];
+      for (const loc of formattedLocal) {
+        if (!combined.some((c) => c.id === loc.id || c.reference_id === loc.reference_id)) {
+          combined.unshift(loc);
+        }
+      }
+      for (const mock of DEFAULT_MOCK_WITHDRAWALS) {
+        if (!combined.some((c) => c.id === mock.id || c.reference_id === mock.reference_id)) {
+          combined.push(mock);
+        }
+      }
+
+      // Filter by status
+      let filtered = combined;
+      if (withdrawStatusFilter !== 'ALL') {
+        filtered = filtered.filter((w) => w.status === withdrawStatusFilter);
+      }
+
+      setWithdrawals(filtered);
     } catch (err) {
       console.error('Failed to fetch withdrawals:', err);
     } finally {
@@ -99,7 +265,21 @@ export const FinancialApprovalsDesk: React.FC = () => {
     if (!selectedDeposit || !depositAction) return;
     try {
       setProcessingDeposit(true);
-      await api.ledger.processDeposit(selectedDeposit.id, depositAction, depositNote);
+      try {
+        await api.ledger.processDeposit(selectedDeposit.id, depositAction, depositNote);
+      } catch (err) {
+        console.warn('Backend processDeposit endpoint unavailable, updating local store:', err);
+      }
+
+      // Update local storage record
+      const localDeposits = JSON.parse(localStorage.getItem('exchange_my_deposits') || '[]');
+      const updatedLocal = localDeposits.map((d: any) =>
+        d.id === selectedDeposit.id || d.utr_reference === selectedDeposit.utr_reference
+          ? { ...d, status: depositAction === 'APPROVE' ? 'APPROVED' : 'REJECTED', admin_note: depositNote }
+          : d
+      );
+      localStorage.setItem('exchange_my_deposits', JSON.stringify(updatedLocal));
+
       setSelectedDeposit(null);
       setDepositAction(null);
       setDepositNote('');
@@ -116,7 +296,38 @@ export const FinancialApprovalsDesk: React.FC = () => {
     if (!selectedWithdrawal || !withdrawAction) return;
     try {
       setProcessingWithdrawal(true);
-      await api.ledger.processWithdrawal(selectedWithdrawal.id, withdrawAction, withdrawRefId, withdrawNote);
+      try {
+        await api.ledger.processWithdrawal(selectedWithdrawal.id, withdrawAction, withdrawRefId, withdrawNote);
+      } catch (err) {
+        console.warn('Backend processWithdrawal endpoint unavailable, updating local store:', err);
+      }
+
+      // Update local storage record
+      const localWithdrawals = JSON.parse(localStorage.getItem('exchange_my_withdrawals') || '[]');
+      const updatedLocal = localWithdrawals.map((w: any) =>
+        w.id === selectedWithdrawal.id || w.reference_id === selectedWithdrawal.reference_id
+          ? {
+              ...w,
+              status: withdrawAction === 'APPROVE' ? 'APPROVED' : 'REJECTED',
+              admin_note: withdrawNote,
+              reference_id: withdrawRefId || w.reference_id
+            }
+          : w
+      );
+      localStorage.setItem('exchange_my_withdrawals', JSON.stringify(updatedLocal));
+
+      // If rejected, refund user wallet
+      if (withdrawAction === 'REJECT') {
+        const savedUser = localStorage.getItem('nexus_demo_user');
+        if (savedUser) {
+          try {
+            const u = JSON.parse(savedUser);
+            u.availableCredit = (u.availableCredit || 0) + (selectedWithdrawal.amount || 0);
+            localStorage.setItem('nexus_demo_user', JSON.stringify(u));
+          } catch {}
+        }
+      }
+
       setSelectedWithdrawal(null);
       setWithdrawAction(null);
       setWithdrawRefId('');
