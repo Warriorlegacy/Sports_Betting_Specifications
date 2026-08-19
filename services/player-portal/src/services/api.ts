@@ -80,10 +80,20 @@ export const api = {
     syncRealFeed: () => request('/markets/real-feed/sync', { method: 'POST' })
   },
   bets: {
-    placeBet: (betData: { marketId: string; selectionId: number; type: 'BACK' | 'LAY'; price: number; stake: number }) =>
-      request('/bets', { method: 'POST', body: JSON.stringify(betData) }),
+    placeBet: (betData: {
+      marketId: string;
+      selectionId: number | string;
+      type: 'BACK' | 'LAY';
+      price: number;
+      stake: number;
+      eventName?: string;
+      selectionName?: string;
+      sport?: string;
+    }) => request('/bets', { method: 'POST', body: JSON.stringify(betData) }),
     cancelBet: (betId: string) =>
       request(`/bets/${betId}/cancel`, { method: 'POST' }),
+    cashoutBet: (betId: string, payload: { cashOutAmount: number; percentage?: number }) =>
+      request(`/bets/${betId}/cashout`, { method: 'POST', body: JSON.stringify(payload) }),
     getMyBets: (marketId?: string, status?: string) => {
       let query = '';
       if (marketId) query += `?marketId=${marketId}`;

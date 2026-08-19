@@ -50,8 +50,10 @@ export const NewsTicker: React.FC = () => {
     // Fetch live broadcast news from backend
     const fetchNews = async () => {
       try {
-        const res = await fetch('/api/news?type=PLAYER', {
-          headers: { 'Accept': 'application/json' }
+        const backendUrl = import.meta.env.VITE_API_URL || 'https://sports-exchange-backend-j1aj.onrender.com';
+        const res = await fetch(`${backendUrl}/api/news?type=PLAYER`, {
+          headers: { 'Accept': 'application/json' },
+          signal: AbortSignal.timeout(4000)
         });
         if (res.ok) {
           const data = await res.json();
