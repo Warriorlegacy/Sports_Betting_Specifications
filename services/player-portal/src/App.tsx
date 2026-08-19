@@ -976,15 +976,22 @@ export const App: React.FC = () => {
             <MatchDetailHub
               match={selectedMatch}
               oddsFormat={oddsFormat}
+              user={currentUser}
+              myBets={myBets}
               onBack={() => setSelectedMatchId(null)}
-              onSelectOdds={(marketId, marketName, selectionId, selectionName, price) =>
+              onOpenMyBets={() => {
+                setSelectedMatchId(null);
+                setActiveView('MY_BETS' as any);
+              }}
+              onSelectOdds={(marketId, marketName, selectionId, selectionName, price, type) =>
                 handleSelectOdds(
                   selectedMatch.id,
                   marketId,
                   marketName,
                   selectionId,
                   selectionName,
-                  price
+                  price,
+                  type || 'BACK'
                 )
               }
               onAddSGPToSlip={handleAddSGPToSlip}

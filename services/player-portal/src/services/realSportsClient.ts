@@ -347,6 +347,102 @@ function getGuaranteedSportFixtures(todayStr: string, tomorrowStr: string): Live
       markets: calculateRealOdds('Cricket', 0, 0, false, 'England', 'Pakistan')
     },
 
+    // 🎾 TENNIS - LIVE CHALLENGER / ATP (EXACT SCREENSHOT FIXTURE)
+    {
+      id: 'REAL_TEN_KUM_NAG',
+      sport: 'Tennis',
+      league: 'ATP Challenger Tour - Main Draw',
+      country: 'Czech Republic',
+      flag: '🇨🇿',
+      matchDate: todayStr,
+      startTime: '15:30',
+      currentPeriod: 'Set 1 | Game 6',
+      possessionTeam: 'HOME',
+      attackPhase: 'DANGEROUS_ATTACK',
+      ballPosition: { x: 50, y: 50 },
+      possessionStats: { home: 48, away: 52 },
+      shots: [],
+      events: [],
+      stats: [
+        { label: 'Aces', home: '4', away: '2', homePercent: 67, awayPercent: 33 },
+        { label: '1st Serve Win %', home: '64%', away: '72%', homePercent: 47, awayPercent: 53 },
+        { label: 'Break Points Won', home: '1/3', away: '2/4', homePercent: 33, awayPercent: 67 }
+      ],
+      winProbabilityHistory: [
+        { minute: 0, homeProb: 40, drawProb: 0, awayProb: 60 },
+        { minute: 25, homeProb: 38, drawProb: 0, awayProb: 62 }
+      ],
+      momentumHistory: [],
+      homeTeam: {
+        name: 'Kumstat, Jan',
+        shortName: 'KUM',
+        color: '#2563eb',
+        score: '1',
+        subScore: 'Set 1: 1-4 • 40-30 (Serving 🎾)'
+      },
+      awayTeam: {
+        name: 'Nagal, Sumit',
+        shortName: 'NAG',
+        color: '#16a34a',
+        score: '4',
+        subScore: 'Set 1: 4-1'
+      },
+      clock: 'Set 1 | Game 6 (40:30)',
+      inPlay: true,
+      status: 'LIVE',
+      isLocked: false,
+      markets: [
+        {
+          id: 'MKT_MAIN_REAL_TEN_KUM_NAG',
+          name: 'Match Odds',
+          category: 'MAIN',
+          selections: [
+            {
+              id: '1',
+              name: 'Kumstat, Jan',
+              price: 2.48,
+              tick: 'same',
+              handicap: undefined
+            },
+            {
+              id: '2',
+              name: 'Nagal, Sumit',
+              price: 1.66,
+              tick: 'same',
+              handicap: undefined
+            }
+          ]
+        },
+        {
+          id: 'MKT_WIN_REAL_TEN_KUM_NAG',
+          name: 'Who Will Win The Match?',
+          category: 'MAIN',
+          selections: [
+            { id: 'win_1', name: 'Kumstat, Jan', price: 2.46, tick: 'same' },
+            { id: 'win_2', name: 'Nagal, Sumit', price: 1.60, tick: 'same' }
+          ]
+        },
+        {
+          id: 'MKT_HDC_REAL_TEN_KUM_NAG',
+          name: 'Game Handicap (+/- 4.5)',
+          category: 'HANDICAPS',
+          selections: [
+            { id: 'hdc_1', name: 'Kumstat, Jan (+4.5)', price: 1.90, handicap: '+4.5', tick: 'same' },
+            { id: 'hdc_2', name: 'Nagal, Sumit (-4.5)', price: 1.90, handicap: '-4.5', tick: 'same' }
+          ]
+        },
+        {
+          id: 'MKT_TOT_REAL_TEN_KUM_NAG',
+          name: 'Total Games (Over/Under 21.5)',
+          category: 'TOTALS',
+          selections: [
+            { id: 'tot_1', name: 'Over 21.5 Games', price: 1.85, tick: 'same' },
+            { id: 'tot_2', name: 'Under 21.5 Games', price: 1.95, tick: 'same' }
+          ]
+        }
+      ]
+    },
+
     // 🎾 TENNIS - WIMBLEDON GRAND SLAM
     {
       id: 'REAL_TEN_ALC_SIN',

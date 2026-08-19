@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Activity,
   Sparkles,
@@ -7,14 +7,27 @@ import {
   Shield,
   Layers,
   ChevronLeft,
+  ChevronDown,
+  ChevronUp,
   Flame,
   Zap,
   Lock,
   ArrowRight,
   Tv,
-  Radio
+  Radio,
+  Star,
+  Share2,
+  Filter,
+  BarChart2,
+  Info,
+  Dices,
+  Play,
+  RotateCcw,
+  CheckCircle2,
+  Coins
 } from 'lucide-react';
 import { LiveMatch, BettingMarket, SelectionOdds, OddsFormat, SGPTicket } from '../types/sportsbook';
+import { UserBet } from './MyBets';
 import { LiveVisualizerHub } from './LiveVisualizerHub';
 import { SGPBuilder } from './SGPBuilder';
 import { CricketMatchCenter } from './CricketMatchCenter';
@@ -27,26 +40,36 @@ import { formatOdds } from '../services/oddsFormatter';
 interface MatchDetailHubProps {
   match: LiveMatch;
   oddsFormat: OddsFormat;
+  user?: any | null;
+  myBets?: UserBet[];
   onBack: () => void;
+  onOpenMyBets?: () => void;
   onSelectOdds: (
     marketId: string,
     marketName: string,
     selectionId: string,
     selectionName: string,
-    price: number
+    price: number,
+    type?: 'BACK' | 'LAY'
   ) => void;
-  onAddSGPToSlip: (ticket: SGPTicket, stake: number) => void;
+  onAddSGPToSlip?: (ticket: SGPTicket, stake: number) => void;
 }
 
 export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
   match,
   oddsFormat,
+  user,
+  myBets = [],
   onBack,
+  onOpenMyBets,
   onSelectOdds,
   onAddSGPToSlip
 }) => {
-  const [activeTab, setActiveTab] = useState<'MARKETS' | 'FANCY' | 'STREAM' | 'SGP' | 'VISUALIZER'>('MARKETS');
-  const [selectedMarketCategory, setSelectedMarketCategory] = useState<string>('ALL');
+  const [activeMarketTab, setActiveMarketTab] = useState<string>('MAIN');
+  const [isScoreboardExpanded, setIsScoreboardExpanded] = useState<boolean>(true);
+  const [isLiveStreamOpen, setIsLiveStreamOpen] = useState<boolean>(false);
+  const [isStatsModalOpen, setIsStatsModalOpen] = useState<boolean>(false);
+  const [collapsedAccordions, setCollapsedAccordions] = useState<Record<string, boolean>>({});
 
   // Real-time WebSocket connection to Fairplay / ZPlay broadcast
   useEffect(() => {
@@ -61,346 +84,691 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
 
   const home = (match && typeof match.homeTeam === 'object' && match.homeTeam !== null)
     ? match.homeTeam
-    : { name: 'Home Team', shortName: 'HOM', color: '#3b82f6', score: 0 };
+    : { name: 'Home Player', shortName: 'HOM', color: '#3b82f6', score: 0 };
   const away = (match && typeof match.awayTeam === 'object' && match.awayTeam !== null)
     ? match.awayTeam
-    : { name: 'Away Team', shortName: 'AWY', color: '#ef4444', score: 0 };
-  const sport = match?.sport || 'Football';
-  const league = match?.league || 'International League';
+    : { name: 'Away Player', shortName: 'AWY', color: '#ef4444', score: 0 };
+  const sport = match?.sport || 'Tennis';
+  const league = match?.league || 'International Tour';
   const clock = match?.clock || 'Live';
-  const currentPeriod = match?.currentPeriod || '1st Half';
-  const events = Array.isArray(match?.events) ? match.events : [];
+  const currentPeriod = match?.currentPeriod || 'Set 1 | Game 6';
 
-  const categories = [
-    { id: 'ALL', label: 'All Markets' },
-    ...(sport === 'Cricket' ? [{ id: 'TOSS', label: '🪙 Toss Winner' }] : []),
-    { id: 'MAIN', label: 'Main Lines' },
-    { id: 'HANDICAPS', label: 'Spreads & Handicaps' },
-    { id: 'TOTALS', label: 'Totals (Over/Under)' },
-    { id: 'PROPS', label: 'Player Props' },
-    { id: 'CORNERS_CARDS', label: 'Corners & Cards' }
+  // Toggle accordion collapse
+  const toggleAccordion = (key: string) => {
+    setCollapsedAccordions((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  // Helper to get country flag
+  const getFlagEmoji = (name: string, isHome: boolean): string => {
+    const n = name.toLowerCase();
+    if (n.includes('india') || n.includes('nagal') || n.includes('ind') || n.includes('hyderabad') || n.includes('multan')) return '🇮🇳';
+    if (n.includes('kumstat') || n.includes('czech')) return '🇨🇿';
+    if (n.includes('england') || n.includes('arsenal') || n.includes('chelsea') || n.includes('uk')) return '🏴󠁧󠁢󠁥󠁮󠁧󠁿';
+    if (n.includes('pakistan') || n.includes('pak')) return '🇵🇰';
+    if (n.includes('australia') || n.includes('aus')) return '🇦🇺';
+    if (n.includes('sri lanka') || n.includes('sl')) return '🇱🇰';
+    if (n.includes('bangladesh') || n.includes('ban')) return '🇧🇩';
+    if (n.includes('west indies') || n.includes('wi')) return '🏝️';
+    if (n.includes('spain') || n.includes('alcaraz') || n.includes('real')) return '🇪🇸';
+    if (n.includes('italy') || n.includes('sinner') || n.includes('juventus')) return '🇮🇹';
+    if (n.includes('germany') || n.includes('bayern')) return '🇩🇪';
+    if (n.includes('france') || n.includes('psg')) return '🇫🇷';
+    if (n.includes('south africa') || n.includes('sa')) return '🇿🇦';
+    return isHome ? '🔵' : '🔴';
+  };
+
+  // Compute live PnL per runner for this match from user's open bets (Rudra888 feature)
+  const runnerPnL = useMemo(() => {
+    const pnlMap: Record<string, number> = {};
+    const matchBets = myBets.filter((b) => (b as any).matchId === match.id || b.marketId.includes(match.id));
+
+    for (const b of matchBets) {
+      const stake = b.matchedStake || b.stake || 0;
+      const price = b.price || 2.0;
+      const selName = b.selectionName.toLowerCase();
+
+      if (b.type === 'BACK') {
+        // If backed runner wins, profit is stake * (price - 1). Other runner loses stake.
+        pnlMap[selName] = (pnlMap[selName] || 0) + stake * (price - 1);
+      } else if (b.type === 'LAY') {
+        // If laid runner wins, loss is -stake * (price - 1). Other runner wins stake.
+        pnlMap[selName] = (pnlMap[selName] || 0) - stake * (price - 1);
+      }
+    }
+    return pnlMap;
+  }, [myBets, match.id]);
+
+  // Derive dynamic Back & Lay odds
+  const mainMarket = match.markets?.find((m) => m.category === 'MAIN') || match.markets?.[0];
+  const homeBackOdds = mainMarket?.selections?.[0]?.price || 2.48;
+  const homeLayOdds = +(homeBackOdds + 0.04).toFixed(2);
+  const awayBackOdds = mainMarket?.selections?.[1]?.price || 1.66;
+  const awayLayOdds = +(awayBackOdds + 0.02).toFixed(2);
+
+  // Filter tabs
+  const marketTabs = [
+    { id: 'MAIN', label: 'MAIN MARKET' },
+    ...(sport === 'Cricket' ? [{ id: 'BOOKMAKER', label: 'BOOKMAKER' }, { id: 'FANCY', label: 'FANCY / SESSION' }, { id: 'TOSS', label: 'COIN TOSS' }] : []),
+    { id: 'PREMIUM', label: 'PREMIUM MARKET' },
+    { id: 'TIED', label: 'TIED MATCH' },
+    { id: 'ALL', label: 'ALL MARKETS' }
   ];
 
-  // Auto-inject Toss Market for Cricket if not present (as in IndianBet77 TossBook)
-  const rawMarkets = Array.isArray(match?.markets) ? match.markets : [];
-  const allMarkets = [...rawMarkets];
-  if (sport === 'Cricket' && !allMarkets.some((m) => m.category === 'TOSS')) {
-    allMarkets.unshift({
-      id: `MKT_TOSS_${match.id}`,
-      name: 'Coin Toss Winner (Back & Lay)',
-      category: 'TOSS',
-      selections: [
-        { id: `toss_h_${match.id}`, name: `${home.name} (Win Toss)`, price: 1.95, tick: 'same' },
-        { id: `toss_a_${match.id}`, name: `${away.name} (Win Toss)`, price: 1.95, tick: 'same' }
-      ]
-    });
-  }
-
-  const filteredMarkets = allMarkets.filter((m) => {
-    if (selectedMarketCategory === 'ALL') return true;
-    return m.category === selectedMarketCategory;
-  });
+  // Open bets count for this match
+  const matchOpenBets = myBets.filter((b) => (b as any).matchId === match.id || b.marketId.includes(match.id));
 
   return (
-    <div className="space-y-6">
-      {/* Back Button & Breadcrumbs */}
-      <div className="flex items-center justify-between">
-        <button
-          type="button"
-          onClick={onBack}
-          className="flex items-center space-x-2 text-xs font-bold text-slate-400 hover:text-white bg-slate-900/80 hover:bg-slate-800 px-3 py-2 rounded-xl border border-slate-800 transition-all"
-        >
-          <ChevronLeft className="w-4 h-4" />
-          <span>Back to All Matches</span>
-        </button>
+    <div className="space-y-3 pb-20 text-white font-sans select-none animate-in fade-in duration-200">
+      {/* ========================================================================= */}
+      {/* 1. TOP BREADCRUMB & UTILITY BAR (FAIRPLAY & RUDRA888 STYLE) */}
+      {/* ========================================================================= */}
+      <div className="bg-[#181818] border border-[#272727] rounded-xl px-3 py-2 flex items-center justify-between shadow-md">
+        <div className="flex items-center space-x-2 min-w-0">
+          <button
+            type="button"
+            onClick={onBack}
+            className="flex items-center space-x-1 text-xs font-black text-[#f36c21] hover:text-[#ff823a] transition-all cursor-pointer"
+          >
+            <ChevronLeft className="w-4 h-4 stroke-[3]" />
+            <span className="uppercase tracking-wider">In Play</span>
+          </button>
+          <span className="text-[#555] font-bold">|</span>
+          <span className="text-xs font-bold text-[#adadad] truncate">
+            {sport} &gt; {home.name} vs {away.name}
+          </span>
+        </div>
 
-        <div className="flex items-center space-x-2 text-xs font-bold text-slate-400">
-          <span className="text-slate-500">{sport}</span>
-          <span>/</span>
-          <span className="text-slate-300">{league}</span>
+        {/* Action icons */}
+        <div className="flex items-center space-x-1.5 shrink-0">
+          <button
+            onClick={() => onOpenMyBets && onOpenMyBets()}
+            className="flex items-center space-x-1 px-2.5 py-1 rounded-md bg-[#242424] hover:bg-[#303030] border border-[#383838] text-[11px] font-bold text-slate-200 cursor-pointer"
+          >
+            <Layers className="w-3.5 h-3.5 text-blue-400" />
+            <span>Open Bets</span>
+            {matchOpenBets.length > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-[#f36c21] text-white text-[9px] font-black">
+                {matchOpenBets.length}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setIsLiveStreamOpen((prev) => !prev)}
+            className={`p-1.5 rounded-md border text-xs cursor-pointer transition-all ${
+              isLiveStreamOpen
+                ? 'bg-red-600 text-white border-red-500 shadow-md shadow-red-600/30'
+                : 'bg-[#242424] text-[#adadad] hover:text-white border-[#383838]'
+            }`}
+            title="Live Video Stream & TV"
+          >
+            <Tv className="w-3.5 h-3.5" />
+          </button>
+
+          <button
+            onClick={() => setIsStatsModalOpen((prev) => !prev)}
+            className="p-1.5 rounded-md bg-[#242424] hover:bg-[#303030] text-[#adadad] hover:text-white border border-[#383838] cursor-pointer"
+            title="Match Statistics"
+          >
+            <BarChart2 className="w-3.5 h-3.5" />
+          </button>
+
+          <button
+            onClick={() => {
+              if (navigator.share) {
+                navigator.share({ title: `${home.name} vs ${away.name}`, url: window.location.href });
+              } else {
+                navigator.clipboard.writeText(window.location.href);
+                alert('Match link copied to clipboard!');
+              }
+            }}
+            className="p-1.5 rounded-md bg-[#242424] hover:bg-[#303030] text-[#adadad] hover:text-white border border-[#383838] cursor-pointer"
+            title="Share Match"
+          >
+            <Share2 className="w-3.5 h-3.5" />
+          </button>
         </div>
       </div>
 
-      {/* Hero Live Scoreboard Banner */}
-      <div className="relative rounded-3xl bg-gradient-to-br from-slate-950 via-[#0a1020] to-slate-950 border border-slate-800 p-6 sm:p-8 shadow-2xl overflow-hidden">
-        {/* Glow Effects */}
-        <div
-          className="absolute -top-20 -left-20 w-64 h-64 rounded-full blur-3xl opacity-20 pointer-events-none"
-          style={{ backgroundColor: home.color || '#3b82f6' }}
-        />
-        <div
-          className="absolute -bottom-20 -right-20 w-64 h-64 rounded-full blur-3xl opacity-20 pointer-events-none"
-          style={{ backgroundColor: away.color || '#ef4444' }}
-        />
+      {/* ========================================================================= */}
+      {/* 2. SUB-BAR: LIVE STREAM DROPDOWN + OPEN BETS QUICK PILL */}
+      {/* ========================================================================= */}
+      <div className="grid grid-cols-2 gap-2 text-xs font-bold">
+        <button
+          onClick={() => setIsLiveStreamOpen((prev) => !prev)}
+          className={`py-2 rounded-lg border flex items-center justify-center space-x-1.5 transition-all cursor-pointer ${
+            isLiveStreamOpen
+              ? 'bg-red-950/80 border-red-600 text-red-300 shadow'
+              : 'bg-[#1e1e1e] hover:bg-[#282828] border-[#333] text-[#adadad]'
+          }`}
+        >
+          <Play className="w-3.5 h-3.5 text-red-500 fill-red-500" />
+          <span>Live stream</span>
+          <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isLiveStreamOpen ? 'rotate-180' : ''}`} />
+        </button>
 
-        <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
-          {/* Home Team */}
-          <div className="flex items-center space-x-4 flex-1 justify-start">
-            <div
-              className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center font-black text-xl text-white shadow-xl border border-white/10"
-              style={{ backgroundColor: home.color || '#3b82f6' }}
-            >
-              {home.shortName}
-            </div>
-            <div>
-              <h2 className="text-xl sm:text-2xl font-black text-white">{home.name}</h2>
-              <span className="text-xs text-slate-400 font-semibold">Home Team</span>
+        <button
+          onClick={() => onOpenMyBets && onOpenMyBets()}
+          className="py-2 rounded-lg bg-[#1e1e1e] hover:bg-[#282828] border border-[#333] text-[#adadad] hover:text-white flex items-center justify-center space-x-1.5 transition-all cursor-pointer"
+        >
+          <Activity className="w-3.5 h-3.5 text-[#f36c21]" />
+          <span>Open Bets ({matchOpenBets.length})</span>
+        </button>
+      </div>
+
+      {/* Embed Live Video Player if stream is toggled */}
+      {isLiveStreamOpen && (
+        <div className="rounded-xl overflow-hidden border border-red-600/40 bg-black shadow-2xl animate-in zoom-in-95">
+          <LiveMatchStreamPlayer match={match} />
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 3. HERO SCOREBOARD BANNER (EXACT TENNIS / CRICKET / SOCCER MATRIX) */}
+      {/* ========================================================================= */}
+      <div className="bg-gradient-to-b from-[#1c1c1c] to-[#121212] border border-[#2d2d2d] rounded-2xl p-4 shadow-xl relative overflow-hidden">
+        {/* Set / Period & Status Header */}
+        <div className="flex items-center justify-between pb-2 mb-3 border-b border-[#2a2a2a] text-[11px]">
+          <div className="flex items-center space-x-2">
+            <span className="px-2 py-0.5 rounded bg-[#2b2538] text-[#c4b5fd] font-bold border border-[#4c3b6e]">
+              {currentPeriod}
+            </span>
+            {match.inPlay && (
+              <span className="flex items-center space-x-1 text-emerald-400 font-black">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                <span>LIVE IN-PLAY</span>
+              </span>
+            )}
+          </div>
+          <button
+            onClick={() => setIsScoreboardExpanded((prev) => !prev)}
+            className="text-[#888] hover:text-white flex items-center gap-1 text-[10px] font-bold cursor-pointer"
+          >
+            <span>{isScoreboardExpanded ? 'Hide Details' : 'Show Details'}</span>
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isScoreboardExpanded ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
+
+        {/* Players / Teams & Live Game Points */}
+        <div className="flex items-center justify-between gap-2 sm:gap-4 my-2">
+          {/* Home Player/Team */}
+          <div className="flex items-center space-x-2 sm:space-x-3 flex-1 min-w-0">
+            <span className="text-2xl sm:text-3xl shrink-0">{getFlagEmoji(home.name, true)}</span>
+            <div className="min-w-0">
+              <h3 className="font-black text-sm sm:text-base text-white truncate tracking-wide flex items-center gap-1.5">
+                <span>{home.name}</span>
+                {sport === 'Tennis' && <span className="text-yellow-400 text-xs" title="Serving">🎾</span>}
+              </h3>
+              {sport === 'Cricket' && home.subScore && (
+                <span className="text-[11px] text-slate-400 font-bold block">{home.subScore}</span>
+              )}
             </div>
           </div>
 
-          {/* Center Score & Clock */}
-          <div className="flex flex-col items-center text-center px-6">
-            {match?.inPlay && (
-              <div className="flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 text-xs font-black uppercase mb-2 animate-pulse">
-                <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                <span>IN-PLAY LIVE</span>
-              </div>
-            )}
-
-            {sport === 'Cricket' ? (
-              <div className="flex flex-col items-center space-y-1">
-                <div className="flex items-center space-x-3 sm:space-x-6">
-                  <div className="flex flex-col items-center">
-                    <span className="mono-num text-2xl sm:text-4xl font-black text-emerald-400">
-                      {String(home.score).includes('/') ? home.score : (home.score !== '-' ? `${home.score || 164}/3` : '-')}
-                    </span>
-                    {home.subScore && (
-                      <span className="text-[11px] text-slate-400 font-bold mt-0.5">
-                        {home.subScore}
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-xs sm:text-sm font-black text-slate-500 uppercase px-2 py-1 rounded bg-slate-900 border border-slate-800">
-                    vs
-                  </span>
-                  <div className="flex flex-col items-center">
-                    <span className="mono-num text-2xl sm:text-4xl font-black text-amber-400">
-                      {String(away.score).includes('/') ? away.score : (away.score !== '-' ? `${away.score || 182}/6` : '-')}
-                    </span>
-                    {away.subScore && (
-                      <span className="text-[11px] text-slate-400 font-bold mt-0.5">
-                        {away.subScore}
-                      </span>
-                    )}
-                  </div>
+          {/* Center Game Point Score */}
+          <div className="px-3 sm:px-6 py-1.5 bg-[#0e0e0e] border border-[#272727] rounded-xl flex items-center justify-center space-x-2 shrink-0 shadow-inner">
+            {sport === 'Tennis' ? (
+              <div className="text-center font-mono">
+                <div className="text-lg sm:text-2xl font-black text-white tracking-widest">
+                  40 <span className="text-[#f36c21]">:</span> 30
                 </div>
               </div>
+            ) : sport === 'Cricket' ? (
+              <div className="text-center font-mono">
+                <span className="text-base sm:text-xl font-black text-[#27AE60]">
+                  {String(home.score).includes('/') ? home.score : `${home.score || 164}/3`}
+                </span>
+                <span className="text-xs text-[#888] mx-1">vs</span>
+                <span className="text-base sm:text-xl font-black text-amber-400">
+                  {String(away.score).includes('/') ? away.score : `${away.score || 182}/6`}
+                </span>
+              </div>
             ) : (
-              <div className="flex items-center space-x-4">
-                <span className="mono-num text-3xl sm:text-5xl font-black text-white">{home.score}</span>
-                <span className="text-2xl sm:text-3xl font-black text-slate-600">-</span>
-                <span className="mono-num text-3xl sm:text-5xl font-black text-white">{away.score}</span>
+              <div className="text-center font-mono">
+                <span className="text-xl sm:text-2xl font-black text-white">{home.score}</span>
+                <span className="text-xs text-[#888] mx-1.5">:</span>
+                <span className="text-xl sm:text-2xl font-black text-white">{away.score}</span>
               </div>
             )}
-
-            <div className="flex items-center space-x-2 mt-2 text-xs font-bold text-slate-300">
-              <Clock className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="mono-num text-emerald-400 font-extrabold">{clock}</span>
-              <span className="text-slate-600">•</span>
-              <span>{currentPeriod}</span>
-            </div>
           </div>
 
-          {/* Away Team */}
-          <div className="flex items-center space-x-4 flex-1 justify-end">
-            <div className="text-right">
-              <h2 className="text-xl sm:text-2xl font-black text-white">{away.name}</h2>
-              <span className="text-xs text-slate-400 font-semibold">Away Team</span>
+          {/* Away Player/Team */}
+          <div className="flex items-center justify-end space-x-2 sm:space-x-3 flex-1 min-w-0 text-right">
+            <div className="min-w-0">
+              <h3 className="font-black text-sm sm:text-base text-white truncate tracking-wide">
+                {away.name}
+              </h3>
+              {sport === 'Cricket' && away.subScore && (
+                <span className="text-[11px] text-slate-400 font-bold block">{away.subScore}</span>
+              )}
             </div>
-            <div
-              className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center font-black text-xl text-white shadow-xl border border-white/10"
-              style={{ backgroundColor: away.color || '#ef4444' }}
-            >
-              {away.shortName}
-            </div>
+            <span className="text-2xl sm:text-3xl shrink-0">{getFlagEmoji(away.name, false)}</span>
           </div>
         </div>
 
-        {/* Live Event Marquee Strip */}
-        {events.length > 0 && (
-          <div className="mt-6 pt-4 border-t border-slate-800/80 flex items-center space-x-3 overflow-x-auto no-scrollbar">
-            <span className="text-[10px] uppercase font-bold text-slate-500 whitespace-nowrap">Live Events:</span>
-            {events.map((e) => (
-              <div
-                key={e.id}
-                className="px-3 py-1 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-300 font-bold whitespace-nowrap flex items-center space-x-1.5"
-              >
-                <span className="text-emerald-400 mono-num">{e.minute}</span>
-                <span>{e.player}</span>
-                {e.detail && <span className="text-[10px] text-slate-400 font-normal">({e.detail})</span>}
+        {/* Collapsible Detailed Stats & Set Breakdown */}
+        {isScoreboardExpanded && (
+          <div className="mt-3 pt-3 border-t border-[#222] animate-in fade-in duration-150">
+            {sport === 'Tennis' ? (
+              <div className="bg-[#141414] rounded-xl p-2.5 border border-[#222] text-xs">
+                <div className="grid grid-cols-5 text-center text-[10px] font-bold text-[#8e8e8e] pb-1.5 border-b border-[#222]">
+                  <span className="text-left font-black text-white">Best of 3</span>
+                  <span>1</span>
+                  <span>2</span>
+                  <span>3</span>
+                  <span className="text-right text-[#f36c21]">T</span>
+                </div>
+                <div className="grid grid-cols-5 text-center font-mono text-xs py-1 text-white border-b border-[#1a1a1a]">
+                  <span className="text-left truncate text-slate-300 font-bold">{home.name.split(',')[0]}</span>
+                  <span>1</span>
+                  <span>-</span>
+                  <span>-</span>
+                  <span className="text-right font-black text-[#27AE60]">1</span>
+                </div>
+                <div className="grid grid-cols-5 text-center font-mono text-xs py-1 text-white">
+                  <span className="text-left truncate text-slate-300 font-bold">{away.name.split(',')[0]}</span>
+                  <span className="font-bold text-amber-400">4</span>
+                  <span>-</span>
+                  <span>-</span>
+                  <span className="text-right font-black text-[#27AE60]">4</span>
+                </div>
               </div>
-            ))}
+            ) : sport === 'Cricket' ? (
+              <CricketMatchCenter match={match} />
+            ) : (
+              <FootballMatchCenter match={match} />
+            )}
           </div>
         )}
       </div>
 
-      {/* Live In-Play Match Center (Cricket Ball-by-ball / Football Possession Attack) */}
-      <CricketMatchCenter match={match} />
-      <FootballMatchCenter match={match} />
-
-      {/* Main Mode Navigation Bar */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-3 overflow-x-auto no-scrollbar">
-        <div className="flex items-center space-x-2">
-          <button
-            type="button"
-            onClick={() => setActiveTab('MARKETS')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center space-x-2 ${
-              activeTab === 'MARKETS'
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
-                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
-            }`}
-          >
-            <Layers className="w-4 h-4" />
-            <span>Live Markets ({allMarkets.length})</span>
-          </button>
-
-          {match.sport === 'Cricket' && (
+      {/* ========================================================================= */}
+      {/* 4. MARKET CATEGORY TABS (EXACT FAIRPLAY ORANGE GRADIENT BAR) */}
+      {/* ========================================================================= */}
+      <div className="flex items-center space-x-1.5 overflow-x-auto no-scrollbar py-1">
+        {marketTabs.map((tab) => {
+          const isActive = activeMarketTab === tab.id;
+          return (
             <button
-              type="button"
-              onClick={() => setActiveTab('FANCY')}
-              className={`px-4 py-2.5 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center space-x-2 ${
-                activeTab === 'FANCY'
-                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-black shadow-lg shadow-amber-500/30 font-black'
-                  : 'bg-slate-900 text-amber-400/90 hover:text-amber-300 border border-slate-800'
+              key={tab.id}
+              onClick={() => setActiveMarketTab(tab.id)}
+              className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all cursor-pointer ${
+                isActive
+                  ? 'bg-gradient-to-r from-[#f36c21] to-[#e05b12] text-white shadow-lg shadow-orange-600/30'
+                  : 'bg-[#1e1e1e] hover:bg-[#282828] text-[#adadad] hover:text-white border border-[#2d2d2d]'
               }`}
             >
-              <Zap className="w-4 h-4" />
-              <span>⚡ Cricket Fancy & Sessions</span>
+              {tab.label}
             </button>
-          )}
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('STREAM')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center space-x-2 ${
-              activeTab === 'STREAM'
-                ? 'bg-red-600 text-white shadow-lg shadow-red-600/30'
-                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
-            }`}
-          >
-            <Tv className="w-4 h-4" />
-            <span>📺 Live TV & Radar</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('SGP')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center space-x-2 ${
-              activeTab === 'SGP'
-                ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/30'
-                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
-            }`}
-          >
-            <Sparkles className="w-4 h-4 text-purple-400" />
-            <span>Same-Game Parlay (SGP)</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('VISUALIZER')}
-            className={`px-4 py-2.5 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center space-x-2 ${
-              activeTab === 'VISUALIZER'
-                ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/30'
-                : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
-            }`}
-          >
-            <Activity className="w-4 h-4 text-emerald-400" />
-            <span>Visualizer & Stats Hub</span>
-          </button>
-        </div>
+          );
+        })}
       </div>
 
-      {/* Mode 1: Betting Markets */}
-      {activeTab === 'MARKETS' && (
-        <div className="space-y-4">
-          {/* Market Categories Filter */}
-          <div className="flex items-center space-x-2 overflow-x-auto no-scrollbar pb-1">
-            {categories.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedMarketCategory(cat.id)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-                  selectedMarketCategory === cat.id
-                    ? 'bg-slate-100 text-slate-950 font-black shadow-md'
-                    : 'bg-slate-900 text-slate-400 hover:text-white border border-slate-800'
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
+      {/* ========================================================================= */}
+      {/* 5. PRIMARY EXCHANGE CARD: ⭐ MATCH ODDS (BACK & LAY MATRIX) */}
+      {/* ========================================================================= */}
+      {(activeMarketTab === 'MAIN' || activeMarketTab === 'ALL') && (
+        <div className="bg-[#1e1e1e] border border-[#2d2d2d] rounded-2xl overflow-hidden shadow-xl">
+          {/* Card Header (Orange Banner with Star & Cashout badge) */}
+          <div className="bg-gradient-to-r from-[#f36c21] to-[#e05b12] px-3.5 py-2.5 flex items-center justify-between text-white">
+            <div className="flex items-center space-x-2">
+              <Star className="w-4 h-4 text-amber-300 fill-amber-300" />
+              <h4 className="font-black text-xs uppercase tracking-wider">MATCH ODDS</h4>
+            </div>
+
+            <button
+              onClick={() => alert(`Cashout Available: ₹89.16 (Locked profit for ${home.name})`)}
+              className="px-2.5 py-1 rounded-md bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-[10px] uppercase tracking-wider flex items-center space-x-1 shadow cursor-pointer"
+            >
+              <Coins className="w-3 h-3" />
+              <span>CASHOUT : ₹89.16</span>
+            </button>
           </div>
 
-          {/* Markets List */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredMarkets.map((market) => (
-              <div
-                key={market.id}
-                className="bg-slate-900/90 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3"
-              >
-                <div className="flex justify-between items-center">
-                  <h4 className="text-sm font-black text-white">{market.name}</h4>
-                  <span className="text-[10px] uppercase font-bold text-slate-500">{market.category}</span>
+          {/* BACK & LAY Column Headers */}
+          <div className="bg-[#181818] border-b border-[#2a2a2a] px-3.5 py-1.5 flex items-center justify-end text-[11px] font-black">
+            <div className="flex space-x-2 text-center w-48 sm:w-56">
+              <div className="flex-1 py-0.5 rounded bg-[#23a8f2]/15 text-[#23a8f2] uppercase tracking-wider">
+                BACK
+              </div>
+              <div className="flex-1 py-0.5 rounded bg-[#f26b8a]/15 text-[#f26b8a] uppercase tracking-wider">
+                LAY
+              </div>
+            </div>
+          </div>
+
+          {/* Runners List */}
+          <div className="divide-y divide-[#2a2a2a]">
+            {/* Runner 1: Home Player */}
+            <div className="p-3 sm:p-3.5 flex items-center justify-between hover:bg-[#242424] transition-colors">
+              <div className="min-w-0 pr-2">
+                <div className="font-black text-xs sm:text-sm text-white truncate flex items-center gap-1.5">
+                  <span>{getFlagEmoji(home.name, true)}</span>
+                  <span>{home.name}</span>
                 </div>
-
-                <div
-                  className={`grid gap-2 ${
-                    market.selections.length === 2
-                      ? 'grid-cols-2'
-                      : market.selections.length === 3
-                      ? 'grid-cols-3'
-                      : 'grid-cols-2 sm:grid-cols-2'
-                  }`}
-                >
-                  {market.selections.map((sel) => {
-                    const isUp = sel.tick === 'up';
-                    const isDown = sel.tick === 'down';
-
-                    return (
-                      <button
-                        key={sel.id}
-                        type="button"
-                        onClick={() =>
-                          onSelectOdds(market.id, market.name, sel.id, sel.name, sel.price)
-                        }
-                        className={`p-3 rounded-2xl border text-left flex flex-col justify-between transition-all transform active:scale-95 ${
-                          isUp
-                            ? 'bg-emerald-950/40 border-emerald-500/80 shadow-md shadow-emerald-900/20'
-                            : isDown
-                            ? 'bg-rose-950/40 border-rose-500/80 shadow-md shadow-rose-900/20'
-                            : 'bg-slate-950/80 hover:bg-slate-800/80 border-slate-800 text-slate-200'
-                        }`}
-                      >
-                        <span className="text-xs font-bold text-slate-300 truncate">{sel.name}</span>
-                        <div className="flex items-center justify-between mt-2">
-                          <span
-                            className={`mono-num text-sm sm:text-base font-black ${
-                              isUp ? 'text-emerald-400' : isDown ? 'text-rose-400' : 'text-blue-400'
-                            }`}
-                          >
-                            {formatOdds(sel.price, oddsFormat)}
-                          </span>
-                          {sel.tick && sel.tick !== 'same' && (
-                            <span
-                              className={`text-[10px] font-black ${
-                                isUp ? 'text-emerald-400' : 'text-rose-400'
-                              }`}
-                            >
-                              {isUp ? '▲' : '▼'}
-                            </span>
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })}
+                {/* Live Projected P&L indicator (Rudra888 Green/Red style) */}
+                <div className="text-[11px] font-mono font-bold mt-0.5">
+                  {runnerPnL[home.name.toLowerCase()] !== undefined ? (
+                    <span className={runnerPnL[home.name.toLowerCase()] >= 0 ? 'text-[#27AE60]' : 'text-[#FF4148]'}>
+                      {runnerPnL[home.name.toLowerCase()] >= 0 ? `+₹${runnerPnL[home.name.toLowerCase()].toFixed(2)}` : `-₹${Math.abs(runnerPnL[home.name.toLowerCase()]).toFixed(2)}`}
+                    </span>
+                  ) : (
+                    <span className="text-[#27AE60] font-black">+7800.00</span>
+                  )}
                 </div>
               </div>
-            ))}
+
+              {/* Odds Cells (Blue Back / Pink Lay) */}
+              <div className="flex space-x-2 shrink-0">
+                {/* BACK Box */}
+                <button
+                  type="button"
+                  onClick={() =>
+                    onSelectOdds(
+                      `MKT_MATCH_${match.id}`,
+                      'Match Odds',
+                      `sel_home_${match.id}`,
+                      home.name,
+                      homeBackOdds,
+                      'BACK'
+                    )
+                  }
+                  className="w-24 sm:w-28 py-2 px-1 rounded-xl bg-[#a5d9fe] hover:bg-[#8ecbf8] text-[#002244] flex flex-col items-center justify-center transition-all transform active:scale-95 shadow cursor-pointer"
+                >
+                  <span className="font-mono font-black text-sm sm:text-base leading-tight">
+                    {homeBackOdds.toFixed(2)}
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-600 leading-none mt-0.5">
+                    259K
+                  </span>
+                </button>
+
+                {/* LAY Box */}
+                <button
+                  type="button"
+                  onClick={() =>
+                    onSelectOdds(
+                      `MKT_MATCH_${match.id}`,
+                      'Match Odds',
+                      `sel_home_${match.id}`,
+                      home.name,
+                      homeLayOdds,
+                      'LAY'
+                    )
+                  }
+                  className="w-24 sm:w-28 py-2 px-1 rounded-xl bg-[#f8d0ce] hover:bg-[#f5bec0] text-[#4a0e17] flex flex-col items-center justify-center transition-all transform active:scale-95 shadow cursor-pointer"
+                >
+                  <span className="font-mono font-black text-sm sm:text-base leading-tight">
+                    {homeLayOdds.toFixed(2)}
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-600 leading-none mt-0.5">
+                    169K
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Runner 2: Away Player */}
+            <div className="p-3 sm:p-3.5 flex items-center justify-between hover:bg-[#242424] transition-colors">
+              <div className="min-w-0 pr-2">
+                <div className="font-black text-xs sm:text-sm text-white truncate flex items-center gap-1.5">
+                  <span>{getFlagEmoji(away.name, false)}</span>
+                  <span>{away.name}</span>
+                </div>
+                {/* Live Projected P&L indicator */}
+                <div className="text-[11px] font-mono font-bold mt-0.5">
+                  {runnerPnL[away.name.toLowerCase()] !== undefined ? (
+                    <span className={runnerPnL[away.name.toLowerCase()] >= 0 ? 'text-[#27AE60]' : 'text-[#FF4148]'}>
+                      {runnerPnL[away.name.toLowerCase()] >= 0 ? `+₹${runnerPnL[away.name.toLowerCase()].toFixed(2)}` : `-₹${Math.abs(runnerPnL[away.name.toLowerCase()]).toFixed(2)}`}
+                    </span>
+                  ) : (
+                    <span className="text-[#FF4148] font-black">-5000.00</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Odds Cells (Blue Back / Pink Lay) */}
+              <div className="flex space-x-2 shrink-0">
+                {/* BACK Box */}
+                <button
+                  type="button"
+                  onClick={() =>
+                    onSelectOdds(
+                      `MKT_MATCH_${match.id}`,
+                      'Match Odds',
+                      `sel_away_${match.id}`,
+                      away.name,
+                      awayBackOdds,
+                      'BACK'
+                    )
+                  }
+                  className="w-24 sm:w-28 py-2 px-1 rounded-xl bg-[#a5d9fe] hover:bg-[#8ecbf8] text-[#002244] flex flex-col items-center justify-center transition-all transform active:scale-95 shadow cursor-pointer"
+                >
+                  <span className="font-mono font-black text-sm sm:text-base leading-tight">
+                    {awayBackOdds.toFixed(2)}
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-600 leading-none mt-0.5">
+                    123K
+                  </span>
+                </button>
+
+                {/* LAY Box */}
+                <button
+                  type="button"
+                  onClick={() =>
+                    onSelectOdds(
+                      `MKT_MATCH_${match.id}`,
+                      'Match Odds',
+                      `sel_away_${match.id}`,
+                      away.name,
+                      awayLayOdds,
+                      'LAY'
+                    )
+                  }
+                  className="w-24 sm:w-28 py-2 px-1 rounded-xl bg-[#f8d0ce] hover:bg-[#f5bec0] text-[#4a0e17] flex flex-col items-center justify-center transition-all transform active:scale-95 shadow cursor-pointer"
+                >
+                  <span className="font-mono font-black text-sm sm:text-base leading-tight">
+                    {awayLayOdds.toFixed(2)}
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-600 leading-none mt-0.5">
+                    330K
+                  </span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Footer Limit Strip */}
+          <div className="bg-[#141414] px-4 py-2 border-t border-[#2a2a2a] flex items-center justify-between text-[10px] text-[#8e8e8e] font-mono">
+            <span>Min: 100 ⬍ Max: 25,000</span>
+            <span className="flex items-center gap-1">
+              <Info className="w-3 h-3 text-[#f36c21]" />
+              Betfair Exchange Matched Liquidity
+            </span>
           </div>
         </div>
       )}
 
-      {/* Mode 2: Cricket Fancy & Session Markets */}
-      {activeTab === 'FANCY' && (
+      {/* ========================================================================= */}
+      {/* 6. SECONDARY MARKET CARD: WHO WILL WIN THE MATCH? (2-WAY SELECTION) */}
+      {/* ========================================================================= */}
+      {(activeMarketTab === 'MAIN' || activeMarketTab === 'ALL') && (
+        <div className="bg-[#1e1e1e] border border-[#2d2d2d] rounded-2xl overflow-hidden shadow-xl">
+          <div className="bg-gradient-to-r from-[#f36c21] to-[#e05b12] px-3.5 py-2.5 flex items-center justify-between text-white">
+            <h4 className="font-black text-xs uppercase tracking-wider">WHO WILL WIN THE MATCH?</h4>
+            <span className="px-2 py-0.5 rounded bg-black/30 text-amber-300 font-bold text-[10px] border border-amber-500/30">
+              CASHOUT
+            </span>
+          </div>
+
+          <div className="p-3 grid grid-cols-2 gap-2.5">
+            {/* Runner 1 Full Button */}
+            <button
+              type="button"
+              onClick={() =>
+                onSelectOdds(
+                  `MKT_WIN_${match.id}`,
+                  'Winner',
+                  `sel_win_home_${match.id}`,
+                  home.name,
+                  homeBackOdds,
+                  'BACK'
+                )
+              }
+              className="p-3 rounded-xl bg-[#a5d9fe] hover:bg-[#8ecbf8] text-[#002244] flex flex-col items-center justify-center transition-all transform active:scale-95 shadow cursor-pointer"
+            >
+              <span className="font-black text-xs sm:text-sm truncate w-full text-center">{home.name}</span>
+              <span className="font-mono font-black text-base sm:text-lg mt-1">{homeBackOdds.toFixed(2)}</span>
+              <span className="text-[10px] font-bold text-slate-600">259K</span>
+            </button>
+
+            {/* Runner 2 Full Button */}
+            <button
+              type="button"
+              onClick={() =>
+                onSelectOdds(
+                  `MKT_WIN_${match.id}`,
+                  'Winner',
+                  `sel_win_away_${match.id}`,
+                  away.name,
+                  awayBackOdds,
+                  'BACK'
+                )
+              }
+              className="p-3 rounded-xl bg-[#a5d9fe] hover:bg-[#8ecbf8] text-[#002244] flex flex-col items-center justify-center transition-all transform active:scale-95 shadow cursor-pointer"
+            >
+              <span className="font-black text-xs sm:text-sm truncate w-full text-center">{away.name}</span>
+              <span className="font-mono font-black text-base sm:text-lg mt-1">{awayBackOdds.toFixed(2)}</span>
+              <span className="text-[10px] font-bold text-slate-600">330K</span>
+            </button>
+          </div>
+
+          <div className="bg-[#141414] px-4 py-1.5 border-t border-[#2a2a2a] text-center text-[10px] text-[#8e8e8e] font-mono">
+            Min: 100 ⬍ Max: 10,000
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 7. PREMIUM MARKET ACCORDIONS (RUDRA888 COLLAPSIBLE STYLE) */}
+      {/* ========================================================================= */}
+      <div className="bg-[#213547] text-white px-3.5 py-2 rounded-xl border border-[#2e475e] flex items-center justify-between text-xs font-black shadow-sm">
+        <span className="uppercase tracking-wide">Premium Market</span>
+        <span className="text-[10px] text-cyan-300 font-mono">MIN: 100 MAX: 100K ⓘ</span>
+      </div>
+
+      {/* Sub-Market Accordion 1: WINNER */}
+      <div className="bg-[#1e1e1e] border border-[#2d2d2d] rounded-2xl overflow-hidden shadow-md">
+        <button
+          onClick={() => toggleAccordion('WINNER')}
+          className="w-full bg-[#1b2b3a] hover:bg-[#223649] px-3.5 py-2.5 flex items-center justify-between text-xs font-black text-white transition-colors cursor-pointer"
+        >
+          <span className="uppercase tracking-wider">WINNER</span>
+          <ChevronDown className={`w-4 h-4 transition-transform ${collapsedAccordions['WINNER'] ? 'rotate-180' : ''}`} />
+        </button>
+
+        {!collapsedAccordions['WINNER'] && (
+          <div className="divide-y divide-[#2a2a2a]">
+            <div className="p-3 flex items-center justify-between">
+              <span className="font-bold text-xs text-white">{home.name}</span>
+              <button
+                type="button"
+                onClick={() => onSelectOdds(`MKT_PREM_WIN_${match.id}`, 'Winner', `prem_h_${match.id}`, home.name, 2.31, 'BACK')}
+                className="w-24 py-1.5 rounded-lg bg-[#a5d9fe] hover:bg-[#8ecbf8] text-[#002244] font-mono font-black text-xs text-center cursor-pointer shadow"
+              >
+                2.31
+                <span className="block text-[9px] font-bold text-slate-600">0.00K</span>
+              </button>
+            </div>
+            <div className="p-3 flex items-center justify-between">
+              <span className="font-bold text-xs text-white">{away.name}</span>
+              <button
+                type="button"
+                onClick={() => onSelectOdds(`MKT_PREM_WIN_${match.id}`, 'Winner', `prem_a_${match.id}`, away.name, 1.55, 'BACK')}
+                className="w-24 py-1.5 rounded-lg bg-[#a5d9fe] hover:bg-[#8ecbf8] text-[#002244] font-mono font-black text-xs text-center cursor-pointer shadow"
+              >
+                1.55
+                <span className="block text-[9px] font-bold text-slate-600">0.00K</span>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Sub-Market Accordion 2: GAME HANDICAP */}
+      <div className="bg-[#1e1e1e] border border-[#2d2d2d] rounded-2xl overflow-hidden shadow-md">
+        <button
+          onClick={() => toggleAccordion('GAME_HANDICAP')}
+          className="w-full bg-[#1b2b3a] hover:bg-[#223649] px-3.5 py-2.5 flex items-center justify-between text-xs font-black text-white transition-colors cursor-pointer"
+        >
+          <span className="uppercase tracking-wider">GAME HANDICAP (+/- 4.5)</span>
+          <ChevronDown className={`w-4 h-4 transition-transform ${collapsedAccordions['GAME_HANDICAP'] ? 'rotate-180' : ''}`} />
+        </button>
+
+        {!collapsedAccordions['GAME_HANDICAP'] && (
+          <div className="divide-y divide-[#2a2a2a]">
+            <div className="p-3 flex items-center justify-between">
+              <span className="font-bold text-xs text-white">{home.name} (+4.5 Games)</span>
+              <button
+                type="button"
+                onClick={() => onSelectOdds(`MKT_HDC_${match.id}`, 'Game Handicap', `hdc_h_${match.id}`, `${home.name} (+4.5)`, 1.90, 'BACK')}
+                className="w-24 py-1.5 rounded-lg bg-[#a5d9fe] hover:bg-[#8ecbf8] text-[#002244] font-mono font-black text-xs text-center cursor-pointer shadow"
+              >
+                1.90
+              </button>
+            </div>
+            <div className="p-3 flex items-center justify-between">
+              <span className="font-bold text-xs text-white">{away.name} (-4.5 Games)</span>
+              <button
+                type="button"
+                onClick={() => onSelectOdds(`MKT_HDC_${match.id}`, 'Game Handicap', `hdc_a_${match.id}`, `${away.name} (-4.5)`, 1.90, 'BACK')}
+                className="w-24 py-1.5 rounded-lg bg-[#a5d9fe] hover:bg-[#8ecbf8] text-[#002244] font-mono font-black text-xs text-center cursor-pointer shadow"
+              >
+                1.90
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Sub-Market Accordion 3: TOTAL GAMES (OVER / UNDER 21.5) */}
+      <div className="bg-[#1e1e1e] border border-[#2d2d2d] rounded-2xl overflow-hidden shadow-md">
+        <button
+          onClick={() => toggleAccordion('TOTAL_GAMES')}
+          className="w-full bg-[#1b2b3a] hover:bg-[#223649] px-3.5 py-2.5 flex items-center justify-between text-xs font-black text-white transition-colors cursor-pointer"
+        >
+          <span className="uppercase tracking-wider">TOTAL GAMES (OVER / UNDER 21.5)</span>
+          <ChevronDown className={`w-4 h-4 transition-transform ${collapsedAccordions['TOTAL_GAMES'] ? 'rotate-180' : ''}`} />
+        </button>
+
+        {!collapsedAccordions['TOTAL_GAMES'] && (
+          <div className="divide-y divide-[#2a2a2a]">
+            <div className="p-3 flex items-center justify-between">
+              <span className="font-bold text-xs text-white">Over 21.5 Games</span>
+              <button
+                type="button"
+                onClick={() => onSelectOdds(`MKT_TOT_${match.id}`, 'Total Games', `tot_ov_${match.id}`, 'Over 21.5', 1.85, 'BACK')}
+                className="w-24 py-1.5 rounded-lg bg-[#a5d9fe] hover:bg-[#8ecbf8] text-[#002244] font-mono font-black text-xs text-center cursor-pointer shadow"
+              >
+                1.85
+              </button>
+            </div>
+            <div className="p-3 flex items-center justify-between">
+              <span className="font-bold text-xs text-white">Under 21.5 Games</span>
+              <button
+                type="button"
+                onClick={() => onSelectOdds(`MKT_TOT_${match.id}`, 'Total Games', `tot_un_${match.id}`, 'Under 21.5', 1.95, 'BACK')}
+                className="w-24 py-1.5 rounded-lg bg-[#a5d9fe] hover:bg-[#8ecbf8] text-[#002244] font-mono font-black text-xs text-center cursor-pointer shadow"
+              >
+                1.95
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Cricket Fancy Hub if Cricket selected */}
+      {sport === 'Cricket' && (activeMarketTab === 'FANCY' || activeMarketTab === 'ALL') && (
         <CricketFancyHub
           match={match}
           onSelectFancy={(fancyName, type, runs, rate) => {
@@ -409,22 +777,25 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
               fancyName,
               type,
               `${fancyName} (${type} ${runs} Runs)`,
-              rate > 10 ? +(rate / 100).toFixed(2) + 1 : 1.95
+              rate > 10 ? +(rate / 100).toFixed(2) + 1 : 1.95,
+              type === 'YES' ? 'BACK' : 'LAY'
             );
           }}
         />
       )}
 
-      {/* Mode 3: Live TV Video Stream & Radar Scorecard */}
-      {activeTab === 'STREAM' && <LiveMatchStreamPlayer match={match} />}
-
-      {/* Mode 4: Same-Game Parlay (SGP) Builder */}
-      {activeTab === 'SGP' && (
-        <SGPBuilder match={match} oddsFormat={oddsFormat} onAddSGPToSlip={onAddSGPToSlip} />
-      )}
-
-      {/* Mode 5: Live Visualizer & Stats Hub */}
-      {activeTab === 'VISUALIZER' && <LiveVisualizerHub match={match} />}
+      {/* ========================================================================= */}
+      {/* 8. FLOATING MINI GAMES FAB BUTTON & BOTTOM MY BETS DOCK (RUDRA888 STYLE) */}
+      {/* ========================================================================= */}
+      <div className="fixed bottom-16 right-4 z-40">
+        <button
+          onClick={() => alert('🎲 Live Mini-Games: Roulette, Teen Patti, and Aviator available in Live Casino lobby!')}
+          className="px-3.5 py-2.5 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-500 hover:from-purple-500 hover:to-indigo-400 text-white font-black text-xs shadow-2xl flex items-center space-x-2 border-2 border-white/20 transform hover:scale-105 transition-all cursor-pointer"
+        >
+          <Dices className="w-5 h-5 animate-spin" />
+          <span className="uppercase tracking-wider">Mini Games</span>
+        </button>
+      </div>
     </div>
   );
 };
