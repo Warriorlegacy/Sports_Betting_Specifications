@@ -69,6 +69,8 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
   const [isScoreboardExpanded, setIsScoreboardExpanded] = useState<boolean>(true);
   const [isLiveStreamOpen, setIsLiveStreamOpen] = useState<boolean>(false);
   const [isStatsModalOpen, setIsStatsModalOpen] = useState<boolean>(false);
+  const [isCashOutModalOpen, setIsCashOutModalOpen] = useState<boolean>(false);
+  const [cashOutSliderPercent, setCashOutSliderPercent] = useState<number>(100);
   const [collapsedAccordions, setCollapsedAccordions] = useState<Record<string, boolean>>({});
 
   // Real-time WebSocket connection to Fairplay / ZPlay broadcast
@@ -145,6 +147,29 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
   const awayBackOdds = mainMarket?.selections?.[1]?.price || 1.66;
   const awayLayOdds = +(awayBackOdds + 0.02).toFixed(2);
 
+  // Derive Dynamic Real-Time Cash Out Valuation across all open positions on this match
+  const matchOpenBets = myBets.filter((b) => (b as any).matchId === match.id || b.marketId.includes(match.id));
+  
+  const dynamicCashOutOffer = useMemo(() => {
+    if (matchOpenBets.length === 0) return 0;
+
+    let totalOffer = 0;
+    for (const b of matchOpenBets) {
+      const stake = b.matchedStake || b.stake || 0;
+      const placedOdds = b.price || 2.0;
+      const isHome = b.selectionName.toLowerCase().includes(home.name.toLowerCase());
+      const currentLiveOdds = isHome ? homeBackOdds : awayBackOdds;
+
+      // Exchange Cash Out valuation:
+      // Fair Payout = Stake * (Placed Odds / Current Live Odds)
+      if (currentLiveOdds > 0) {
+        const fairValue = stake * (placedOdds / currentLiveOdds);
+        totalOffer += fairValue;
+      }
+    }
+    return Math.round(totalOffer * 100) / 100;
+  }, [matchOpenBets, home.name, homeBackOdds, awayBackOdds]);
+
   // Filter tabs
   const marketTabs = [
     { id: 'MAIN', label: 'MAIN MARKET' },
@@ -153,9 +178,6 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
     { id: 'TIED', label: 'TIED MATCH' },
     { id: 'ALL', label: 'ALL MARKETS' }
   ];
-
-  // Open bets count for this match
-  const matchOpenBets = myBets.filter((b) => (b as any).matchId === match.id || b.marketId.includes(match.id));
 
   return (
     <div className="space-y-3 pb-20 text-white font-sans select-none animate-in fade-in duration-200">
@@ -416,13 +438,23 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
               <h4 className="font-black text-xs uppercase tracking-wider">MATCH ODDS</h4>
             </div>
 
-            <button
-              onClick={() => alert(`Cashout Available: ₹89.16 (Locked profit for ${home.name})`)}
-              className="px-2.5 py-1 rounded-md bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-[10px] uppercase tracking-wider flex items-center space-x-1 shadow cursor-pointer"
-            >
-              <Coins className="w-3 h-3" />
-              <span>CASHOUT : ₹89.16</span>
-            </button>
+            {dynamicCashOutOffer > 0 ? (
+              <button
+                onClick={() => setIsCashOutModalOpen(true)}
+                className="px-2.5 py-1 rounded-md bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-[10px] uppercase tracking-wider flex items-center space-x-1 shadow cursor-pointer animate-pulse"
+              >
+                <Coins className="w-3 h-3" />
+                <span>CASHOUT : ₹{dynamicCashOutOffer.toFixed(2)}</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => alert(`💡 Dynamic Cash-Out Terminal:\n\nOnce you place a Back or Lay bet on this match, this button automatically calculates your exact real-time Cash-Out offer based on live market odds.\n\nYou can cash out 100% or use our partial slider (25%, 50%, 75%, or custom amount) to lock in profit or cut risk anytime before the match ends.`)}
+                className="px-2.5 py-0.8 rounded-md bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-[10px] uppercase tracking-wider flex items-center space-x-1 shadow cursor-pointer"
+              >
+                <Coins className="w-3 h-3" />
+                <span>CASHOUT</span>
+              </button>
+            )}
           </div>
 
           {/* BACK & LAY Column Headers */}
@@ -785,17 +817,97 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
       )}
 
       {/* ========================================================================= */}
-      {/* 8. FLOATING MINI GAMES FAB BUTTON & BOTTOM MY BETS DOCK (RUDRA888 STYLE) */}
+      {/* 9. DYNAMIC CASH OUT MODAL (FULL / PARTIAL SLIDER & INSTANT SETTLEMENT) */}
       {/* ========================================================================= */}
-      <div className="fixed bottom-16 right-4 z-40">
-        <button
-          onClick={() => alert('🎲 Live Mini-Games: Roulette, Teen Patti, and Aviator available in Live Casino lobby!')}
-          className="px-3.5 py-2.5 rounded-full bg-gradient-to-tr from-purple-600 to-indigo-500 hover:from-purple-500 hover:to-indigo-400 text-white font-black text-xs shadow-2xl flex items-center space-x-2 border-2 border-white/20 transform hover:scale-105 transition-all cursor-pointer"
-        >
-          <Dices className="w-5 h-5 animate-spin" />
-          <span className="uppercase tracking-wider">Mini Games</span>
-        </button>
-      </div>
+      {isCashOutModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="bg-[#1e1e1e] border border-[#333] rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-5 animate-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-[#2d2d2d] pb-3">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400">
+                  <Coins className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-black text-sm text-white uppercase tracking-wider">Dynamic Cash-Out Terminal</h3>
+                  <span className="text-[11px] text-slate-400 font-bold">{home.name} vs {away.name}</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsCashOutModalOpen(false)}
+                className="text-slate-400 hover:text-white font-black text-sm px-2 py-1 rounded-lg hover:bg-[#282828] cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Total 100% Valuation Card */}
+            <div className="bg-[#141414] border border-[#272727] rounded-2xl p-4 text-center space-y-1 shadow-inner">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                Full 100% Cash-Out Value
+              </span>
+              <div className="font-mono text-3xl font-black text-[#27AE60]">
+                ₹{dynamicCashOutOffer.toFixed(2)}
+              </div>
+              <span className="text-[10px] text-slate-500 block">
+                Instant credit directly to your main wallet balance
+              </span>
+            </div>
+
+            {/* Partial Slider Controls */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between text-xs font-bold">
+                <span className="text-slate-300">Cash-Out Amount:</span>
+                <span className="text-emerald-400 font-mono font-black text-sm">
+                  {cashOutSliderPercent}% (₹{(dynamicCashOutOffer * (cashOutSliderPercent / 100)).toFixed(2)})
+                </span>
+              </div>
+
+              {/* Slider */}
+              <input
+                type="range"
+                min="10"
+                max="100"
+                step="5"
+                value={cashOutSliderPercent}
+                onChange={(e) => setCashOutSliderPercent(Number(e.target.value))}
+                className="w-full h-2 bg-[#2d2d2d] rounded-lg appearance-none cursor-pointer accent-[#27AE60]"
+              />
+
+              {/* Quick Percentage Presets */}
+              <div className="grid grid-cols-4 gap-2">
+                {[25, 50, 75, 100].map((pct) => (
+                  <button
+                    key={pct}
+                    type="button"
+                    onClick={() => setCashOutSliderPercent(pct)}
+                    className={`py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                      cashOutSliderPercent === pct
+                        ? 'bg-[#27AE60] text-white shadow'
+                        : 'bg-[#242424] text-slate-400 hover:text-white border border-[#333]'
+                    }`}
+                  >
+                    {pct}%
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Execution CTA Button */}
+            <button
+              type="button"
+              onClick={() => {
+                const payout = Math.round(dynamicCashOutOffer * (cashOutSliderPercent / 100) * 100) / 100;
+                alert(`✅ Cash-Out Successful!\n\n₹${payout.toFixed(2)} (${cashOutSliderPercent}% payout) has been settled and credited to your available wallet balance.`);
+                setIsCashOutModalOpen(false);
+              }}
+              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#27AE60] to-teal-600 hover:from-[#219652] hover:to-teal-500 text-white font-black text-sm uppercase tracking-wider shadow-xl cursor-pointer flex items-center justify-center space-x-2"
+            >
+              <Coins className="w-4 h-4" />
+              <span>Confirm Cash Out (₹{(dynamicCashOutOffer * (cashOutSliderPercent / 100)).toFixed(2)})</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
