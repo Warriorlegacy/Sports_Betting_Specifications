@@ -156,9 +156,19 @@ CREATE TABLE IF NOT EXISTS withdrawals (
     processed_at TIMESTAMP WITH TIME ZONE
 );
 
+CREATE TABLE IF NOT EXISTS otps (
+    phone VARCHAR(30) PRIMARY KEY,
+    otp VARCHAR(10) NOT NULL,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(30);
+
 CREATE INDEX IF NOT EXISTS idx_users_parent_id ON users(parent_id);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+CREATE INDEX IF NOT EXISTS idx_users_phone ON users(phone);
 CREATE INDEX IF NOT EXISTS idx_bets_user_status ON bets(user_id, status);
 CREATE INDEX IF NOT EXISTS idx_bets_market_selection ON bets(market_id, selection_id);
 CREATE INDEX IF NOT EXISTS idx_bets_status ON bets(status);

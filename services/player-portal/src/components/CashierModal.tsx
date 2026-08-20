@@ -295,7 +295,6 @@ export const CashierModal: React.FC<CashierModalProps> = ({
       // Credit wallet balance immediately
       if (user) {
         user.availableCredit = (user.availableCredit || 0) + amount;
-        localStorage.setItem('nexus_demo_user', JSON.stringify(user));
       }
 
       setDepositSuccess({
@@ -390,7 +389,6 @@ export const CashierModal: React.FC<CashierModalProps> = ({
 
       // Deduct from wallet balance
       user.availableCredit = Math.max(0, (user.availableCredit || 0) - amount);
-      localStorage.setItem('nexus_demo_user', JSON.stringify(user));
 
       // Persist to local storage
       const existing = JSON.parse(localStorage.getItem('exchange_my_withdrawals') || '[]');

@@ -65,11 +65,11 @@ export const FairplayBetSlip: React.FC<FairplayBetSlipProps> = ({
 
   return (
     <div className="w-full lg:w-80 shrink-0 bg-[#1e1e1e] rounded-md border border-[#2d2d2d] overflow-hidden flex flex-col shadow select-none text-xs">
-      {/* 1. BET SLIP TABS (Fairplay Style) */}
+      {/* 1. BET SLIP TABS (Fairplay & Rudra888 Style: Bet Slip | Open Bets | Edit Stakes) */}
       <div className="bg-[#272727] flex items-center border-b border-[#333]">
         <button
           onClick={() => setActiveTab('BET_SLIP')}
-          className={`flex-1 py-2.5 text-center font-black text-xs uppercase tracking-wider transition-colors border-b-2 ${
+          className={`flex-1 py-2.5 text-center font-black text-[11px] uppercase tracking-wider transition-colors border-b-2 ${
             activeTab === 'BET_SLIP'
               ? 'border-[#f36c21] text-[#f36c21] bg-[#1e1e1e]'
               : 'border-transparent text-[#adadad] hover:text-white'
@@ -79,13 +79,21 @@ export const FairplayBetSlip: React.FC<FairplayBetSlipProps> = ({
         </button>
         <button
           onClick={() => setActiveTab('OPEN_BETS')}
-          className={`flex-1 py-2.5 text-center font-black text-xs uppercase tracking-wider transition-colors border-b-2 ${
+          className={`flex-1 py-2.5 text-center font-black text-[11px] uppercase tracking-wider transition-colors border-b-2 ${
             activeTab === 'OPEN_BETS'
               ? 'border-[#f36c21] text-[#f36c21] bg-[#1e1e1e]'
               : 'border-transparent text-[#adadad] hover:text-white'
           }`}
         >
-          Open Bets ({openBetsCount || activeOpenBets.length})
+          Open ({openBetsCount || activeOpenBets.length})
+        </button>
+        <button
+          type="button"
+          onClick={() => setIsQuickStakeModalOpen(true)}
+          className="px-3 py-2.5 text-center font-bold text-[10px] uppercase text-amber-400 hover:text-amber-300 hover:bg-[#333] transition-colors border-b-2 border-transparent flex items-center justify-center gap-1 cursor-pointer"
+        >
+          <Sliders className="w-3 h-3 text-[#f36c21]" />
+          <span>Edit Stakes</span>
         </button>
       </div>
 

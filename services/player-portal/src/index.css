@@ -14,12 +14,13 @@
   --bo-dark-bg: #141414;
   --bo-teal-grad: linear-gradient(90deg, #135C63 0%, #107A85 50%, #135C63 100%);
   --bo-red-grad: linear-gradient(90deg, #C7332A 0%, #E05048 37%, #9E1421 100%);
-  --back-1: #0d6efd;
-  --back-2: #70a5f8;
-  --back-3: #a5d8ff;
-  --lay-1: #dc3545;
-  --lay-2: #f78da7;
-  --lay-3: #ffc2d1;
+  --back-odds-color: #a5d9fe;
+  --lay-odds-color: #f8d0ce;
+  --theme-primary: #f36c21;
+  --theme-accent: #27AE60;
+  --theme-bg: #121212;
+  --theme-surface: #1e1e1e;
+  --theme-border: #2d2d2d;
   color-scheme: dark;
 }
 
@@ -33,15 +34,15 @@
 
 body {
   margin: 0;
-  background-color: var(--bo-dark-bg);
-  color: var(--bo-white);
-  font-family: 'Lato', Helvetica, Arial, sans-serif;
+  background-color: var(--theme-bg, #141414);
+  color: var(--bo-white, #ffffff);
+  font-family: 'Lato', 'Roboto', 'Work Sans', Helvetica, Arial, sans-serif;
   overflow-x: hidden;
   font-size: 13px;
 }
 
 .mono-num {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'JetBrains Mono', 'Roboto Mono', monospace;
 }
 
 /* Custom Scrollbars */
@@ -60,9 +61,9 @@ body {
   background: #444444;
 }
 
-/* Buttons from fairplay UI spec */
+/* Buttons from benchmark UI spec */
 .login-btn {
-  background-color: var(--bo-primary);
+  background-color: var(--theme-primary, #f36c21);
   color: #ffffff;
   border-radius: 30px;
   padding: 6px 18px;
@@ -75,11 +76,11 @@ body {
 }
 .login-btn:hover {
   filter: brightness(1.1);
-  box-shadow: 0 0 10px rgba(243, 108, 33, 0.4);
+  box-shadow: 0 0 12px rgba(243, 108, 33, 0.4);
 }
 
 .register-btn {
-  background-color: #27AE60;
+  background-color: var(--theme-accent, #27AE60);
   color: #ffffff;
   border-radius: 30px;
   padding: 6px 16px;
@@ -92,24 +93,12 @@ body {
 }
 .register-btn:hover {
   filter: brightness(1.1);
-  box-shadow: 0 0 10px rgba(39, 174, 96, 0.4);
+  box-shadow: 0 0 12px rgba(39, 174, 96, 0.4);
 }
 
-.demo-login-btn {
-  background-color: #0d6efd;
-  color: #ffffff;
-  border-radius: 30px;
-  padding: 6px 14px;
-  font-weight: 700;
-  text-transform: uppercase;
-  font-size: 12px;
-  border: none;
-  cursor: pointer;
-}
-
-/* 6-Odds Column Styling */
+/* 6-Odds Column Depth Styling */
 .odds-box-back-1 {
-  background-color: #72bbef;
+  background-color: var(--back-odds-color, #72bbef);
   color: #000000;
 }
 .odds-box-back-2 {
@@ -122,7 +111,7 @@ body {
 }
 
 .odds-box-lay-1 {
-  background-color: #faa9ba;
+  background-color: var(--lay-odds-color, #faa9ba);
   color: #000000;
 }
 .odds-box-lay-2 {
@@ -134,21 +123,31 @@ body {
   color: #333333;
 }
 
-/* Odds Pulse Animation */
-@keyframes flash-blue {
-  0% { background-color: rgba(37, 99, 235, 0.8); }
-  100% { background-color: #72bbef; }
+/* Dynamic Live Price Tick Flash Animations */
+@keyframes flash-green-tick {
+  0% { transform: scale(1.04); box-shadow: 0 0 8px rgba(39, 174, 96, 0.9); }
+  100% { transform: scale(1); box-shadow: none; }
 }
 
-@keyframes flash-pink {
-  0% { background-color: rgba(236, 72, 153, 0.8); }
-  100% { background-color: #faa9ba; }
+@keyframes flash-red-tick {
+  0% { transform: scale(1.04); box-shadow: 0 0 8px rgba(255, 65, 72, 0.9); }
+  100% { transform: scale(1); box-shadow: none; }
 }
 
-.flash-back {
-  animation: flash-blue 0.4s ease-out;
+.tick-up {
+  animation: flash-green-tick 0.35s ease-out;
 }
 
-.flash-lay {
-  animation: flash-pink 0.4s ease-out;
+.tick-down {
+  animation: flash-red-tick 0.35s ease-out;
+}
+
+/* Suspended market overlay */
+.suspended-overlay {
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(2px);
+  color: #FF4148;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }

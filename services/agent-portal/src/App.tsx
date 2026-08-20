@@ -44,8 +44,8 @@ export const App: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Login form state
-  const [loginUsername, setLoginUsername] = useState<string>('admin');
-  const [loginPassword, setLoginPassword] = useState<string>('password123');
+  const [loginUsername, setLoginUsername] = useState<string>('');
+  const [loginPassword, setLoginPassword] = useState<string>('');
   const [loginError, setLoginError] = useState<string | null>(null);
 
   const DEFAULT_LEDGER_ENTRIES: LedgerEntry[] = [
@@ -291,7 +291,7 @@ export const App: React.FC = () => {
     await fetchDashboardData();
   };
 
-  // If not logged in, render Login Page with Demo Account Switcher
+  // If not logged in, render Login Page
   if (!currentUser) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-[#141414] relative overflow-hidden">
@@ -319,53 +319,9 @@ export const App: React.FC = () => {
             </div>
           )}
 
-          {/* Quick Demo Login Switcher */}
-          <div className="space-y-2">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 block text-center">
-              Quick Switch Role Login (Distinct Passwords)
-            </span>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => handleLogin('admin', 'Admin@Nexus2026!')}
-                className="p-2.5 rounded-xl text-xs font-bold bg-[#262626] hover:bg-[#333] border border-purple-500/40 text-purple-300 transition-all text-left flex flex-col hover:scale-[1.02] cursor-pointer"
-              >
-                <span>Global Admin</span>
-                <span className="text-[10px] text-purple-400 font-normal">admin / Admin@Nexus2026!</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleLogin('supermaster_asia', 'SuperAsia#7788$')}
-                className="p-2.5 rounded-xl text-xs font-bold bg-[#262626] hover:bg-[#333] border border-blue-500/40 text-blue-300 transition-all text-left flex flex-col hover:scale-[1.02] cursor-pointer"
-              >
-                <span>Super Master</span>
-                <span className="text-[10px] text-blue-400 font-normal">supermaster_asia / SuperAsia#7788$</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleLogin('master_mumbai', 'MasterMum*9922#')}
-                className="p-2.5 rounded-xl text-xs font-bold bg-[#262626] hover:bg-[#333] border border-emerald-500/40 text-emerald-300 transition-all text-left flex flex-col hover:scale-[1.02] cursor-pointer"
-              >
-                <span>Master Agency</span>
-                <span className="text-[10px] text-emerald-400 font-normal">master_mumbai / MasterMum*9922#</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleLogin('agent_vikram', 'AgentVikram@4411')}
-                className="p-2.5 rounded-xl text-xs font-bold bg-[#262626] hover:bg-[#333] border border-amber-500/40 text-amber-300 transition-all text-left flex flex-col hover:scale-[1.02] cursor-pointer"
-              >
-                <span>Retail Agent</span>
-                <span className="text-[10px] text-amber-400 font-normal">agent_vikram / AgentVikram@4411</span>
-              </button>
-            </div>
-          </div>
-
           <div className="flex items-center space-x-2">
             <div className="h-px flex-1 bg-zinc-800" />
-            <span className="text-[10px] uppercase font-bold text-zinc-500">Or manual credentials</span>
+            <span className="text-[10px] uppercase font-bold text-zinc-500">Sign in with your credentials</span>
             <div className="h-px flex-1 bg-zinc-800" />
           </div>
 

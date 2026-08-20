@@ -22,7 +22,7 @@ import { MobileBottomNav } from './components/MobileBottomNav';
 import { api, setAuthToken, removeAuthToken, getAuthToken } from './services/api';
 import { playerSocket } from './services/socket';
 import { SportsbookEngine } from './services/sportsbookEngine';
-import { INITIAL_LIVE_MATCHES, INITIAL_CASHOUT_BETS } from './services/mockSportsbookData';
+import { INITIAL_CASHOUT_BETS } from './services/mockSportsbookData';
 import { fetchRealWorldSports } from './services/realSportsClient';
 import { fetchFairplayExchangeMatches } from './services/fairplayFeedClient';
 import { MatkaHub } from './components/MatkaHub';
@@ -104,7 +104,8 @@ function convertTelemetryToMatch(t: any): LiveMatch {
       }))
     : [
         { id: '1', name: t.homeTeam || 'Home', price: 1.95 },
-        { id: '2', name: t.awayTeam || 'Away', price: 1.95 }
+        { id: '2', name: t.awayTeam || 'Away', price: 1.95 },
+        ...(t.sport === 'FOOTBALL' ? [{ id: '3', name: 'Draw', price: 3.20 }] : [])
       ];
 
   const markets: BettingMarket[] = [
@@ -286,7 +287,6 @@ export const App: React.FC = () => {
         ...prev,
         availableCredit: (prev.availableCredit || 0) + amount
       };
-      localStorage.setItem('nexus_demo_user', JSON.stringify(updated));
       return updated;
     });
     setToastMessage(`🎉 ${description} (+₹${amount})!`);
@@ -298,6 +298,8 @@ export const App: React.FC = () => {
   const [infoModalTab, setInfoModalTab] = useState<InfoModalTab>('ABOUT');
 
   // Theme & Brand Customizer Modal State
+  const [isThemeModalOpen, setIsThemeModalOpen] = useState<boolean>(false);
+
   // Toast Notification State
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -310,8 +312,8 @@ export const App: React.FC = () => {
   const [myBets, setMyBets] = useState<UserBet[]>([]);
 
   // Login Form
-  const [loginUsername, setLoginUsername] = useState<string>('player_rahul');
-  const [loginPassword, setLoginPassword] = useState<string>('RahulWin@2026');
+  const [loginUsername, setLoginUsername] = useState<string>('');
+  const [loginPassword, setLoginPassword] = useState<string>('');
   const [loginError, setLoginError] = useState<string | null>(null);
 
   // Fetch logged in user details from real backend database
@@ -320,18 +322,9 @@ export const App: React.FC = () => {
       const meRes = await api.auth.getMe();
       if (meRes && meRes.user) {
         setCurrentUser(meRes.user);
-        localStorage.setItem('nexus_demo_user', JSON.stringify(meRes.user));
       }
     } catch (err) {
       console.log('No active authenticated backend session');
-      const savedUser = localStorage.getItem('nexus_demo_user');
-      if (savedUser) {
-        try {
-          setCurrentUser(JSON.parse(savedUser));
-        } catch {
-          setCurrentUser({ id: 'usr_demo_101', username: 'player_rahul', availableCredit: 10000, creditLimit: 10000, exposure: 0, role: 'PLAYER' });
-        }
-      }
     }
   }, []);
 
@@ -413,7 +406,7 @@ export const App: React.FC = () => {
     }
   }, []);
 
-  // Initial load: Check real session, load persistent bets and fallback demo user
+  // Initial load: Check real session, load persistent bets. No demo-user fallback.
   useEffect(() => {
     // 1. Restore persistent placed bets and cash out bets from localStorage
     const savedBets = localStorage.getItem('nexus_placed_bets');
@@ -436,25 +429,12 @@ export const App: React.FC = () => {
       } catch {}
     }
 
-    // 2. Auth & User Initialization
+    // 2. Auth & User Initialization — real token only
     const token = getAuthToken();
     if (token) {
       Promise.all([fetchUserData(), fetchExchangeMarkets(), fetchLiveTelemetry()]).finally(() => setLoading(false));
     } else {
-      const savedUser = localStorage.getItem('nexus_demo_user');
-      if (savedUser) {
-        try {
-          setCurrentUser(JSON.parse(savedUser));
-        } catch {
-          const defUser = { id: 'usr_demo_101', username: 'player_rahul', availableCredit: 10000, creditLimit: 10000, exposure: 0, role: 'PLAYER' };
-          setCurrentUser(defUser);
-          localStorage.setItem('nexus_demo_user', JSON.stringify(defUser));
-        }
-      } else {
-        const defUser = { id: 'usr_demo_101', username: 'player_rahul', availableCredit: 10000, creditLimit: 10000, exposure: 0, role: 'PLAYER' };
-        setCurrentUser(defUser);
-        localStorage.setItem('nexus_demo_user', JSON.stringify(defUser));
-      }
+      localStorage.removeItem('nexus_demo_user');
       Promise.all([fetchExchangeMarkets(), fetchLiveTelemetry()]).finally(() => setLoading(false));
     }
   }, [fetchUserData, fetchExchangeMarkets, fetchLiveTelemetry]);
@@ -624,6 +604,7 @@ export const App: React.FC = () => {
 
   const handleLogout = () => {
     removeAuthToken();
+    localStorage.removeItem('nexus_demo_user');
     setCurrentUser(null);
     playerSocket.disconnect();
   };
@@ -787,7 +768,6 @@ export const App: React.FC = () => {
           availableCredit: Math.max(0, prev.availableCredit - totalLiability),
           exposure: (prev.exposure || 0) + totalLiability
         };
-        localStorage.setItem('nexus_demo_user', JSON.stringify(updated));
         return updated;
       });
 
@@ -818,7 +798,6 @@ export const App: React.FC = () => {
             availableCredit: u.availableCredit + refund,
             exposure: Math.max(0, (u.exposure || 0) - refund)
           };
-          localStorage.setItem('nexus_demo_user', JSON.stringify(refunded));
           return refunded;
         });
       }
@@ -941,6 +920,7 @@ export const App: React.FC = () => {
         onOpenTwoFactor={() => setIsTwoFactorModalOpen(true)}
         onOpenStatementExport={() => setIsStatementExportOpen(true)}
         onOpenSpinWheel={() => setIsSpinWheelOpen(true)}
+        onOpenThemeCustomizer={() => setIsThemeModalOpen(true)}
         onLogout={handleLogout}
         openBetsCount={myBets.filter((b) => b.status === 'UNMATCHED' || b.status === 'MATCHED').length}
         oneClickBet={oneClickBet}
@@ -1376,6 +1356,12 @@ export const App: React.FC = () => {
         onClose={() => setIsSpinWheelOpen(false)}
         user={currentUser}
         onRewardWon={handleSpinReward}
+      />
+
+      {/* Benchmark Theme & Whitelabel Presets Modal */}
+      <ThemeCustomizerModal
+        isOpen={isThemeModalOpen}
+        onClose={() => setIsThemeModalOpen(false)}
       />
     </div>
   );

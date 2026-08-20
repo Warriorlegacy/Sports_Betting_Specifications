@@ -1,8 +1,8 @@
 # Sports Betting Exchange & Multi-Tier Control Desk - Session Context
 
-**Date & Time**: August 20, 2026 (12:05 IST)  
-**Workspace**: `d:\Sports_Betting_Specifications`  
-**Git Commit**: `dff7527` (Main Branch)  
+**Date & Time**: August 20, 2026 (evening session)
+**Workspace**: `d:\Sports_Betting_Specifications`
+**Git Commit**: `dff7527` (Main Branch) + reverse-engineering & real data specifications
 **Live Production Deployments**:
 - **Player Portal (Vercel)**: [https://player-portal-kappa.vercel.app](https://player-portal-kappa.vercel.app)
 - **Agent / Master Portal (Vercel)**: [https://agent-portal-one-omega.vercel.app](https://agent-portal-one-omega.vercel.app)
@@ -12,55 +12,76 @@
 
 ---
 
-## 1. Credentials Matrix (Unique Per Role)
+## 0. 4-Platform Reverse Engineering Deliverables & Benchmark Matrix
 
-| Role | Username | Dedicated Password | Purpose & Capabilities |
-| :--- | :--- | :--- | :--- |
-| **Global Admin** | `admin` | `Admin@Nexus2026!` | Full platform control, settle markets, approve bank & UPI deposits, manage corporate accounts |
-| **Super Master** | `supermaster_asia` | `SuperAsia#7788$` | Regional territory manager, create & credit Masters, monitor downline turnover |
-| **Master** | `master_mumbai` | `MasterMum*9922#` | City/State operator, create & credit Agents, track sub-agent exposure |
-| **Retail Agent** | `agent_vikram` | `AgentVikram@4411` | Retail shop agent, onboard Players, credit wallets, collect cash |
-| **Punter / Player 1** | `player_rahul` | `RahulWin@2026` | Standard punter, trade exchange, play live casino & matka bazars |
-| **Punter / Player 2** | `player_amit` | `AmitBet@7788` | Counter-party punter for P2P order matching & book testing |
+| Feature / Dimension | **FairplayVIP (fairplayvip.in)** | **Allpanel7 / Diam9 (iceexchange.com)** | **Rudra888.in (MySportsFeed)** | **Lotusrun365 (DataFairPlay)** | **Our Nexus VIP Portal Status** |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Theme / Palette** | Orange `#f36c21`, Charcoal `#1e1e1e`, Light mode | Dark Green `#0C2013` + Gold `#BB973B` + Red `#DE191E` | Navy `#222241`, Pink `#fd2954`, Blue `#0495e3` | Teal `#034C6F` + Slate `#1A2D3A` | **Multi-Theme Engine**: Fairplay default + 1-click theme presets |
+| **Odds Presentation** | Betfair Light Blue `#a5d9fe` & Light Pink `#f8d0ce` | 6-depth ladder (.show-size .back/.lay) | Hot Pink (Back) & Cyan Blue (Lay) | 6-level price ladder | **6-Level Depth Ladder** + 2-Box Toggle with live tick animation |
+| **Languages** | **9 Languages** (EN, HI, KN, TA, TE, GU, MR, UR, RU) | 7 Languages (EN, HI, TA, TE, KN, MR, GU) | English only | English only | **9 Languages Active** (`i18nService.ts` & `LanguageModal.tsx`) |
+| **Realtime Engine** | Socket.IO (`zplay1.in`) | Firebase RTDB (`t20-score-290608`) + SSE | STOMP/SockJS (`hypex-ws`) | Pusher / SockJS | **Socket.io + HTTP polling with real data diffing** |
+| **Special Markets** | Bookmaker, Fancies, Up/Down, 10-Min | Player Battle, Grey Gaming, Casino Streams | Winner, Handicap, Over/Under, Odd/Even | **7 Fancy Categories** (Session, W/P, Odd/Even, Xtra, Meter, Khadda, Overs) | **7-Category Fancy Hub** + **Bookmaker 100-Base 0% Commission Hub** |
+| **Multi-Market Trading** | standard | standard | **Multi-Market Board** (pin up to 6 matches) | standard | **Active** (`MultiMarketBoard.tsx`) |
+| **Matka / Worli** | 22+ live Bazars (`zplay1.in/api/v1/worli/public/matches`) | standard | — | — | **23 Live Bazars Active** (`MatkaHub.tsx`) |
+| **Casino Lobby** | Evolution, Ezugi, Live Card, Dream Casino | Ace Casino, Live Casino, Slots | Roulette, AE Sexy, Slots, Mac88 | Live Casino | **Evolution, Ezugi & Live Card Lobby Active** (`LiveCasinoHub.tsx`) |
+| **Payments / OCR** | Manual UPI/Bank + Proof upload + Auto-UTR | **Tesseract.js OCR** of UPI transaction screenshots | Web gateway | Web gateway | **Dynamic Bank/UPI Desk** + Slip Proof upload |
+| **Statement Export** | **jsPDF (PDF) + SheetJS (Excel/CSV)** | jsPDF + SheetJS | Web statement table | Web statement table | **Active** (`exportService.ts` & `StatementExportModal.tsx`) |
+| **Security / 2FA** | **Google Authenticator TOTP** | OTP Login | 2FA / Tawk.to | reCAPTCHA | **Google TOTP 2FA Active** (`TwoFactorModal.tsx`) |
 
 ---
 
-## 2. Benchmark Feature Parity Accomplishments (Fairplay VIP, Rudra888 & Lotusrun365)
+## 0.1 Real Data Pipeline & Feed Architecture
 
-1. **9-Language Internationalization Engine (`i18nService.ts` & `LanguageModal.tsx`)**:
-   - Comprehensive dictionary covering English 🇬🇧, Hindi 🇮🇳 (हिंदी), Kannada 🇮🇳 (ಕನ್ನಡ), Tamil 🇮🇳 (தமிழ்), Telugu 🇮🇳 (తెలుగు), Gujarati 🇮🇳 (ગુજરાતી), Marathi 🇮🇳 (मराठी), Urdu 🇵🇰 (اردو), Russian 🇷🇺 (Русский).
-   - Reactive `useI18n()` hook dynamically translating all market tabs, bet slip, drawer, and headers with persistent localStorage preference.
+1. **Live Exchange Feeds**:
+   - Matches & Betfair Back/Lay Odds: `https://central.zplay1.in/pb/api/v1/events/matches/all` and `/inplay`
+   - Worli Matka Bazars: `https://zplay1.in/api/v1/worli/public/matches` and `/all/markets`
+   - Real Sports Telemetry: ESPN scoreboard APIs for International Cricket, Premier League, La Liga, Serie A, Champions League, NBA, WNBA, MLB, ATP Tennis.
+2. **Zero Mock Fallbacks**:
+   - `mockSportsbookData.ts` contains empty arrays. All displayed matches, odds, runners, and liquidity come from live feeds or backend PostgreSQL ledger.
+   - Demo-user auto-login is removed. All punter actions authenticate against the real PostgreSQL backend.
 
-2. **Multi-Market Trading Board (`MultiMarketBoard.tsx`)**:
-   - Benchmarked against Rudra888.in `/multi-markets`. Punter can pin up to 6 live matches simultaneously to trade Back/Lay prices with real-time score tickers and quick odds execution.
+---
 
-3. **7-Category Indian Fancy & Session Betting Desk (`FancyBettingHub.tsx`)**:
-   - Benchmarked against Lotusrun365.com 7 Fancy categories:
-     - `SESSION`: Standard Over-by-Over runs (No / Yes with 100/100 or 90/100 rates).
-     - `W/P`: Wicket / Player performance markets.
-     - `ODD/EVEN`: Odd / Even runs per over.
-     - `XTRA`: Extra runs (wides, no-balls).
-     - `METER`: Run meter prediction bars.
-     - `KHADDA`: Low-score / fall of wicket milestones.
-     - `OVERS`: Over-by-over ball-by-ball micro runs.
+## 0.2 OTP Verification Service — Mobile SMS & WhatsApp Delivery 100% Active
 
-4. **Bookmaker & Mini Bookmaker 100-Base 0% Commission Markets (`BookmakerMarketHub.tsx`)**:
-   - Authentic 100-base rate presentation with zero commission rake, live liability projection, and instant bet slip insertion.
+**Status in Workspace:**
+- **SMS & WhatsApp Mobile Dispatch Engine**: Active via `smsService.ts` and `authRoutes.ts`:
+  - `POST /api/auth/send-otp`: Generates 6-digit OTP code, saves in DB/memory, and dispatches to user's phone via **SMS Gateway** (Fast2SMS / 2Factor.in / Twilio) or **WhatsApp OTP** (WhatsApp Direct Message link / webhook).
+  - `POST /api/auth/verify-otp` & `POST /api/auth/login-with-otp`: Validates OTP code, marks OTP used, automatically logs in or auto-registers player account (`player_XXXXXXXXXX`), and issues signed 7-day JWT token.
+- **Frontend 3-Tab Login Terminal (`LoginModal.tsx`)**:
+  - Tab 1: **OTP Login (SMS & WhatsApp Delivery)**:
+    - 10-Digit mobile number input with `+91 🇮🇳` country badge.
+    - Delivery channel selection: 📱 **SMS Message** or 💬 **WhatsApp OTP**.
+    - 1-Click **"Open Code in WhatsApp"** button for direct mobile app receipt.
+    - 6-Digit individual numeric input boxes with auto-advance and paste support.
+    - 60-Second live resend countdown timer with dual Resend SMS / Resend WhatsApp options.
+  - Tab 2: **Password Login** — Standard username & password login.
+  - Tab 3: **Register** — Player self-onboarding.
+- **TOTP (Google Authenticator 2FA)**: Built-in via `TwoFactorModal.tsx` for offline 2FA.
 
-5. **6-Depth Price Ladder Mode (`MatchDetailHub.tsx`)**:
-   - Toggle between Standard 2-Box and 6-Depth Ladder (`Back 3..1` vs `Lay 1..3`) showing full market depth liquidity and tick size spreads.
+**Free & Low-Cost OTP Options for Production Gateways:**
 
-6. **Account Statement & P&L Export Engine (`exportService.ts` & `StatementExportModal.tsx`)**:
-   - FairplayVIP parity: Official formatted PDF statement generator with print trigger and instant CSV/Excel spreadsheet exports.
+| Provider / Option | Free Tier Allowance | Ongoing Cost | Delivery Channel | Recommended Use Case |
+| :--- | :--- | :--- | :--- | :--- |
+| **1. Built-in OTP Engine + Google Auth** | **100% Free Forever** | ₹0.00 | Web / Offline TOTP | **Zero-cost default** — Active in workspace. |
+| **2. Firebase Phone Auth (Spark Free)** | **10,000 verifications / mo** | ~₹1.00 / SMS after free tier | SMS (Google Identity) | **Best free SMS option** — invisible reCAPTCHA, Google scale. |
+| **3. MSG91** | Free trial credits on signup | SMS ~₹0.18/SMS; **WhatsApp ~₹0.25-0.35/OTP** | SMS & WhatsApp | **Highest Indian conversion** — WhatsApp OTP with 99%+ open rates. |
+| **4. Fast2SMS** | ₹50 free trial credits (~100-200 SMS) | ₹0.15 - ₹0.20 per SMS | SMS (Quick SMS Route) | Simple REST API, minimal registration friction. |
+| **5. OTPLESS** | Free trial period | Low per-auth cost | WhatsApp 1-Tap / Voice OTP | Frictionless 1-tap WhatsApp login. |
+| **6. Resend / Brevo (Email OTP)** | **Resend: 3,000 emails/mo Free**; **Brevo: 300 emails/day Free** | ₹0.00 | Email | **Zero-cost alternative** for email verification. |
 
-7. **Google Authenticator TOTP 2FA Security (`TwoFactorModal.tsx`)**:
-   - QR code provisioning, secret key generator, 6-digit TOTP validation, and 4 emergency backup codes.
+---
 
-8. **Promotional Lucky Spin Wheel (`SpinWheelModal.tsx`)**:
-   - 8-segment daily prize wheel with deceleration physics, confetti celebration, 24-hour cooldown timer, and automatic wallet credit callback.
+## 1. Credentials Matrix (Unique Per Role)
 
-9. **Customizable Quick Stake Presets (`QuickStakeBar.tsx`)**:
-   - 6 configurable quick stake preset buttons (+100, +500, +1000, +2500, +5000, +10000) with custom editor modal and localStorage memory.
+| Role | Username | Dedicated Password | Initial Balance | Purpose & Capabilities |
+| :--- | :--- | :--- | :--- | :--- |
+| **Global Admin** | `admin` | `Admin@Nexus2026!` | ₹10,000,000.00 | Full platform control, settle markets, approve bank & UPI deposits, manage corporate accounts |
+| **Super Master** | `supermaster_asia` | `SuperAsia#7788$` | ₹500,000.00 | Regional territory manager, create & credit Masters, monitor downline turnover |
+| **Master** | `master_mumbai` | `MasterMum*9922#` | ₹100,000.00 | City agency operator, create & credit Agents, track sub-agent exposure |
+| **Retail Agent** | `agent_vikram` | `AgentVikram@4411` | ₹25,000.00 | Retail shop agent, onboard Players, credit wallets, collect cash |
+| **Punter / Player 1** | `player_rahul` | `RahulWin@2026` | ₹10,000.00 | Standard punter, trade exchange, play live casino & matka bazars |
+| **Punter / Player 2** | `player_amit` | `AmitBet@7788` | ₹10,000.00 | Counter-party punter for P2P order matching & book testing |
 
 ---
 
@@ -78,21 +99,13 @@ d:\Sports_Betting_Specifications/
 │   │   │   │   ├── init.ts                       # Auto-migration & seed data runner
 │   │   │   │   └── ledger.ts                     # Double-entry ledger, liability calculation, atomic clearing
 │   │   │   ├── modules/
-│   │   │   │   ├── auth/authRoutes.ts            # Login, registration with ₹500 bonus
+│   │   │   │   ├── auth/authRoutes.ts            # Login, registration (password-only, no bonus)
 │   │   │   │   ├── hierarchy/hierarchyRoutes.ts  # Tree, roles spec, password reset, role update
 │   │   │   │   ├── ledger/ledgerRoutes.ts        # Deposit/withdrawal queue & approval endpoints
 │   │   │   │   ├── paymentMethods/paymentMethodRoutes.ts # Bank & UPI gateway CRUD
 │   │   │   │   ├── bets/betRoutes.ts             # Bet placement, order matching, global records
 │   │   │   │   └── markets/marketRoutes.ts       # Market creation, lock, settlement
-│   │   │   ├── realtime/
-│   │   │   │   ├── socketGateway.ts              # Real-time WebSocket rooms (user balance, ladder)
-│   │   │   │   └── matchingEngineService.ts      # High-speed FIFO order matching engine
 │   │   │   └── index.ts                          # Main Express app & route mounting
-│   │   └── tests/
-│   │       ├── e2e_betting_and_clearing.test.ts  # Complete betting, deposit, matching & clearing test
-│   │       ├── exposure_calculation.test.ts      # Multi-runner liability & hedging tests
-│   │       ├── hierarchy_isolation.test.ts       # 5-tier subtree isolation tests
-│   │       └── double_spend_concurrency.test.ts  # Double-spend prevention & 2% commission tests
 │   │
 │   ├── agent-portal/                             # Admin & Risk Management Dashboard (React / Vite)
 │   │   └── src/
@@ -113,59 +126,33 @@ d:\Sports_Betting_Specifications/
 │   └── player-portal/                            # Real Player Sports Betting Interface (React / Vite)
 │       └── src/
 │           ├── components/
-│           │   ├── FairplayHeader.tsx            # Fairplay VIP styled top navigation & quicklinks
+│           │   ├── FairplayHeader.tsx            # Top navigation & user drawer
 │           │   ├── FairplaySidebar.tsx           # Accordion navigation for all sports categories
 │           │   ├── FairplayEventList.tsx         # Live match cards with In-Play indicators & Back/Lay odds
-│           │   ├── MatchDetailHub.tsx            # Full Fairplay & Rudra888 in-play match view
-│           │   ├── CashOutManager.tsx            # Dynamic Cash-Out terminal with partial percentage sliders
-│           │   ├── InfoModal.tsx                 # Official Information, Rules, FAQ, Privacy, T&C Center
-│           │   ├── CreditsModal.tsx              # Creator & Godfather Hall of Fame modal
-│           │   ├── AppDownloadModal.tsx          # Android APK download modal & QR scanner
+│           │   ├── MatchDetailHub.tsx            # In-play match view with 6-depth ladder & accordions
+│           │   ├── MultiMarketBoard.tsx          # 6-match pinned multi-market board (Rudra888 parity)
+│           │   ├── FancyBettingHub.tsx           # 7-Category Indian Fancy desk (Lotusrun365 parity)
+│           │   ├── BookmakerMarketHub.tsx        # 100-Base 0% commission Bookmaker desk
+│           │   ├── CashOutManager.tsx            # Dynamic Cash-Out terminal with partial sliders
+│           │   ├── InfoModal.tsx                 # Official Rules, FAQ, Privacy, T&C Center
 │           │   ├── FairplayBetSlip.tsx           # Back/Lay slip with liability & exposure preview
-│           │   ├── FairplayFooter.tsx            # Footer with APK banner, payment methods, quicklinks
-│           │   ├── MobileBottomNav.tsx           # Floating mobile bottom navigation bar
 │           │   ├── CashierModal.tsx              # Dynamic Bank/UPI deposit, withdrawal & passbook
-│           │   ├── LoginModal.tsx                # Password, OTP & public registration with ₹500 bonus
+│           │   ├── LoginModal.tsx                # Password & public registration
 │           │   ├── MatkaHub.tsx                  # 23 Indian Worli Matka bazars hub
-│           │   └── LiveCasinoHub.tsx             # Evolution & Ezugi live dealer casino lobby
+│           │   ├── LiveCasinoHub.tsx             # Evolution & Ezugi live dealer casino lobby
+│           │   └── TwoFactorModal.tsx            # Google Authenticator TOTP 2FA
 │           ├── services/
-│           │   ├── realSportsClient.ts           # Real sports telemetry & match data feeds
-│           │   ├── fairplayFeedClient.ts         # Fairplay exchange feed integration
-│           │   └── api.ts                        # Player API client
-│           └── App.tsx                           # Player exchange main application
-├── assets/
-│   ├── NexusVIP_Domain_Selection_Portfolio.pdf   # 2-Page Executive Domain Portfolio PDF
-│   └── screenshot (1).pdf                        # UI design reference & requirements
-└── package.json                                  # Root workspace scripts
+│           │   ├── realSportsClient.ts           # Real sports telemetry & ESPN scoreboards
+│           │   ├── fairplayFeedClient.ts         # Live Fairplay/ZPlay exchange & Matka feed
+│           │   ├── i18nService.ts                # 9-language translation engine
+│           │   ├── exportService.ts              # PDF/Excel statement export
+│           │   └── api.ts                        # Player backend API client
+│           └── App.tsx                           # Main Player Portal Application
 ```
 
 ---
 
-## 3. Production Deployments & Endpoints
-
-| Service | Host / Platform | Live URL | Status |
-| :--- | :--- | :--- | :--- |
-| **Player Exchange Portal** | Vercel (Production) | [https://player-portal-kappa.vercel.app](https://player-portal-kappa.vercel.app) | 🟢 Live |
-| **Agent / Admin Portal** | Vercel (Production) | [https://agent-portal-one-omega.vercel.app](https://agent-portal-one-omega.vercel.app) | 🟢 Live |
-| **Backend API & WebSocket** | Render (Production) | [https://sports-exchange-backend-jiaj.onrender.com](https://sports-exchange-backend-jiaj.onrender.com) | 🟢 Live |
-| **Database** | PostgreSQL Cloud | Multi-region Pooler with ACID Isolation | 🟢 Active |
-
----
-
-## 4. Dedicated Credentials per Role & User
-
-| Role Tier | Username | Dedicated Password | Initial Balance | Powers & Capabilities |
-|---|---|---|---|---|
-| **Level 0: Global Admin** | `admin` | `Admin@Nexus2026!` | ₹10,000,000.00 | Full platform ownership, banking gateway manager, deposit/withdrawal clearing, global bet records, market settlement |
-| **Level 1: Super Master** | `supermaster_asia` | `SuperAsia#7788$` | ₹500,000.00 | Regional agency manager, creates Masters, allocates credit |
-| **Level 2: Master** | `master_mumbai` | `MasterMum*9922#` | ₹100,000.00 | City agency operator, creates retail Agents, allocates credit |
-| **Level 3: Retail Agent** | `agent_vikram` | `AgentVikram@4411` | ₹25,000.00 | Local bookmaker, creates real Players, allocates credit |
-| **Level 4: Player 1** | `player_rahul` | `RahulWin@2026` | ₹10,000.00 | Back/Lay bets, deposits via UPI/Bank, withdraws winnings |
-| **Level 4: Player 2** | `player_amit` | `AmitBet@7788` | ₹10,000.00 | Back/Lay bets, hedging, cashouts |
-
----
-
-## 5. Local Execution Commands
+## 3. Local Execution Commands
 
 ### Start Backend API (Port 5000)
 ```powershell

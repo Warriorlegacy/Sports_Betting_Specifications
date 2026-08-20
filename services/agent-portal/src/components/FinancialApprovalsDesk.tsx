@@ -316,18 +316,6 @@ export const FinancialApprovalsDesk: React.FC = () => {
       );
       localStorage.setItem('exchange_my_withdrawals', JSON.stringify(updatedLocal));
 
-      // If rejected, refund user wallet
-      if (withdrawAction === 'REJECT') {
-        const savedUser = localStorage.getItem('nexus_demo_user');
-        if (savedUser) {
-          try {
-            const u = JSON.parse(savedUser);
-            u.availableCredit = (u.availableCredit || 0) + (selectedWithdrawal.amount || 0);
-            localStorage.setItem('nexus_demo_user', JSON.stringify(u));
-          } catch {}
-        }
-      }
-
       setSelectedWithdrawal(null);
       setWithdrawAction(null);
       setWithdrawRefId('');

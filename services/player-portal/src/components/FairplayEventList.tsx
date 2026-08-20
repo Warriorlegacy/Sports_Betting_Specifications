@@ -146,14 +146,9 @@ export const FairplayEventList: React.FC<FairplayEventListProps> = ({
                   ]
                 };
 
-                const safeSelections = Array.isArray(mainMarket.selections) ? mainMarket.selections : [];
-                const s1 = safeSelections[0];
-                const s2 = safeSelections[1];
-
-                const s1Back = (s1 && typeof s1.price === 'number') ? s1.price : 1.95;
-                const s1Lay = Math.round((s1Back + 0.03) * 100) / 100;
-                const s2Back = (s2 && typeof s2.price === 'number') ? s2.price : 2.05;
-                const s2Lay = Math.round((s2Back + 0.04) * 100) / 100;
+                const safeSelections: any[] = Array.isArray(mainMarket.selections) ? mainMarket.selections : [];
+                const fmtVol = (n: number | undefined, fallback: string) =>
+                  n == null ? fallback : n >= 1000 ? `${+(n / 1000).toFixed(1)}k` : `${Math.round(n)}`;
 
                 return (
                   <div
@@ -206,135 +201,78 @@ export const FairplayEventList: React.FC<FairplayEventListProps> = ({
                       </div>
                     </div>
 
-                    {/* RIGHT 6-ODDS COLUMN MATRIX */}
+                    {/* RIGHT ODDS COLUMN MATRIX — one Back/Lay pair per market selection (2-way, 3-way w/ Draw, etc.) */}
                     <div className="flex items-center gap-1.5 shrink-0 overflow-x-auto">
-                      {/* Selection 1 Odds (e.g. Team 1) */}
-                      {s1 && (
-                        <div className="flex flex-col items-center">
-                          <span className="text-[10px] font-bold text-[#adadad] mb-0.5 truncate max-w-[80px]">
-                            {s1.name}
-                          </span>
-                          <div className="flex items-center space-x-0.5">
-                            {/* Back 1 */}
-                            <button
-                              onClick={() =>
-                                onSelectOdds(
-                                  match.id,
-                                  mainMarket.id,
-                                  mainMarket.name,
-                                  s1.id,
-                                  s1.name,
-                                  s1Back,
-                                  'BACK'
-                                )
-                              }
-                              className={`w-11 sm:w-12 h-9 rounded flex flex-col items-center justify-center transition-transform active:scale-95 odds-box-back-1 ${
-                                selectedSelectionId === s1.id && selectedOddsType === 'BACK'
-                                  ? 'ring-2 ring-blue-500 font-black'
-                                  : ''
-                              }`}
-                            >
-                              <span className="font-mono font-black text-xs leading-none text-black">
-                                {s1Back.toFixed(2)}
-                              </span>
-                              <span className="text-[9px] text-[#333] font-mono leading-none mt-0.5">
-                                45k
-                              </span>
-                            </button>
+                      {safeSelections.map((sel) => {
+                        const back = typeof sel.backPrice === 'number'
+                          ? sel.backPrice
+                          : typeof sel.price === 'number' ? sel.price : 1.95;
+                        const lay = typeof sel.layPrice === 'number'
+                          ? sel.layPrice
+                          : +(back + 0.03).toFixed(2);
+                        return (
+                          <div key={sel.id} className="flex flex-col items-center">
+                            <span className="text-[10px] font-bold text-[#adadad] mb-0.5 truncate max-w-[80px]">
+                              {sel.name}
+                            </span>
+                            <div className="flex items-center space-x-0.5">
+                              {/* Back */}
+                              <button
+                                onClick={() =>
+                                  onSelectOdds(
+                                    match.id,
+                                    mainMarket.id,
+                                    mainMarket.name,
+                                    sel.id,
+                                    sel.name,
+                                    back,
+                                    'BACK'
+                                  )
+                                }
+                                className={`w-11 sm:w-12 h-9 rounded flex flex-col items-center justify-center transition-transform active:scale-95 odds-box-back-1 ${
+                                  selectedSelectionId === sel.id && selectedOddsType === 'BACK'
+                                    ? 'ring-2 ring-blue-500 font-black'
+                                    : ''
+                                }`}
+                              >
+                                <span className="font-mono font-black text-xs leading-none text-black">
+                                  {back.toFixed(2)}
+                                </span>
+                                <span className="text-[9px] text-[#333] font-mono leading-none mt-0.5">
+                                  {fmtVol(sel.backVolume, '45k')}
+                                </span>
+                              </button>
 
-                            {/* Lay 1 */}
-                            <button
-                              onClick={() =>
-                                onSelectOdds(
-                                  match.id,
-                                  mainMarket.id,
-                                  mainMarket.name,
-                                  s1.id,
-                                  s1.name,
-                                  s1Lay,
-                                  'LAY'
-                                )
-                              }
-                              className={`w-11 sm:w-12 h-9 rounded flex flex-col items-center justify-center transition-transform active:scale-95 odds-box-lay-1 ${
-                                selectedSelectionId === s1.id && selectedOddsType === 'LAY'
-                                  ? 'ring-2 ring-pink-500 font-black'
-                                  : ''
-                              }`}
-                            >
-                              <span className="font-mono font-black text-xs leading-none text-black">
-                                {s1Lay.toFixed(2)}
-                              </span>
-                              <span className="text-[9px] text-[#333] font-mono leading-none mt-0.5">
-                                32k
-                              </span>
-                            </button>
+                              {/* Lay */}
+                              <button
+                                onClick={() =>
+                                  onSelectOdds(
+                                    match.id,
+                                    mainMarket.id,
+                                    mainMarket.name,
+                                    sel.id,
+                                    sel.name,
+                                    lay,
+                                    'LAY'
+                                  )
+                                }
+                                className={`w-11 sm:w-12 h-9 rounded flex flex-col items-center justify-center transition-transform active:scale-95 odds-box-lay-1 ${
+                                  selectedSelectionId === sel.id && selectedOddsType === 'LAY'
+                                    ? 'ring-2 ring-pink-500 font-black'
+                                    : ''
+                                }`}
+                              >
+                                <span className="font-mono font-black text-xs leading-none text-black">
+                                  {lay.toFixed(2)}
+                                </span>
+                                <span className="text-[9px] text-[#333] font-mono leading-none mt-0.5">
+                                  {fmtVol(sel.layVolume, '32k')}
+                                </span>
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                      )}
-
-                      {/* Selection 2 Odds (e.g. Team 2) */}
-                      {s2 && (
-                        <div className="flex flex-col items-center">
-                          <span className="text-[10px] font-bold text-[#adadad] mb-0.5 truncate max-w-[80px]">
-                            {s2.name}
-                          </span>
-                          <div className="flex items-center space-x-0.5">
-                            {/* Back 1 */}
-                            <button
-                              onClick={() =>
-                                onSelectOdds(
-                                  match.id,
-                                  mainMarket.id,
-                                  mainMarket.name,
-                                  s2.id,
-                                  s2.name,
-                                  s2Back,
-                                  'BACK'
-                                )
-                              }
-                              className={`w-11 sm:w-12 h-9 rounded flex flex-col items-center justify-center transition-transform active:scale-95 odds-box-back-1 ${
-                                selectedSelectionId === s2.id && selectedOddsType === 'BACK'
-                                  ? 'ring-2 ring-blue-500 font-black'
-                                  : ''
-                              }`}
-                            >
-                              <span className="font-mono font-black text-xs leading-none text-black">
-                                {s2Back.toFixed(2)}
-                              </span>
-                              <span className="text-[9px] text-[#333] font-mono leading-none mt-0.5">
-                                60k
-                              </span>
-                            </button>
-
-                            {/* Lay 1 */}
-                            <button
-                              onClick={() =>
-                                onSelectOdds(
-                                  match.id,
-                                  mainMarket.id,
-                                  mainMarket.name,
-                                  s2.id,
-                                  s2.name,
-                                  s2Lay,
-                                  'LAY'
-                                )
-                              }
-                              className={`w-11 sm:w-12 h-9 rounded flex flex-col items-center justify-center transition-transform active:scale-95 odds-box-lay-1 ${
-                                selectedSelectionId === s2.id && selectedOddsType === 'LAY'
-                                  ? 'ring-2 ring-pink-500 font-black'
-                                  : ''
-                              }`}
-                            >
-                              <span className="font-mono font-black text-xs leading-none text-black">
-                                {s2Lay.toFixed(2)}
-                              </span>
-                              <span className="text-[9px] text-[#333] font-mono leading-none mt-0.5">
-                                48k
-                              </span>
-                            </button>
-                          </div>
-                        </div>
-                      )}
+                        );
+                      })}
                     </div>
                   </div>
                 );

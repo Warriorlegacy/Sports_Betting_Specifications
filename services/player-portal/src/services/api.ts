@@ -65,6 +65,12 @@ export const api = {
   auth: {
     login: (credentials: { username: string; password: string }) =>
       request('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
+    sendOtp: (payload: { phone: string; channel?: 'SMS' | 'WHATSAPP' }) =>
+      request('/auth/send-otp', { method: 'POST', body: JSON.stringify(payload) }),
+    verifyOtp: (payload: { phone: string; otp: string }) =>
+      request('/auth/verify-otp', { method: 'POST', body: JSON.stringify(payload) }),
+    loginWithOtp: (payload: { phone: string; otp: string }) =>
+      request('/auth/login-with-otp', { method: 'POST', body: JSON.stringify(payload) }),
     register: (userData: { username: string; password: string; phone?: string; referralCode?: string }) =>
       request('/auth/register', { method: 'POST', body: JSON.stringify(userData) }),
     getMe: () => request('/auth/me')

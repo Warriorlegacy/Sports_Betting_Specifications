@@ -147,10 +147,40 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
 
   // Derive dynamic Back & Lay odds
   const mainMarket = match.markets?.find((m) => m.category === 'MAIN') || match.markets?.[0];
-  const homeBackOdds = mainMarket?.selections?.[0]?.price || 2.48;
-  const homeLayOdds = +(homeBackOdds + 0.04).toFixed(2);
-  const awayBackOdds = mainMarket?.selections?.[1]?.price || 1.66;
-  const awayLayOdds = +(awayBackOdds + 0.02).toFixed(2);
+  const mainSelections: any[] = mainMarket?.selections?.length
+    ? mainMarket.selections
+    : [
+        { id: '1', name: home.name, price: 2.48 },
+        { id: '2', name: away.name, price: 1.66 }
+      ];
+  const homeBackOdds = mainSelections[0]?.backPrice ?? mainSelections[0]?.price ?? 2.48;
+  const homeLayOdds = mainSelections[0]?.layPrice ?? +(homeBackOdds + 0.04).toFixed(2);
+  const awayBackOdds = mainSelections[1]?.backPrice ?? mainSelections[1]?.price ?? 1.66;
+  const awayLayOdds = mainSelections[1]?.layPrice ?? +(awayBackOdds + 0.02).toFixed(2);
+
+  // Per-runner ladder derived from real back/lay prices + depth (3-way markets like Football get Draw automatically)
+  const fmtVol = (n: number | undefined, fallback: string) =>
+    n == null ? fallback : n >= 1000 ? `${+(n / 1000).toFixed(1)}k` : `${Math.round(n)}`;
+  const runnerLadder = (sel: any) => {
+    const back = sel?.backPrice ?? sel?.price ?? 2.0;
+    const lay = sel?.layPrice ?? +(back + 0.03).toFixed(2);
+    const d = Array.isArray(sel?.depth) ? sel.depth : [];
+    const bp = (i: number, fallback: number) => d[i]?.price || +(back - fallback).toFixed(2);
+    const sz = (i: number, fallback: string) => fmtVol(d[i]?.size, fallback);
+    return {
+      back3: { p: bp(2, 0.04), v: sz(2, '45k') },
+      back2: { p: bp(1, 0.02), v: sz(1, '89k') },
+      back1: { p: back, v: sz(0, '259k') },
+      lay1: { p: lay, v: '169k' },
+      lay2: { p: +(lay + 0.01).toFixed(2), v: '92k' },
+      lay3: { p: +(lay + 0.02).toFixed(2), v: '34k' }
+    };
+  };
+  const selectionIdFor = (sel: any) => {
+    if (sel.name.toLowerCase() === home.name.toLowerCase()) return `sel_home_${match.id}`;
+    if (sel.name.toLowerCase() === away.name.toLowerCase()) return `sel_away_${match.id}`;
+    return `sel_${sel.id}_${match.id}`;
+  };
 
   // Derive Dynamic Real-Time Cash Out Valuation across all open positions on this match
   const matchOpenBets = myBets.filter((b) => (b as any).matchId === match.id || b.marketId.includes(match.id));
@@ -504,211 +534,95 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
             </div>
           )}
 
-          {/* Runners List */}
+{/* Runners List — one row per market selection (2-way, 3-way w/ Draw, etc.) */}
           <div className="divide-y divide-[#2a2a2a]">
-            {/* Runner 1: Home Player */}
-            <div className="p-3 sm:p-3.5 flex items-center justify-between hover:bg-[#242424] transition-colors">
-              <div className="min-w-0 pr-2">
-                <div className="font-black text-xs sm:text-sm text-white truncate flex items-center gap-1.5">
-                  <span>{getFlagEmoji(home.name, true)}</span>
-                  <span>{home.name}</span>
-                </div>
-                <div className="text-[11px] font-mono font-bold mt-0.5">
-                  {runnerPnL[home.name.toLowerCase()] !== undefined ? (
-                    <span className={runnerPnL[home.name.toLowerCase()] >= 0 ? 'text-[#27AE60]' : 'text-[#FF4148]'}>
-                      {runnerPnL[home.name.toLowerCase()] >= 0 ? `+₹${runnerPnL[home.name.toLowerCase()].toFixed(2)}` : `-₹${Math.abs(runnerPnL[home.name.toLowerCase()]).toFixed(2)}`}
-                    </span>
+            {mainSelections.map((sel) => {
+              const ladder = runnerLadder(sel);
+              const isHome = sel.name.toLowerCase() === home.name.toLowerCase();
+              const isAway = sel.name.toLowerCase() === away.name.toLowerCase();
+              const selId = selectionIdFor(sel);
+              const pnl = runnerPnL[sel.name.toLowerCase()];
+              return (
+                <div key={sel.id} className="p-3 sm:p-3.5 flex items-center justify-between hover:bg-[#242424] transition-colors">
+                  <div className="min-w-0 pr-2">
+                    <div className="font-black text-xs sm:text-sm text-white truncate flex items-center gap-1.5">
+                      {(isHome || isAway) && <span>{getFlagEmoji(sel.name, isHome)}</span>}
+                      <span>{sel.name}</span>
+                    </div>
+                    <div className="text-[11px] font-mono font-bold mt-0.5">
+                      {pnl !== undefined ? (
+                        <span className={pnl >= 0 ? 'text-[#27AE60]' : 'text-[#FF4148]'}>
+                          {pnl >= 0 ? `+₹${pnl.toFixed(2)}` : `-₹${Math.abs(pnl).toFixed(2)}`}
+                        </span>
+                      ) : (
+                        <span className={isHome ? 'text-[#27AE60] font-black' : isAway ? 'text-[#FF4148] font-black' : 'text-[#8e8e8e]'}>
+                          {isHome ? '+7800.00' : isAway ? '-5000.00' : '+0.00'}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {!showLadderView ? (
+                    /* Standard 2-Box Odds */
+                    <div className="flex space-x-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', selId, sel.name, ladder.back1.p, 'BACK')}
+                        className="w-24 sm:w-28 py-2 px-1 rounded-xl bg-[#a5d9fe] hover:bg-[#8ecbf8] text-[#002244] flex flex-col items-center justify-center transition-all transform active:scale-95 shadow cursor-pointer"
+                      >
+                        <span className="font-mono font-black text-sm sm:text-base leading-tight">
+                          {ladder.back1.p.toFixed(2)}
+                        </span>
+                        <span className="text-[10px] font-bold text-slate-600 leading-none mt-0.5">
+                          {ladder.back1.v}
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', selId, sel.name, ladder.lay1.p, 'LAY')}
+                        className="w-24 sm:w-28 py-2 px-1 rounded-xl bg-[#f8d0ce] hover:bg-[#f5bec0] text-[#4a0e17] flex flex-col items-center justify-center transition-all transform active:scale-95 shadow cursor-pointer"
+                      >
+                        <span className="font-mono font-black text-sm sm:text-base leading-tight">
+                          {ladder.lay1.p.toFixed(2)}
+                        </span>
+                        <span className="text-[10px] font-bold text-slate-600 leading-none mt-0.5">
+                          {ladder.lay1.v}
+                        </span>
+                      </button>
+                    </div>
                   ) : (
-                    <span className="text-[#27AE60] font-black">+7800.00</span>
+                    /* 6-Level Depth Price Ladder */
+                    <div className="grid grid-cols-6 gap-1 shrink-0 w-72 sm:w-96 text-center font-mono">
+                      <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', selId, sel.name, ladder.back3.p, 'BACK')} className="p-1 rounded bg-[#a5d9fe]/40 hover:bg-[#a5d9fe] text-[#002244] text-xs font-bold transition-all">
+                        <span>{ladder.back3.p.toFixed(2)}</span>
+                        <span className="block text-[8px] text-slate-600">{ladder.back3.v}</span>
+                      </button>
+                      <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', selId, sel.name, ladder.back2.p, 'BACK')} className="p-1 rounded bg-[#a5d9fe]/70 hover:bg-[#a5d9fe] text-[#002244] text-xs font-bold transition-all">
+                        <span>{ladder.back2.p.toFixed(2)}</span>
+                        <span className="block text-[8px] text-slate-600">{ladder.back2.v}</span>
+                      </button>
+                      <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', selId, sel.name, ladder.back1.p, 'BACK')} className="p-1.5 rounded-lg bg-[#a5d9fe] hover:bg-[#8ecbf8] text-[#002244] text-xs font-black shadow transition-all transform active:scale-95">
+                        <span>{ladder.back1.p.toFixed(2)}</span>
+                        <span className="block text-[9px] text-slate-700">{ladder.back1.v}</span>
+                      </button>
+                      <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', selId, sel.name, ladder.lay1.p, 'LAY')} className="p-1.5 rounded-lg bg-[#f8d0ce] hover:bg-[#f5bec0] text-[#4a0e17] text-xs font-black shadow transition-all transform active:scale-95">
+                        <span>{ladder.lay1.p.toFixed(2)}</span>
+                        <span className="block text-[9px] text-slate-700">{ladder.lay1.v}</span>
+                      </button>
+                      <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', selId, sel.name, ladder.lay2.p, 'LAY')} className="p-1 rounded bg-[#f8d0ce]/70 hover:bg-[#f8d0ce] text-[#4a0e17] text-xs font-bold transition-all">
+                        <span>{ladder.lay2.p.toFixed(2)}</span>
+                        <span className="block text-[8px] text-slate-600">{ladder.lay2.v}</span>
+                      </button>
+                      <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', selId, sel.name, ladder.lay3.p, 'LAY')} className="p-1 rounded bg-[#f8d0ce]/40 hover:bg-[#f8d0ce] text-[#4a0e17] text-xs font-bold transition-all">
+                        <span>{ladder.lay3.p.toFixed(2)}</span>
+                        <span className="block text-[8px] text-slate-600">{ladder.lay3.v}</span>
+                      </button>
+                    </div>
                   )}
                 </div>
-              </div>
-
-              {!showLadderView ? (
-                /* Standard 2-Box Odds */
-                <div className="flex space-x-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      onSelectOdds(
-                        `MKT_MATCH_${match.id}`,
-                        'Match Odds',
-                        `sel_home_${match.id}`,
-                        home.name,
-                        homeBackOdds,
-                        'BACK'
-                      )
-                    }
-                    className="w-24 sm:w-28 py-2 px-1 rounded-xl bg-[#a5d9fe] hover:bg-[#8ecbf8] text-[#002244] flex flex-col items-center justify-center transition-all transform active:scale-95 shadow cursor-pointer"
-                  >
-                    <span className="font-mono font-black text-sm sm:text-base leading-tight">
-                      {homeBackOdds.toFixed(2)}
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-600 leading-none mt-0.5">
-                      259K
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      onSelectOdds(
-                        `MKT_MATCH_${match.id}`,
-                        'Match Odds',
-                        `sel_home_${match.id}`,
-                        home.name,
-                        homeLayOdds,
-                        'LAY'
-                      )
-                    }
-                    className="w-24 sm:w-28 py-2 px-1 rounded-xl bg-[#f8d0ce] hover:bg-[#f5bec0] text-[#4a0e17] flex flex-col items-center justify-center transition-all transform active:scale-95 shadow cursor-pointer"
-                  >
-                    <span className="font-mono font-black text-sm sm:text-base leading-tight">
-                      {homeLayOdds.toFixed(2)}
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-600 leading-none mt-0.5">
-                      169K
-                    </span>
-                  </button>
-                </div>
-              ) : (
-                /* 6-Level Depth Price Ladder */
-                <div className="grid grid-cols-6 gap-1 shrink-0 w-72 sm:w-96 text-center font-mono">
-                  {/* Back 3 */}
-                  <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', `sel_home_${match.id}`, home.name, +(homeBackOdds - 0.02).toFixed(2), 'BACK')} className="p-1 rounded bg-[#a5d9fe]/40 hover:bg-[#a5d9fe] text-[#002244] text-xs font-bold transition-all">
-                    <span>{+(homeBackOdds - 0.02).toFixed(2)}</span>
-                    <span className="block text-[8px] text-slate-600">45k</span>
-                  </button>
-                  {/* Back 2 */}
-                  <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', `sel_home_${match.id}`, home.name, +(homeBackOdds - 0.01).toFixed(2), 'BACK')} className="p-1 rounded bg-[#a5d9fe]/70 hover:bg-[#a5d9fe] text-[#002244] text-xs font-bold transition-all">
-                    <span>{+(homeBackOdds - 0.01).toFixed(2)}</span>
-                    <span className="block text-[8px] text-slate-600">89k</span>
-                  </button>
-                  {/* Back 1 (Best) */}
-                  <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', `sel_home_${match.id}`, home.name, homeBackOdds, 'BACK')} className="p-1.5 rounded-lg bg-[#a5d9fe] hover:bg-[#8ecbf8] text-[#002244] text-xs font-black shadow transition-all transform active:scale-95">
-                    <span>{homeBackOdds.toFixed(2)}</span>
-                    <span className="block text-[9px] text-slate-700">259k</span>
-                  </button>
-                  {/* Lay 1 (Best) */}
-                  <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', `sel_home_${match.id}`, home.name, homeLayOdds, 'LAY')} className="p-1.5 rounded-lg bg-[#f8d0ce] hover:bg-[#f5bec0] text-[#4a0e17] text-xs font-black shadow transition-all transform active:scale-95">
-                    <span>{homeLayOdds.toFixed(2)}</span>
-                    <span className="block text-[9px] text-slate-700">169k</span>
-                  </button>
-                  {/* Lay 2 */}
-                  <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', `sel_home_${match.id}`, home.name, +(homeLayOdds + 0.01).toFixed(2), 'LAY')} className="p-1 rounded bg-[#f8d0ce]/70 hover:bg-[#f8d0ce] text-[#4a0e17] text-xs font-bold transition-all">
-                    <span>{+(homeLayOdds + 0.01).toFixed(2)}</span>
-                    <span className="block text-[8px] text-slate-600">92k</span>
-                  </button>
-                  {/* Lay 3 */}
-                  <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', `sel_home_${match.id}`, home.name, +(homeLayOdds + 0.02).toFixed(2), 'LAY')} className="p-1 rounded bg-[#f8d0ce]/40 hover:bg-[#f8d0ce] text-[#4a0e17] text-xs font-bold transition-all">
-                    <span>{+(homeLayOdds + 0.02).toFixed(2)}</span>
-                    <span className="block text-[8px] text-slate-600">34k</span>
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Runner 2: Away Player */}
-            <div className="p-3 sm:p-3.5 flex items-center justify-between hover:bg-[#242424] transition-colors">
-              <div className="min-w-0 pr-2">
-                <div className="font-black text-xs sm:text-sm text-white truncate flex items-center gap-1.5">
-                  <span>{getFlagEmoji(away.name, false)}</span>
-                  <span>{away.name}</span>
-                </div>
-                <div className="text-[11px] font-mono font-bold mt-0.5">
-                  {runnerPnL[away.name.toLowerCase()] !== undefined ? (
-                    <span className={runnerPnL[away.name.toLowerCase()] >= 0 ? 'text-[#27AE60]' : 'text-[#FF4148]'}>
-                      {runnerPnL[away.name.toLowerCase()] >= 0 ? `+₹${runnerPnL[away.name.toLowerCase()].toFixed(2)}` : `-₹${Math.abs(runnerPnL[away.name.toLowerCase()]).toFixed(2)}`}
-                    </span>
-                  ) : (
-                    <span className="text-[#FF4148] font-black">-5000.00</span>
-                  )}
-                </div>
-              </div>
-
-              {!showLadderView ? (
-                /* Standard 2-Box Odds */
-                <div className="flex space-x-2 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      onSelectOdds(
-                        `MKT_MATCH_${match.id}`,
-                        'Match Odds',
-                        `sel_away_${match.id}`,
-                        away.name,
-                        awayBackOdds,
-                        'BACK'
-                      )
-                    }
-                    className="w-24 sm:w-28 py-2 px-1 rounded-xl bg-[#a5d9fe] hover:bg-[#8ecbf8] text-[#002244] flex flex-col items-center justify-center transition-all transform active:scale-95 shadow cursor-pointer"
-                  >
-                    <span className="font-mono font-black text-sm sm:text-base leading-tight">
-                      {awayBackOdds.toFixed(2)}
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-600 leading-none mt-0.5">
-                      123K
-                    </span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      onSelectOdds(
-                        `MKT_MATCH_${match.id}`,
-                        'Match Odds',
-                        `sel_away_${match.id}`,
-                        away.name,
-                        awayLayOdds,
-                        'LAY'
-                      )
-                    }
-                    className="w-24 sm:w-28 py-2 px-1 rounded-xl bg-[#f8d0ce] hover:bg-[#f5bec0] text-[#4a0e17] flex flex-col items-center justify-center transition-all transform active:scale-95 shadow cursor-pointer"
-                  >
-                    <span className="font-mono font-black text-sm sm:text-base leading-tight">
-                      {awayLayOdds.toFixed(2)}
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-600 leading-none mt-0.5">
-                      330K
-                    </span>
-                  </button>
-                </div>
-              ) : (
-                /* 6-Level Depth Price Ladder */
-                <div className="grid grid-cols-6 gap-1 shrink-0 w-72 sm:w-96 text-center font-mono">
-                  {/* Back 3 */}
-                  <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', `sel_away_${match.id}`, away.name, +(awayBackOdds - 0.02).toFixed(2), 'BACK')} className="p-1 rounded bg-[#a5d9fe]/40 hover:bg-[#a5d9fe] text-[#002244] text-xs font-bold transition-all">
-                    <span>{+(awayBackOdds - 0.02).toFixed(2)}</span>
-                    <span className="block text-[8px] text-slate-600">32k</span>
-                  </button>
-                  {/* Back 2 */}
-                  <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', `sel_away_${match.id}`, away.name, +(awayBackOdds - 0.01).toFixed(2), 'BACK')} className="p-1 rounded bg-[#a5d9fe]/70 hover:bg-[#a5d9fe] text-[#002244] text-xs font-bold transition-all">
-                    <span>{+(awayBackOdds - 0.01).toFixed(2)}</span>
-                    <span className="block text-[8px] text-slate-600">67k</span>
-                  </button>
-                  {/* Back 1 (Best) */}
-                  <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', `sel_away_${match.id}`, away.name, awayBackOdds, 'BACK')} className="p-1.5 rounded-lg bg-[#a5d9fe] hover:bg-[#8ecbf8] text-[#002244] text-xs font-black shadow transition-all transform active:scale-95">
-                    <span>{awayBackOdds.toFixed(2)}</span>
-                    <span className="block text-[9px] text-slate-700">123k</span>
-                  </button>
-                  {/* Lay 1 (Best) */}
-                  <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', `sel_away_${match.id}`, away.name, awayLayOdds, 'LAY')} className="p-1.5 rounded-lg bg-[#f8d0ce] hover:bg-[#f5bec0] text-[#4a0e17] text-xs font-black shadow transition-all transform active:scale-95">
-                    <span>{awayLayOdds.toFixed(2)}</span>
-                    <span className="block text-[9px] text-slate-700">330k</span>
-                  </button>
-                  {/* Lay 2 */}
-                  <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', `sel_away_${match.id}`, away.name, +(awayLayOdds + 0.01).toFixed(2), 'LAY')} className="p-1 rounded bg-[#f8d0ce]/70 hover:bg-[#f8d0ce] text-[#4a0e17] text-xs font-bold transition-all">
-                    <span>{+(awayLayOdds + 0.01).toFixed(2)}</span>
-                    <span className="block text-[8px] text-slate-600">110k</span>
-                  </button>
-                  {/* Lay 3 */}
-                  <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', `sel_away_${match.id}`, away.name, +(awayLayOdds + 0.02).toFixed(2), 'LAY')} className="p-1 rounded bg-[#f8d0ce]/40 hover:bg-[#f8d0ce] text-[#4a0e17] text-xs font-bold transition-all">
-                    <span>{+(awayLayOdds + 0.02).toFixed(2)}</span>
-                    <span className="block text-[8px] text-slate-600">55k</span>
-                  </button>
-                </div>
-              )}
-            </div>
+              );
+            })}
           </div>
 
           {/* Footer Limit Strip */}
@@ -748,46 +662,32 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
             </span>
           </div>
 
-          <div className="p-3 grid grid-cols-2 gap-2.5">
-            {/* Runner 1 Full Button */}
-            <button
-              type="button"
-              onClick={() =>
-                onSelectOdds(
-                  `MKT_WIN_${match.id}`,
-                  'Winner',
-                  `sel_win_home_${match.id}`,
-                  home.name,
-                  homeBackOdds,
-                  'BACK'
-                )
-              }
-              className="p-3 rounded-xl bg-[#a5d9fe] hover:bg-[#8ecbf8] text-[#002244] flex flex-col items-center justify-center transition-all transform active:scale-95 shadow cursor-pointer"
-            >
-              <span className="font-black text-xs sm:text-sm truncate w-full text-center">{home.name}</span>
-              <span className="font-mono font-black text-base sm:text-lg mt-1">{homeBackOdds.toFixed(2)}</span>
-              <span className="text-[10px] font-bold text-slate-600">259K</span>
-            </button>
-
-            {/* Runner 2 Full Button */}
-            <button
-              type="button"
-              onClick={() =>
-                onSelectOdds(
-                  `MKT_WIN_${match.id}`,
-                  'Winner',
-                  `sel_win_away_${match.id}`,
-                  away.name,
-                  awayBackOdds,
-                  'BACK'
-                )
-              }
-              className="p-3 rounded-xl bg-[#a5d9fe] hover:bg-[#8ecbf8] text-[#002244] flex flex-col items-center justify-center transition-all transform active:scale-95 shadow cursor-pointer"
-            >
-              <span className="font-black text-xs sm:text-sm truncate w-full text-center">{away.name}</span>
-              <span className="font-mono font-black text-base sm:text-lg mt-1">{awayBackOdds.toFixed(2)}</span>
-              <span className="text-[10px] font-bold text-slate-600">330K</span>
-            </button>
+          <div className={`p-3 grid gap-2.5 ${mainSelections.length > 2 ? 'grid-cols-3' : 'grid-cols-2'}`}>
+            {mainSelections.map((sel) => {
+              const winBack = sel?.backPrice ?? sel?.price ?? 2.0;
+              const winVol = fmtVol(sel?.backVolume, sel.name.toLowerCase() === home.name.toLowerCase() ? '259K' : '330K');
+              return (
+                <button
+                  key={sel.id}
+                  type="button"
+                  onClick={() =>
+                    onSelectOdds(
+                      `MKT_WIN_${match.id}`,
+                      'Winner',
+                      `sel_win_${selectionIdFor(sel)}`,
+                      sel.name,
+                      winBack,
+                      'BACK'
+                    )
+                  }
+                  className="p-3 rounded-xl bg-[#a5d9fe] hover:bg-[#8ecbf8] text-[#002244] flex flex-col items-center justify-center transition-all transform active:scale-95 shadow cursor-pointer"
+                >
+                  <span className="font-black text-xs sm:text-sm truncate w-full text-center">{sel.name}</span>
+                  <span className="font-mono font-black text-base sm:text-lg mt-1">{winBack.toFixed(2)}</span>
+                  <span className="text-[10px] font-bold text-slate-600">{winVol}</span>
+                </button>
+              );
+            })}
           </div>
 
           <div className="bg-[#141414] px-4 py-1.5 border-t border-[#2a2a2a] text-center text-[10px] text-[#8e8e8e] font-mono">

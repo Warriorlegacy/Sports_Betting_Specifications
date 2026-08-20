@@ -1,18 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Zap,
   User,
   Lock,
   X,
   AlertCircle,
-  Smartphone,
   CheckCircle2,
   Eye,
   EyeOff,
-  Sparkles,
-  Gift,
   ShieldCheck,
-  ArrowRight
+  ArrowRight,
+  Smartphone,
+  RotateCw,
+  Edit2,
+  Sparkles,
+  KeyRound,
+  MessageSquare,
+  ExternalLink
 } from 'lucide-react';
 import { api, setAuthToken } from '../services/api';
 
@@ -33,59 +37,169 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   loading,
   error
 }) => {
-  const [activeTab, setActiveTab] = useState<'LOGIN' | 'OTP' | 'REGISTER'>('LOGIN');
-
-  // Password Login State
-  const [username, setUsername] = useState<string>('player_rahul');
-  const [password, setPassword] = useState<string>('RahulWin@2026');
-  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [activeTab, setActiveTab] = useState<'OTP' | 'PASSWORD' | 'REGISTER'>('OTP');
 
   // OTP Login State
-  const [phone, setPhone] = useState<string>('9876543210');
+  const [phone, setPhone] = useState<string>('');
+  const [otpChannel, setOtpChannel] = useState<'SMS' | 'WHATSAPP'>('SMS');
   const [otpSent, setOtpSent] = useState<boolean>(false);
-  const [otp, setOtp] = useState<string>('123456');
+  const [otpCode, setOtpCode] = useState<string[]>(['', '', '', '', '', '']);
   const [otpLoading, setOtpLoading] = useState<boolean>(false);
+  const [otpError, setOtpError] = useState<string | null>(null);
+  const [testOtpNotice, setTestOtpNotice] = useState<string | null>(null);
+  const [whatsappDeliveryLink, setWhatsappDeliveryLink] = useState<string | null>(null);
+  const [deliveryProvider, setDeliveryProvider] = useState<string>('');
+  const [countdown, setCountdown] = useState<number>(0);
+  const [otpVerifiedSuccess, setOtpVerifiedSuccess] = useState<boolean>(false);
+
+  const otpInputsRef = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Password Login State
+  const [username, setUsername] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [showPassword, setShowPassword] = useState<boolean>(false);
 
   // Register State
   const [regUsername, setRegUsername] = useState<string>('');
   const [regPhone, setRegPhone] = useState<string>('');
   const [regPassword, setRegPassword] = useState<string>('');
-  const [referralCode, setReferralCode] = useState<string>('NEXUSVIP500');
+  const [referralCode, setReferralCode] = useState<string>('');
   const [registerSuccess, setRegisterSuccess] = useState<boolean>(false);
   const [regError, setRegError] = useState<string | null>(null);
   const [regLoading, setRegLoading] = useState<boolean>(false);
 
+  // 60-Second Resend Countdown Timer
+  useEffect(() => {
+    let timer: any;
+    if (countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [countdown]);
+
   if (!isOpen) return null;
+
+  // 1. Send OTP Request
+  const handleSendOtp = async (e?: React.FormEvent, forceChannel?: 'SMS' | 'WHATSAPP') => {
+    if (e) e.preventDefault();
+    const cleanDigits = phone.replace(/\D/g, '');
+    if (cleanDigits.length < 10) {
+      setOtpError('Please enter a valid 10-digit mobile number');
+      return;
+    }
+
+    const targetChannel = forceChannel || otpChannel;
+
+    try {
+      setOtpLoading(true);
+      setOtpError(null);
+      const res = await api.auth.sendOtp({
+        phone: cleanDigits,
+        channel: targetChannel
+      });
+
+      setOtpSent(true);
+      setCountdown(60);
+      setDeliveryProvider(res.provider || 'Instant Mobile Gateway');
+      if (res.whatsappLink) {
+        setWhatsappDeliveryLink(res.whatsappLink);
+      }
+      if (res.testOtp) {
+        setTestOtpNotice(res.testOtp);
+      }
+
+      // If user chose WhatsApp channel, auto-open WhatsApp link in a new tab if supported
+      if (targetChannel === 'WHATSAPP' && res.whatsappLink) {
+        window.open(res.whatsappLink, '_blank');
+      }
+
+      // Focus first OTP input on dispatch
+      setTimeout(() => {
+        otpInputsRef.current[0]?.focus();
+      }, 100);
+    } catch (err: any) {
+      setOtpError(err.message || 'Failed to send OTP. Please try again.');
+    } finally {
+      setOtpLoading(false);
+    }
+  };
+
+  // 2. Handle 6-Digit OTP Box Change
+  const handleOtpDigitChange = (index: number, value: string) => {
+    const clean = value.replace(/\D/g, '');
+    const newOtp = [...otpCode];
+
+    if (clean.length > 1) {
+      // Pasted full OTP string
+      const digits = clean.slice(0, 6).split('');
+      for (let i = 0; i < 6; i++) {
+        newOtp[i] = digits[i] || '';
+      }
+      setOtpCode(newOtp);
+      const nextFocus = Math.min(digits.length, 5);
+      otpInputsRef.current[nextFocus]?.focus();
+      if (digits.length === 6) {
+        triggerVerifyOtp(newOtp.join(''));
+      }
+      return;
+    }
+
+    newOtp[index] = clean.slice(-1);
+    setOtpCode(newOtp);
+
+    // Auto-advance focus to next input box
+    if (clean && index < 5) {
+      otpInputsRef.current[index + 1]?.focus();
+    }
+
+    // Auto-submit when all 6 digits are typed
+    if (newOtp.every((d) => d !== '') && newOtp.join('').length === 6) {
+      triggerVerifyOtp(newOtp.join(''));
+    }
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !otpCode[index] && index > 0) {
+      otpInputsRef.current[index - 1]?.focus();
+    }
+  };
+
+  // 3. Verify OTP & Authenticate
+  const triggerVerifyOtp = async (codeToVerify?: string) => {
+    const finalOtp = codeToVerify || otpCode.join('');
+    if (finalOtp.length !== 6) {
+      setOtpError('Please enter the complete 6-digit OTP code');
+      return;
+    }
+
+    try {
+      setOtpLoading(true);
+      setOtpError(null);
+      const res = await api.auth.verifyOtp({
+        phone: phone.replace(/\D/g, ''),
+        otp: finalOtp
+      });
+
+      if (res.token) {
+        setAuthToken(res.token);
+      }
+      setOtpVerifiedSuccess(true);
+      setTimeout(() => {
+        onLoginSuccess(res.user);
+      }, 800);
+    } catch (err: any) {
+      setOtpError(err.message || 'Invalid or expired OTP code.');
+    } finally {
+      setOtpLoading(false);
+    }
+  };
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username.trim() || !password.trim()) return;
     await onLogin(username.trim(), password);
-  };
-
-  const handleSendOtp = () => {
-    if (!phone || phone.length < 10) return;
-    setOtpLoading(true);
-    setTimeout(() => {
-      setOtpSent(true);
-      setOtpLoading(false);
-    }, 600);
-  };
-
-  const handleOtpVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setOtpLoading(true);
-    setTimeout(() => {
-      setOtpLoading(false);
-      const mockUser = {
-        id: `usr_${Date.now()}`,
-        username: `user_${phone.slice(-4)}`,
-        availableCredit: 5000,
-        exposure: 0,
-        creditLimit: 25000
-      };
-      onLoginSuccess(mockUser);
-    }, 600);
   };
 
   const handleRegisterSubmit = async (e: React.FormEvent) => {
@@ -116,25 +230,13 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     }
   };
 
-  const PLAYER_PASSWORDS: Record<string, string> = {
-    player_rahul: 'RahulWin@2026',
-    player_amit: 'AmitBet@7788'
-  };
-
-  const handleQuickLogin = async (quickUser: string) => {
-    const p = PLAYER_PASSWORDS[quickUser] || 'RahulWin@2026';
-    setUsername(quickUser);
-    setPassword(p);
-    await onLogin(quickUser, p);
-  };
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200 select-none">
       <div className="w-full max-w-md bg-[#1e1e1e] border border-[#2d2d2d] rounded-2xl p-5 sm:p-7 shadow-2xl relative z-10 space-y-5 text-white">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1.5 text-[#adadad] hover:text-white rounded-lg bg-[#272727] hover:bg-[#333] transition-colors"
+          className="absolute top-4 right-4 p-1.5 text-[#adadad] hover:text-white rounded-lg bg-[#272727] hover:bg-[#333] transition-colors cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
@@ -153,42 +255,44 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           </p>
         </div>
 
-        {/* Tabs */}
+        {/* 3 Authentication Tabs */}
         <div className="grid grid-cols-3 gap-1 bg-[#141414] p-1 rounded-xl border border-[#272727] text-xs font-bold">
           <button
-            onClick={() => setActiveTab('LOGIN')}
-            className={`py-2 rounded-lg transition-all ${
-              activeTab === 'LOGIN'
-                ? 'bg-[#f36c21] text-white shadow'
-                : 'text-[#adadad] hover:text-white'
-            }`}
-          >
-            Password
-          </button>
-          <button
-            onClick={() => setActiveTab('OTP')}
-            className={`py-2 rounded-lg transition-all ${
+            onClick={() => { setActiveTab('OTP'); setOtpError(null); }}
+            className={`py-2 rounded-lg transition-all flex items-center justify-center space-x-1 cursor-pointer ${
               activeTab === 'OTP'
                 ? 'bg-[#f36c21] text-white shadow'
                 : 'text-[#adadad] hover:text-white'
             }`}
           >
-            Instant OTP
+            <Smartphone className="w-3.5 h-3.5" />
+            <span>OTP Login</span>
+          </button>
+          <button
+            onClick={() => setActiveTab('PASSWORD')}
+            className={`py-2 rounded-lg transition-all flex items-center justify-center space-x-1 cursor-pointer ${
+              activeTab === 'PASSWORD'
+                ? 'bg-[#272727] text-white border border-[#444] shadow'
+                : 'text-[#adadad] hover:text-white'
+            }`}
+          >
+            <KeyRound className="w-3.5 h-3.5" />
+            <span>Password</span>
           </button>
           <button
             onClick={() => setActiveTab('REGISTER')}
-            className={`py-2 rounded-lg transition-all flex items-center justify-center space-x-1 ${
+            className={`py-2 rounded-lg transition-all flex items-center justify-center space-x-1 cursor-pointer ${
               activeTab === 'REGISTER'
                 ? 'bg-[#27AE60] text-white shadow'
                 : 'text-[#adadad] hover:text-white'
             }`}
           >
-            <Gift className="w-3.5 h-3.5" />
+            <User className="w-3.5 h-3.5" />
             <span>Register</span>
           </button>
         </div>
 
-        {/* Error Notice */}
+        {/* Global Error Notice */}
         {error && (
           <div className="p-3 text-xs rounded-lg bg-[#FF4148]/20 border border-[#FF4148]/40 text-[#FF4148] flex items-center space-x-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
@@ -196,161 +300,286 @@ export const LoginModal: React.FC<LoginModalProps> = ({
           </div>
         )}
 
-        {/* 1. PASSWORD LOGIN TAB */}
-        {activeTab === 'LOGIN' && (
+        {/* ========================================================================= */}
+        {/* 1. OTP AUTHENTICATION TAB (SMS & WHATSAPP PHONE DELIVERY) */}
+        {/* ========================================================================= */}
+        {activeTab === 'OTP' && (
           <div className="space-y-4">
-            {/* Quick Demo Sign-in */}
-            <div className="space-y-1.5">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#adadad] block text-center">
-                1-Click Demo Profiles
-              </span>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={() => handleQuickLogin('player_rahul')}
-                  className="p-2 rounded-lg text-xs font-bold bg-[#272727] hover:bg-[#333] border border-[#333] text-white transition-all text-center flex items-center justify-center space-x-1.5"
-                >
-                  <span className="w-2 h-2 rounded-full bg-[#27AE60]" />
-                  <span>Rahul (₹10k)</span>
-                </button>
-                <button
-                  type="button"
-                  disabled={loading}
-                  onClick={() => handleQuickLogin('player_amit')}
-                  className="p-2 rounded-lg text-xs font-bold bg-[#272727] hover:bg-[#333] border border-[#333] text-white transition-all text-center flex items-center justify-center space-x-1.5"
-                >
-                  <span className="w-2 h-2 rounded-full bg-amber-400" />
-                  <span>Amit (₹25k)</span>
-                </button>
+            {otpVerifiedSuccess ? (
+              <div className="py-8 text-center space-y-2">
+                <CheckCircle2 className="w-14 h-14 mx-auto text-[#27AE60] animate-bounce" />
+                <h4 className="font-black text-sm text-white">OTP Verified Successfully!</h4>
+                <p className="text-xs text-[#adadad]">Welcome back. Launching your player terminal...</p>
               </div>
-            </div>
+            ) : !otpSent ? (
+              /* Step 1: Enter Phone Number & Select Channel */
+              <form onSubmit={handleSendOtp} className="space-y-3.5">
+                {otpError && (
+                  <div className="p-2.5 rounded-lg bg-[#FF4148]/20 border border-[#FF4148]/40 text-[#FF4148] text-xs flex items-center space-x-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{otpError}</span>
+                  </div>
+                )}
 
-            <form onSubmit={handlePasswordSubmit} className="space-y-3">
-              <div>
-                <label className="text-[11px] font-bold uppercase text-[#adadad]">Username</label>
-                <div className="relative mt-1">
-                  <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#666]" />
-                  <input
-                    type="text"
-                    required
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Enter username"
-                    className="w-full bg-[#141414] border border-[#333] rounded-lg pl-9 pr-3 py-2 text-white text-xs font-bold focus:border-[#f36c21] focus:outline-none transition-colors"
-                  />
+                <div>
+                  <label className="text-[11px] font-bold uppercase text-[#adadad] flex items-center justify-between">
+                    <span>Mobile Phone Number</span>
+                    <span className="text-[10px] text-[#27AE60] font-bold">Instant OTP to Phone</span>
+                  </label>
+                  <div className="flex mt-1">
+                    <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-[#333] bg-[#181818] text-white text-xs font-bold font-mono">
+                      🇮🇳 +91
+                    </span>
+                    <input
+                      type="tel"
+                      required
+                      autoFocus
+                      maxLength={10}
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                      placeholder="Enter 10-digit number"
+                      className="w-full bg-[#141414] border border-[#333] rounded-r-lg px-3 py-2.5 text-white text-sm font-mono font-bold focus:border-[#f36c21] focus:outline-none tracking-wider"
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="text-[11px] font-bold uppercase text-[#adadad]">Password</label>
-                <div className="relative mt-1">
-                  <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#666]" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter password"
-                    className="w-full bg-[#141414] border border-[#333] rounded-lg pl-9 pr-9 py-2 text-white text-xs font-mono font-bold focus:border-[#f36c21] focus:outline-none transition-colors"
-                  />
+                {/* Delivery Channel Radio Choice */}
+                <div className="grid grid-cols-2 gap-2 pt-0.5">
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#666] hover:text-white"
+                    onClick={() => setOtpChannel('SMS')}
+                    className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center space-x-1.5 transition-all cursor-pointer ${
+                      otpChannel === 'SMS'
+                        ? 'border-[#f36c21] bg-[#f36c21]/15 text-[#f36c21]'
+                        : 'border-[#333] bg-[#161616] text-[#8e8e8e] hover:text-white'
+                    }`}
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    <Smartphone className="w-3.5 h-3.5" />
+                    <span>SMS Message</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setOtpChannel('WHATSAPP')}
+                    className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center space-x-1.5 transition-all cursor-pointer ${
+                      otpChannel === 'WHATSAPP'
+                        ? 'border-[#27AE60] bg-[#27AE60]/15 text-[#27AE60]'
+                        : 'border-[#333] bg-[#161616] text-[#8e8e8e] hover:text-white'
+                    }`}
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span>WhatsApp OTP</span>
                   </button>
                 </div>
-              </div>
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-2.5 rounded-lg bg-[#f36c21] hover:bg-[#e05b12] text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg flex items-center justify-center space-x-2"
-              >
-                <span>{loading ? 'Authenticating...' : 'Sign In Now'}</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </form>
+                <button
+                  type="submit"
+                  disabled={otpLoading || phone.length < 10}
+                  className="w-full py-2.5 rounded-lg bg-[#f36c21] hover:bg-[#e05b12] disabled:opacity-50 text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg flex items-center justify-center space-x-2 cursor-pointer active:scale-98"
+                >
+                  <Smartphone className="w-4 h-4" />
+                  <span>{otpLoading ? 'Dispatching OTP to Phone...' : `Send Code via ${otpChannel === 'WHATSAPP' ? 'WhatsApp' : 'SMS'}`}</span>
+                </button>
+              </form>
+            ) : (
+              /* Step 2: Enter 6-Digit OTP Received on Mobile */
+              <div className="space-y-3.5">
+                {otpError && (
+                  <div className="p-2.5 rounded-lg bg-[#FF4148]/20 border border-[#FF4148]/40 text-[#FF4148] text-xs flex items-center space-x-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{otpError}</span>
+                  </div>
+                )}
+
+                {/* Sent Phone Banner with delivery channel */}
+                <div className="p-3 bg-[#141414] rounded-xl border border-[#2d2d2d] flex items-center justify-between text-xs">
+                  <div>
+                    <span className="text-[#8e8e8e] block text-[10px]">
+                      {otpChannel === 'WHATSAPP' ? '💬 WhatsApp OTP sent to:' : '📱 SMS OTP sent to:'}
+                    </span>
+                    <span className="font-mono font-bold text-white tracking-wide">+91 {phone}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOtpSent(false);
+                      setOtpCode(['', '', '', '', '', '']);
+                      setOtpError(null);
+                    }}
+                    className="text-[11px] text-[#f36c21] hover:underline font-bold flex items-center space-x-1 cursor-pointer"
+                  >
+                    <Edit2 className="w-3 h-3" />
+                    <span>Change</span>
+                  </button>
+                </div>
+
+                {/* Direct WhatsApp Mobile Trigger Button */}
+                {whatsappDeliveryLink && (
+                  <a
+                    href={whatsappDeliveryLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full py-2 px-3 rounded-lg bg-[#27AE60]/20 hover:bg-[#27AE60]/30 border border-[#27AE60]/50 text-[#27AE60] text-xs font-bold flex items-center justify-center space-x-2 transition-all cursor-pointer"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    <span>Open Code in WhatsApp</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+
+                {/* Instant Test Autofill Helper Pill */}
+                {testOtpNotice && (
+                  <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-between text-xs">
+                    <div className="flex items-center space-x-1.5 text-amber-300">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span className="text-[11px]">Phone Code: <strong className="font-mono tracking-widest text-white">{testOtpNotice}</strong></span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const digits = testOtpNotice.split('');
+                        setOtpCode(digits);
+                        triggerVerifyOtp(testOtpNotice);
+                      }}
+                      className="px-2 py-0.5 rounded bg-amber-500 text-black font-black text-[10px] uppercase cursor-pointer hover:bg-amber-400"
+                    >
+                      Autofill
+                    </button>
+                  </div>
+                )}
+
+                {/* 6 Individual OTP Boxes */}
+                <div className="space-y-1.5">
+                  <label className="text-[11px] font-bold uppercase text-[#adadad] text-center block">
+                    Enter 6-Digit Verification Code
+                  </label>
+                  <div className="flex items-center justify-center gap-2">
+                    {otpCode.map((digit, idx) => (
+                      <input
+                        key={idx}
+                        ref={(el) => (otpInputsRef.current[idx] = el)}
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={6}
+                        value={digit}
+                        onChange={(e) => handleOtpDigitChange(idx, e.target.value)}
+                        onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                        className={`w-10 h-12 text-center text-lg font-mono font-black rounded-lg border bg-[#141414] focus:outline-none transition-all ${
+                          digit
+                            ? 'border-[#f36c21] text-white shadow-md shadow-orange-500/20'
+                            : 'border-[#333] text-neutral-400 focus:border-[#f36c21]'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Verify Button */}
+                <button
+                  type="button"
+                  onClick={() => triggerVerifyOtp()}
+                  disabled={otpLoading || otpCode.some((d) => d === '')}
+                  className="w-full py-2.5 rounded-lg bg-[#f36c21] hover:bg-[#e05b12] disabled:opacity-50 text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg flex items-center justify-center space-x-2 cursor-pointer active:scale-98"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>{otpLoading ? 'Verifying Phone Code...' : 'Verify & Login'}</span>
+                </button>
+
+                {/* Resend OTP Options */}
+                <div className="flex items-center justify-between text-xs pt-1 border-t border-[#262626]">
+                  {countdown > 0 ? (
+                    <span className="text-[11px] text-[#8e8e8e] font-mono">
+                      Resend code in <strong className="text-white">{countdown}s</strong>
+                    </span>
+                  ) : (
+                    <div className="flex items-center space-x-3">
+                      <button
+                        type="button"
+                        onClick={() => handleSendOtp(undefined, 'SMS')}
+                        className="text-xs text-[#f36c21] hover:underline font-bold inline-flex items-center space-x-1 cursor-pointer"
+                      >
+                        <RotateCw className="w-3.5 h-3.5" />
+                        <span>Resend SMS</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSendOtp(undefined, 'WHATSAPP')}
+                        className="text-xs text-[#27AE60] hover:underline font-bold inline-flex items-center space-x-1 cursor-pointer"
+                      >
+                        <MessageSquare className="w-3.5 h-3.5" />
+                        <span>Resend WhatsApp</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
 
-        {/* 2. OTP LOGIN TAB */}
-        {activeTab === 'OTP' && (
-          <form onSubmit={handleOtpVerify} className="space-y-3">
+        {/* ========================================================================= */}
+        {/* 2. PASSWORD LOGIN TAB */}
+        {/* ========================================================================= */}
+        {activeTab === 'PASSWORD' && (
+          <form onSubmit={handlePasswordSubmit} className="space-y-3">
             <div>
-              <label className="text-[11px] font-bold uppercase text-[#adadad]">Mobile Number</label>
-              <div className="relative mt-1 flex space-x-2">
-                <div className="relative flex-1">
-                  <Smartphone className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#666]" />
-                  <input
-                    type="tel"
-                    required
-                    maxLength={10}
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="10-digit mobile"
-                    className="w-full bg-[#141414] border border-[#333] rounded-lg pl-9 pr-3 py-2 text-white text-xs font-mono font-bold focus:border-[#f36c21] focus:outline-none"
-                  />
-                </div>
+              <label className="text-[11px] font-bold uppercase text-[#adadad]">Username</label>
+              <div className="relative mt-1">
+                <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#666]" />
+                <input
+                  type="text"
+                  required
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Enter username"
+                  className="w-full bg-[#141414] border border-[#333] rounded-lg pl-9 pr-3 py-2 text-white text-xs font-bold focus:border-[#f36c21] focus:outline-none transition-colors"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-[11px] font-bold uppercase text-[#adadad]">Password</label>
+              <div className="relative mt-1">
+                <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#666]" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter password"
+                  className="w-full bg-[#141414] border border-[#333] rounded-lg pl-9 pr-9 py-2 text-white text-xs font-mono font-bold focus:border-[#f36c21] focus:outline-none transition-colors"
+                />
                 <button
                   type="button"
-                  onClick={handleSendOtp}
-                  disabled={otpLoading || phone.length < 10}
-                  className="px-3 py-2 rounded-lg bg-[#272727] hover:bg-[#333] text-[#f36c21] font-bold text-xs whitespace-nowrap border border-[#333] disabled:opacity-50"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#666] hover:text-white"
                 >
-                  {otpSent ? 'Resend' : 'Send OTP'}
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            {otpSent && (
-              <div className="animate-in fade-in duration-200 space-y-1.5">
-                <label className="text-[11px] font-bold uppercase text-[#adadad]">Enter 6-Digit OTP</label>
-                <input
-                  type="text"
-                  maxLength={6}
-                  required
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value)}
-                  placeholder="123456"
-                  className="w-full bg-[#141414] border border-emerald-500/50 rounded-lg px-3 py-2 text-center text-white text-base font-mono font-black tracking-widest focus:outline-none"
-                />
-                <span className="text-[10px] text-[#27AE60] flex items-center justify-center space-x-1">
-                  <CheckCircle2 className="w-3 h-3" />
-                  <span>OTP dispatched to +91 {phone} via WhatsApp / SMS</span>
-                </span>
-              </div>
-            )}
-
             <button
               type="submit"
-              disabled={otpLoading || !otpSent}
-              className="w-full py-2.5 rounded-lg bg-[#f36c21] hover:bg-[#e05b12] disabled:opacity-50 text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg flex items-center justify-center space-x-2"
+              disabled={loading}
+              className="w-full py-2.5 rounded-lg bg-[#f36c21] hover:bg-[#e05b12] text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg flex items-center justify-center space-x-2 cursor-pointer"
             >
-              <span>{otpLoading ? 'Verifying...' : 'Verify OTP & Login'}</span>
+              <span>{loading ? 'Authenticating...' : 'Sign In with Password'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
         )}
 
+        {/* ========================================================================= */}
         {/* 3. REGISTER TAB */}
+        {/* ========================================================================= */}
         {activeTab === 'REGISTER' && (
           <div className="space-y-3">
-            <div className="p-2.5 rounded-lg bg-gradient-to-r from-emerald-950/60 to-emerald-900/40 border border-emerald-600/40 text-emerald-300 text-xs flex items-center space-x-2">
-              <Gift className="w-5 h-5 text-emerald-400 shrink-0" />
-              <div>
-                <span className="font-bold block text-white">₹500 Instant Registration Bonus</span>
-                <span className="text-[10px] text-emerald-200">Automatically credited to your Nexusvip wallet upon sign-up.</span>
-              </div>
-            </div>
-
             {registerSuccess ? (
               <div className="py-6 text-center space-y-2">
                 <CheckCircle2 className="w-12 h-12 mx-auto text-[#27AE60] animate-bounce" />
                 <h4 className="font-black text-sm text-white">Registration Successful!</h4>
-                <p className="text-xs text-[#adadad]">Welcome to Nexusvip. ₹500 welcome credit added. Logging in...</p>
+                <p className="text-xs text-[#adadad]">Welcome to NexusVIP. Launching player portal...</p>
               </div>
             ) : (
               <form onSubmit={handleRegisterSubmit} className="space-y-2.5">
@@ -367,16 +596,15 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                     required
                     value={regUsername}
                     onChange={(e) => setRegUsername(e.target.value)}
-                    placeholder="e.g. virat_bettor"
+                    placeholder="e.g. rahul_trader"
                     className="w-full bg-[#141414] border border-[#333] rounded-lg px-3 py-2 text-white text-xs font-bold focus:border-[#27AE60] focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold uppercase text-[#adadad]">Mobile Number</label>
+                  <label className="text-[10px] font-bold uppercase text-[#adadad]">Mobile Number (Optional)</label>
                   <input
                     type="tel"
-                    required
                     maxLength={10}
                     value={regPhone}
                     onChange={(e) => setRegPhone(e.target.value)}
@@ -398,7 +626,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold uppercase text-[#adadad]">Referral / Promo Code</label>
+                  <label className="text-[10px] font-bold uppercase text-[#adadad]">Referral / Promo Code (Optional)</label>
                   <input
                     type="text"
                     value={referralCode}
@@ -410,10 +638,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 <button
                   type="submit"
                   disabled={regLoading}
-                  className="w-full py-2.5 rounded-lg bg-[#27AE60] hover:bg-[#219652] disabled:opacity-50 text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg flex items-center justify-center space-x-2"
+                  className="w-full py-2.5 rounded-lg bg-[#27AE60] hover:bg-[#219652] disabled:opacity-50 text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg flex items-center justify-center space-x-2 cursor-pointer"
                 >
-                  <Sparkles className="w-4 h-4" />
-                  <span>{regLoading ? 'Creating Player Account...' : 'Register & Claim ₹500 Bonus'}</span>
+                  <span>{regLoading ? 'Creating Player Account...' : 'Create Player Account'}</span>
                 </button>
               </form>
             )}
@@ -424,9 +651,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         <div className="pt-2 border-t border-[#272727] flex items-center justify-between text-[10px] text-[#8e8e8e]">
           <div className="flex items-center space-x-1.5 text-[#27AE60]">
             <ShieldCheck className="w-3.5 h-3.5" />
-            <span>256-Bit SSL Encrypted</span>
+            <span>256-Bit Encrypted Engine</span>
           </div>
-          <span>18+ Responsible Play</span>
+          <span>18+ Responsible Gaming</span>
         </div>
       </div>
     </div>

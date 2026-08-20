@@ -50,6 +50,7 @@ interface FairplayHeaderProps {
   onOpenTwoFactor?: () => void;
   onOpenStatementExport?: () => void;
   onOpenSpinWheel?: () => void;
+  onOpenThemeCustomizer?: () => void;
   onLogout: () => void;
   openBetsCount: number;
   oneClickBet: boolean;
@@ -72,6 +73,7 @@ export const FairplayHeader: React.FC<FairplayHeaderProps> = ({
   onOpenTwoFactor,
   onOpenStatementExport,
   onOpenSpinWheel,
+  onOpenThemeCustomizer,
   onLogout,
   openBetsCount,
   oneClickBet,
@@ -205,6 +207,18 @@ export const FairplayHeader: React.FC<FairplayHeaderProps> = ({
             </a>
           </div>
 
+          {/* Theme Presets Switcher (Allpanel7 / Fairplay / Rudra888 / Lotusrun) */}
+          {onOpenThemeCustomizer && (
+            <button
+              type="button"
+              onClick={onOpenThemeCustomizer}
+              className="flex items-center space-x-1 px-2 py-0.5 rounded bg-[#272727] hover:bg-[#333] border border-[#3d3d3d] transition-all text-[10px] text-amber-300 font-bold cursor-pointer"
+            >
+              <span>🎨</span>
+              <span>Themes</span>
+            </button>
+          )}
+
           {/* Dark / Light Mode Toggle */}
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
@@ -296,9 +310,6 @@ export const FairplayHeader: React.FC<FairplayHeaderProps> = ({
           </div>
         ) : (
           <div className="flex items-center space-x-2">
-            <button onClick={onOpenLogin} className="demo-login-btn hidden sm:block">
-              Demo Login
-            </button>
             <button onClick={onOpenLogin} className="login-btn">
               Login
             </button>
@@ -362,10 +373,6 @@ export const FairplayHeader: React.FC<FairplayHeaderProps> = ({
                 <span>Net Exposure</span>
                 <span className="font-mono font-bold text-[#FF4148]">₹{user.exposure.toLocaleString()}</span>
               </div>
-              <div className="flex justify-between text-[#adadad]">
-                <span>Welcome Bonus</span>
-                <span className="font-mono font-bold text-amber-400">₹0.00</span>
-              </div>
             </div>
 
             {/* Quick Actions Menu */}
@@ -426,6 +433,14 @@ export const FairplayHeader: React.FC<FairplayHeaderProps> = ({
                   <span>{t('cashout')} Terminal</span>
                 </div>
               </button>
+              {onOpenThemeCustomizer && (
+                <button onClick={() => { onOpenThemeCustomizer(); setUserDrawerOpen(false); }} className="w-full flex items-center justify-between p-2.5 rounded hover:bg-[#272727] text-left cursor-pointer">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-amber-400">🎨</span>
+                    <span className="text-amber-300 font-bold">Theme & Whitelabel Presets</span>
+                  </div>
+                </button>
+              )}
               <button onClick={() => { onOpenAppDownload && onOpenAppDownload(); setUserDrawerOpen(false); }} className="w-full flex items-center justify-between p-2.5 rounded hover:bg-[#272727] text-left cursor-pointer">
                 <div className="flex items-center space-x-2">
                   <Download className="w-4 h-4 text-[#f36c21]" />

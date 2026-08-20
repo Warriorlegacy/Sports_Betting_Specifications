@@ -24,9 +24,15 @@ yarn-error.log*
 *.pem
 deploy_vercel.js
 
+# Verification screenshots & build artifacts
+*.png
+.gradle/
+*.lock
+
 # Kilocode & Gemini IDE Temp
 .kilo/
 .kilocode/
 .gemini/
 .firecrawl/
+
 
