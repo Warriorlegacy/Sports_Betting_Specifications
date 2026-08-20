@@ -54,92 +54,8 @@ export const FinancialApprovalsDesk: React.FC = () => {
 
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
-  const DEFAULT_MOCK_DEPOSITS = [
-    {
-      id: 'DEP_DEMO_001',
-      username: 'player_rahul',
-      amount: 2500,
-      payment_method: 'UPI',
-      utr_reference: '423987110943',
-      deposit_account_name: 'NexusVIP Official UPI (nexusvip.pay@icici)',
-      status: 'APPROVED',
-      created_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-      proof_image_url: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=600&auto=format&fit=crop&q=80',
-      admin_note: 'Verified against ICICI bank statement automatically'
-    },
-    {
-      id: 'DEP_DEMO_002',
-      username: 'vip_player_vikram',
-      amount: 50000,
-      payment_method: 'BANK',
-      utr_reference: '394827104921',
-      deposit_account_name: 'NexusVIP Corporate IMPS (50200088912456)',
-      status: 'PENDING',
-      created_at: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
-      proof_image_url: 'https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=600&auto=format&fit=crop&q=80',
-      admin_note: null
-    },
-    {
-      id: 'DEP_DEMO_003',
-      username: 'priya_punter',
-      amount: 10000,
-      payment_method: 'UPI',
-      utr_reference: '982347102934',
-      deposit_account_name: 'NexusVIP Official UPI (nexusvip.pay@icici)',
-      status: 'PENDING',
-      created_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-      proof_image_url: null,
-      admin_note: null
-    },
-    {
-      id: 'DEP_DEMO_004',
-      username: 'rohit_trader_99',
-      amount: 15000,
-      payment_method: 'CRYPTO',
-      utr_reference: 'TXID_84a92c019b8823f0012',
-      deposit_account_name: 'USDT TRC-20 Instant Crypto Deposit',
-      status: 'APPROVED',
-      created_at: new Date(Date.now() - 1000 * 3600 * 2).toISOString(),
-      proof_image_url: null,
-      admin_note: 'Blockchain 12-block confirmation reached'
-    }
-  ];
-
-  const DEFAULT_MOCK_WITHDRAWALS = [
-    {
-      id: 'WTH_741939',
-      reference_id: 'WTH_741939',
-      username: 'player_rahul',
-      amount: 2000,
-      payout_method: 'UPI',
-      status: 'PENDING',
-      account_details: { upiId: 'player.rahul@okaxis' },
-      created_at: new Date(Date.now() - 1000 * 60 * 25).toISOString(),
-      admin_note: null
-    },
-    {
-      id: 'WTH_DEMO_002',
-      reference_id: 'WTH_891024',
-      username: 'delhi_trader_8',
-      amount: 15000,
-      payout_method: 'BANK',
-      status: 'PENDING',
-      account_details: { bankAccNumber: '501004829104', bankIfsc: 'HDFC0000240', bankHolderName: 'Amit Kumar' },
-      created_at: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
-      admin_note: null
-    },
-    {
-      id: 'WTH_DEMO_003',
-      reference_id: 'WTH_102934',
-      username: 'neha_crypto',
-      amount: 25000,
-      payout_method: 'CRYPTO',
-      status: 'APPROVED',
-      account_details: { cryptoAddress: 'TYDzsfcHsBwM1bC7K9N8x2yL3m4p5q6r7s', cryptoNetwork: 'TRC20' },
-      created_at: new Date(Date.now() - 1000 * 3600 * 3).toISOString(),
-      admin_note: 'Dispatched via automated Tron node'
-    }
-  ];
+  const DEFAULT_MOCK_DEPOSITS: any[] = [];
+  const DEFAULT_MOCK_WITHDRAWALS: any[] = [];
 
   // Load Deposits
   const fetchDeposits = useCallback(async () => {
@@ -152,7 +68,7 @@ export const FinancialApprovalsDesk: React.FC = () => {
       // Standardize local deposits format for admin table
       const formattedLocal = localDeposits.map((d: any) => ({
         id: d.id,
-        username: d.username || 'player_rahul',
+        username: d.username || 'User',
         amount: d.amount,
         payment_method: d.payment_method || 'UPI',
         utr_reference: d.utr_reference || d.utr,
@@ -163,16 +79,11 @@ export const FinancialApprovalsDesk: React.FC = () => {
         admin_note: d.admin_note || null
       }));
 
-      // Combine server, local, and default records
+      // Combine server and local records
       const combined = [...serverDeposits];
       for (const loc of formattedLocal) {
         if (!combined.some((c) => c.id === loc.id || c.utr_reference === loc.utr_reference)) {
           combined.unshift(loc);
-        }
-      }
-      for (const mock of DEFAULT_MOCK_DEPOSITS) {
-        if (!combined.some((c) => c.id === mock.id || c.utr_reference === mock.utr_reference)) {
-          combined.push(mock);
         }
       }
 
@@ -210,7 +121,7 @@ export const FinancialApprovalsDesk: React.FC = () => {
       const formattedLocal = localWithdrawals.map((w: any) => ({
         id: w.id || w.reference_id,
         reference_id: w.reference_id || w.id,
-        username: w.username || 'player_rahul',
+        username: w.username || 'User',
         amount: w.amount,
         payout_method: w.payout_method || 'UPI',
         status: w.status || 'PENDING',
@@ -219,16 +130,11 @@ export const FinancialApprovalsDesk: React.FC = () => {
         admin_note: w.admin_note || null
       }));
 
-      // Combine server, local, and default records
+      // Combine server and local records
       const combined = [...serverWithdrawals];
       for (const loc of formattedLocal) {
         if (!combined.some((c) => c.id === loc.id || c.reference_id === loc.reference_id)) {
           combined.unshift(loc);
-        }
-      }
-      for (const mock of DEFAULT_MOCK_WITHDRAWALS) {
-        if (!combined.some((c) => c.id === mock.id || c.reference_id === mock.reference_id)) {
-          combined.push(mock);
         }
       }
 

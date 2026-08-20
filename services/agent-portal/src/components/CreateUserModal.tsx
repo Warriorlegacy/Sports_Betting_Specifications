@@ -278,7 +278,7 @@ export const CreateUserModal: React.FC<CreateUserModalProps> = ({
                 <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
                 <input
                   type="text"
-                  placeholder="e.g. master_delhi or player_rahul"
+                  placeholder="e.g. master_north or user_101"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required

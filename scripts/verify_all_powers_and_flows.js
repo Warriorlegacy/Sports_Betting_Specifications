@@ -43,64 +43,54 @@ async function runComprehensiveAudit() {
     console.log(`❌ Register: ${e.message}`);
   }
 
-  // 3. 5-TIER HIERARCHY LOGINS & ROLES
-  console.log('\n--- 3. 5-TIER ROLE LOGINS & ROLES MATRIX ---');
-  const roles = [
-    { role: 'ADMIN', user: 'admin', pass: 'Admin@Nexus2026!' },
-    { role: 'SUPER_MASTER', user: 'supermaster_asia', pass: 'SuperAsia#7788$' },
-    { role: 'MASTER', user: 'master_mumbai', pass: 'MasterMum*9922#' },
-    { role: 'AGENT', user: 'agent_vikram', pass: 'AgentVikram@4411' },
-    { role: 'PLAYER', user: 'player_rahul', pass: 'RahulWin@2026' }
-  ];
-
+  // 3. ADMIN AUTHENTICATION & HIERARCHY ROOT
+  console.log('\n--- 3. ADMIN AUTHENTICATION & HIERARCHY ROOT ---');
   const tokens = {};
-  for (const r of roles) {
-    try {
-      const loginRes = await request(`${API_BASE}/auth/login`, {
-        method: 'POST',
-        body: JSON.stringify({ username: r.user, password: r.pass })
-      });
-      tokens[r.role] = loginRes.token;
-      console.log(`✅ [${r.role}] "${r.user}": Logged in | Balance: ₹${loginRes.user.availableCredit.toLocaleString()} | Exposure: ₹${loginRes.user.exposure}`);
-    } catch (e) {
-      console.log(`❌ [${r.role}] Login: ${e.message}`);
-    }
+  try {
+    const loginRes = await request(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      body: JSON.stringify({ username: 'admin', password: 'Admin@Nexus2026!' })
+    });
+    tokens['ADMIN'] = loginRes.token;
+    console.log(`✅ [ADMIN] "admin": Logged in | Balance: ₹${loginRes.user.availableCredit.toLocaleString()} | Role: ${loginRes.user.role}`);
+  } catch (e) {
+    console.log(`❌ [ADMIN] Login: ${e.message}`);
   }
 
-  // 4. SUPER MASTER & MASTER DOWNLINE POWERS (ID CREATION & CREDIT ALLOCATION)
-  console.log('\n--- 4. MASTER & SUPER MASTER DOWNLINE POWERS ---');
-  let createdAgentId = '';
-  if (tokens['MASTER']) {
+  // 4. DYNAMIC DOWNLINE PROVISIONING & CREDIT ALLOCATION TEST
+  console.log('\n--- 4. DYNAMIC DOWNLINE PROVISIONING & CREDIT ALLOCATION ---');
+  let createdSuperMasterId = '';
+  if (tokens['ADMIN']) {
     try {
-      const newAgentName = `agt_${Date.now().toString().slice(-4)}`;
+      const smName = `sm_${Date.now().toString().slice(-4)}`;
       const createRes = await request(`${API_BASE}/hierarchy/users`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${tokens['MASTER']}` },
+        headers: { Authorization: `Bearer ${tokens['ADMIN']}` },
         body: JSON.stringify({
-          username: newAgentName,
-          password: 'AgentPassword@123',
-          role: 'AGENT',
-          creditLimit: 50000
+          username: smName,
+          password: 'SuperPassword@123',
+          role: 'SUPER_MASTER',
+          creditLimit: 500000
         })
       });
-      createdAgentId = createRes.user?.id;
-      console.log(`✅ Master Power Verified: Created Downline Agent "${newAgentName}" with initial credit ₹50,000.`);
+      createdSuperMasterId = createRes.user?.id;
+      console.log(`✅ Admin Power Verified: Created Dynamic Super Master "${smName}" (Credit Limit: ₹500,000).`);
 
-      // Allocate credit to created downline
-      if (createdAgentId) {
+      // Allocate credit to created Super Master
+      if (createdSuperMasterId) {
         await request(`${API_BASE}/ledger/allocate-credit`, {
           method: 'POST',
-          headers: { Authorization: `Bearer ${tokens['MASTER']}` },
+          headers: { Authorization: `Bearer ${tokens['ADMIN']}` },
           body: JSON.stringify({
-            receiverId: createdAgentId,
-            amount: 5000,
-            notes: 'Weekly operating credit allocation'
+            receiverId: createdSuperMasterId,
+            amount: 50000,
+            notes: 'Operational credit allocation test'
           })
         });
-        console.log(`✅ Credit Allocation Verified: Transferred +₹5,000 credit to Agent "${newAgentName}".`);
+        console.log(`✅ Credit Allocation Verified: Transferred +₹50,000 credit to Super Master "${smName}".`);
       }
     } catch (e) {
-      console.log(`ℹ️ Master creation note: ${e.message}`);
+      console.log(`ℹ️ Downline test note: ${e.message}`);
     }
   }
 

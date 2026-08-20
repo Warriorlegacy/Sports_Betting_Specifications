@@ -193,27 +193,6 @@ VALUES
 ('00000000-0000-0000-0000-000000000000', 'admin', '$2a$10$Qr6as5Xn9lxhDsJh9JgaC.lCWApDJE9QtcLdZs53rLpqAV5gFfrzO', 'ADMIN', NULL, 10000000.00, 10000000.00, 0.00, TRUE)
 ON CONFLICT (username) DO UPDATE SET password_hash = EXCLUDED.password_hash;
 
-INSERT INTO users (id, username, password_hash, role, parent_id, credit_limit, available_credit, exposure, is_active)
-VALUES 
-('11111111-1111-1111-1111-111111111111', 'supermaster_asia', '$2a$10$4rW3brj2QGjMIWvS7Q7nI.5VkIyBAHjJOuDZ3wjRxaRJ66a883R4C', 'SUPER_MASTER', '00000000-0000-0000-0000-000000000000', 500000.00, 500000.00, 0.00, TRUE)
-ON CONFLICT (username) DO UPDATE SET password_hash = EXCLUDED.password_hash;
-
-INSERT INTO users (id, username, password_hash, role, parent_id, credit_limit, available_credit, exposure, is_active)
-VALUES 
-('22222222-2222-2222-2222-222222222222', 'master_mumbai', '$2a$10$LlhxqsYY1N7mIplec8lN8eISi9yRL/RqpX8zylxUrS6kd7vfK4k0.', 'MASTER', '11111111-1111-1111-1111-111111111111', 100000.00, 100000.00, 0.00, TRUE)
-ON CONFLICT (username) DO UPDATE SET password_hash = EXCLUDED.password_hash;
-
-INSERT INTO users (id, username, password_hash, role, parent_id, credit_limit, available_credit, exposure, is_active)
-VALUES 
-('33333333-3333-3333-3333-333333333333', 'agent_vikram', '$2a$10$7lBiGowTTp5L0i3d2XKxe.NDF1ZS621plw8aN78uxGhiqQ7ymBdym', 'AGENT', '22222222-2222-2222-2222-222222222222', 25000.00, 25000.00, 0.00, TRUE)
-ON CONFLICT (username) DO UPDATE SET password_hash = EXCLUDED.password_hash;
-
-INSERT INTO users (id, username, password_hash, role, parent_id, credit_limit, available_credit, exposure, is_active)
-VALUES 
-('44444444-4444-4444-4444-444444444444', 'player_rahul', '$2a$10$wOuyUGhwalgRIlzVzZV9b.uAFXw61vhEnM6UMynWIxEUc7NJeUQb2', 'USER', '33333333-3333-3333-3333-333333333333', 10000.00, 10000.00, 0.00, TRUE),
-('55555555-5555-5555-5555-555555555555', 'player_amit', '$2a$10$pmpJt5DwkfH2.iXytBBbkutBUmPHDU5qY63fts5CjozqMTXYfVvsG', 'USER', '33333333-3333-3333-3333-333333333333', 10000.00, 10000.00, 0.00, TRUE)
-ON CONFLICT (username) DO UPDATE SET password_hash = EXCLUDED.password_hash;
-
 INSERT INTO markets (id, event_name, market_type, sport, is_locked, in_play, status)
 VALUES 
 ('MKT_IND_AUS_T20', 'India vs Australia - 2nd T20 International', 'MATCH_ODDS', 'Cricket', FALSE, TRUE, 'OPEN'),
@@ -275,7 +254,18 @@ export async function initializeDatabase(): Promise<void> {
         console.warn('Seed insert note:', err.message);
       });
     }
+
+    // Purge legacy demo accounts from the database
+    await pool.query(`
+      DELETE FROM users 
+      WHERE username IN ('supermaster_asia', 'master_mumbai', 'agent_vikram', 'player_rahul', 'player_amit')
+    `).catch(err => {
+      console.warn('Demo users cleanup note:', err.message);
+    });
   } catch (error) {
+    console.error('Error during database initialization:', error);
+  }
+}
     console.error('Error during database initialization:', error);
   }
 }

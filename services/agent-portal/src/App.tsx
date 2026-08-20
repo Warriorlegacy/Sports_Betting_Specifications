@@ -48,80 +48,7 @@ export const App: React.FC = () => {
   const [loginPassword, setLoginPassword] = useState<string>('');
   const [loginError, setLoginError] = useState<string | null>(null);
 
-  const DEFAULT_LEDGER_ENTRIES: LedgerEntry[] = [
-    {
-      id: 'led_entry_001',
-      senderId: 'usr_admin',
-      senderUsername: 'admin',
-      receiverId: 'usr_master_rajesh',
-      receiverUsername: 'master_rajesh',
-      amount: 500000,
-      transactionType: 'CREDIT_ALLOCATION',
-      referenceId: 'ALLOC_500K_M1',
-      notes: 'Weekly credit line allocation to Master Agent Rajesh',
-      createdAt: new Date(Date.now() - 3600000 * 5).toISOString()
-    },
-    {
-      id: 'led_entry_002',
-      senderId: 'usr_master_rajesh',
-      senderUsername: 'master_rajesh',
-      receiverId: 'usr_super_anil',
-      receiverUsername: 'super_anil',
-      amount: 150000,
-      transactionType: 'CREDIT_ALLOCATION',
-      referenceId: 'ALLOC_150K_S1',
-      notes: 'Credit line assigned to Super Agent Anil',
-      createdAt: new Date(Date.now() - 3600000 * 4).toISOString()
-    },
-    {
-      id: 'led_entry_003',
-      senderId: 'usr_super_anil',
-      senderUsername: 'super_anil',
-      receiverId: 'usr_player_rahul',
-      receiverUsername: 'player_rahul',
-      amount: 2500,
-      transactionType: 'DEPOSIT',
-      referenceId: 'DEP_423987110943',
-      notes: 'Instant UPI deposit approved (UTR: 423987110943)',
-      createdAt: new Date(Date.now() - 3600000 * 2).toISOString()
-    },
-    {
-      id: 'led_entry_004',
-      senderId: 'usr_admin',
-      senderUsername: 'admin',
-      receiverId: 'usr_player_rahul',
-      receiverUsername: 'player_rahul',
-      amount: 850,
-      transactionType: 'BET_SETTLEMENT_WIN',
-      referenceId: 'WIN_IND_SL_849201',
-      notes: 'Net market winnings on Sri Lanka vs India (Back India @ 1.85)',
-      createdAt: new Date(Date.now() - 3600000 * 1).toISOString()
-    },
-    {
-      id: 'led_entry_005',
-      senderId: 'usr_player_rahul',
-      senderUsername: 'player_rahul',
-      receiverId: 'usr_admin',
-      receiverUsername: 'admin',
-      amount: 17,
-      transactionType: 'COMMISSION_RAKE',
-      referenceId: 'COMM_IND_SL_849201',
-      notes: 'Exchange commission rake (2.0%) credited to Platform House',
-      createdAt: new Date(Date.now() - 3600000 * 1).toISOString()
-    },
-    {
-      id: 'led_entry_006',
-      senderId: 'usr_player_rahul',
-      senderUsername: 'player_rahul',
-      receiverId: 'usr_admin',
-      receiverUsername: 'admin',
-      amount: 2000,
-      transactionType: 'WITHDRAWAL',
-      referenceId: 'WTH_741939',
-      notes: 'Player requested withdrawal via UPI to player.rahul@okaxis',
-      createdAt: new Date(Date.now() - 1800000).toISOString()
-    }
-  ];
+  const DEFAULT_LEDGER_ENTRIES: LedgerEntry[] = [];
 
   const fetchDashboardData = useCallback(async () => {
     try {
@@ -139,7 +66,7 @@ export const App: React.FC = () => {
       setLedgerEntries(entries);
     } catch (err) {
       console.error('Failed to load dashboard data:', err);
-      setLedgerEntries(DEFAULT_LEDGER_ENTRIES);
+      setLedgerEntries([]);
     }
   }, []);
 
@@ -202,29 +129,21 @@ export const App: React.FC = () => {
     };
   }, [currentUser, fetchDashboardData]);
 
-  // Default role credentials map with distinct passwords
-  const ROLE_CREDENTIALS: Record<string, string> = {
-    admin: 'Admin@Nexus2026!',
-    supermaster_asia: 'SuperAsia#7788$',
-    master_mumbai: 'MasterMum*9922#',
-    agent_vikram: 'AgentVikram@4411'
-  };
-
   // Handle Login
-  const handleLogin = async (usernameOverride?: string, passwordOverride?: string) => {
+  const handleLogin = async () => {
+    if (!loginUsername.trim() || !loginPassword.trim()) {
+      setLoginError('Please enter both username and password.');
+      return;
+    }
     try {
       setLoading(true);
       setLoginError(null);
-      const u = usernameOverride || loginUsername;
-      const p = passwordOverride || (usernameOverride ? ROLE_CREDENTIALS[usernameOverride] : loginPassword);
-      setLoginUsername(u);
-      setLoginPassword(p);
-      const res = await api.auth.login({ username: u, password: p });
+      const res = await api.auth.login({ username: loginUsername.trim(), password: loginPassword });
       setAuthToken(res.token);
       setCurrentUser(res.user);
       await fetchDashboardData();
     } catch (err: any) {
-      setLoginError(err.message || 'Login failed');
+      setLoginError(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
