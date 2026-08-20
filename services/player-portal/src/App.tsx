@@ -27,6 +27,12 @@ import { fetchRealWorldSports } from './services/realSportsClient';
 import { fetchFairplayExchangeMatches } from './services/fairplayFeedClient';
 import { MatkaHub } from './components/MatkaHub';
 import { LiveCasinoHub } from './components/LiveCasinoHub';
+import { MultiMarketBoard } from './components/MultiMarketBoard';
+import { LanguageModal } from './components/LanguageModal';
+import { TwoFactorModal } from './components/TwoFactorModal';
+import { StatementExportModal } from './components/StatementExportModal';
+import { SpinWheelModal } from './components/SpinWheelModal';
+import { useI18n } from './services/i18nService';
 import {
   LiveMatch,
   SportCategory,
@@ -103,70 +109,48 @@ function convertTelemetryToMatch(t: any): LiveMatch {
 
   const markets: BettingMarket[] = [
     {
-      id: `MKT_MAIN_${t.marketId}`,
-      name: t.realOdds?.marketName || 'Match Winner / Moneyline',
+      id: `MKT_MATCH_${t.marketId}`,
+      name: 'Match Odds',
       category: 'MAIN',
+      isLive: true,
+      hasCashOut: true,
       selections: primarySelections
     }
   ];
 
-  if (sportCat === 'Football') {
+  if (t.drawOdds || (t.sport === 'FOOTBALL' && primarySelections.length < 3)) {
+    markets.push({
+      id: `MKT_DRAW_${t.marketId}`,
+      name: 'Draw No Bet',
+      category: 'MAIN',
+      isLive: true,
+      hasCashOut: true,
+      selections: [
+        { id: `dnb_1_${t.marketId}`, name: t.homeTeam || 'Home', price: 1.65 },
+        { id: `dnb_2_${t.marketId}`, name: t.awayTeam || 'Away', price: 2.20 }
+      ]
+    });
+  }
+
+  if (t.sport === 'CRICKET') {
     markets.push(
       {
-        id: `MKT_TOTAL_${t.marketId}`,
-        name: 'Total Goals (Over/Under 2.5)',
-        category: 'TOTALS',
-        selections: [
-          { id: `tot_ov_${t.marketId}`, name: 'Over 2.5 Goals', price: 1.85 },
-          { id: `tot_un_${t.marketId}`, name: 'Under 2.5 Goals', price: 1.95 }
-        ]
+        id: `MKT_BOOKMAKER_${t.marketId}`,
+        name: 'Bookmaker (0% Comm)',
+        category: 'MAIN',
+        isLive: true,
+        hasCashOut: true,
+        selections: primarySelections.map((s: any) => ({
+          ...s,
+          price: +(s.price * 0.98).toFixed(2)
+        }))
       },
       {
-        id: `MKT_AH_${t.marketId}`,
-        name: 'Asian Handicap (-1.5 / +1.5)',
-        category: 'HANDICAPS',
-        selections: [
-          { id: `ah_h_${t.marketId}`, name: `${t.homeTeam || 'Home'} (-1.5)`, price: 2.10, handicap: '-1.5' },
-          { id: `ah_a_${t.marketId}`, name: `${t.awayTeam || 'Away'} (+1.5)`, price: 1.74, handicap: '+1.5' }
-        ]
-      },
-      {
-        id: `MKT_BTTS_${t.marketId}`,
-        name: 'Both Teams To Score',
-        category: 'PROPS',
-        selections: [
-          { id: `btts_y_${t.marketId}`, name: 'Yes (BTTS)', price: 1.72 },
-          { id: `btts_n_${t.marketId}`, name: 'No (BTTS)', price: 2.08 }
-        ]
-      }
-    );
-  } else if (sportCat === 'Basketball') {
-    markets.push(
-      {
-        id: `MKT_TOTAL_${t.marketId}`,
-        name: 'Total Game Points (O/U 224.5)',
-        category: 'TOTALS',
-        selections: [
-          { id: `nba_ov_${t.marketId}`, name: 'Over 224.5 Pts', price: 1.90 },
-          { id: `nba_un_${t.marketId}`, name: 'Under 224.5 Pts', price: 1.90 }
-        ]
-      },
-      {
-        id: `MKT_SPREAD_${t.marketId}`,
-        name: 'Point Spread (-4.5 / +4.5)',
-        category: 'HANDICAPS',
-        selections: [
-          { id: `nba_sp_h_${t.marketId}`, name: `${t.homeTeam || 'Home'} (-4.5)`, price: 1.91, handicap: '-4.5' },
-          { id: `nba_sp_a_${t.marketId}`, name: `${t.awayTeam || 'Away'} (+4.5)`, price: 1.91, handicap: '+4.5' }
-        ]
-      }
-    );
-  } else if (sportCat === 'Cricket') {
-    markets.push(
-      {
-        id: `MKT_TOTAL_${t.marketId}`,
-        name: 'Total Runs (Over/Under)',
-        category: 'TOTALS',
+        id: `MKT_FANCY_SESSION_${t.marketId}`,
+        name: 'Normal Session Runs',
+        category: 'MAIN',
+        isLive: true,
+        hasCashOut: false,
         selections: [
           { id: `cri_ov_${t.marketId}`, name: 'Over 168.5 Runs', price: 1.85 },
           { id: `cri_un_${t.marketId}`, name: 'Under 168.5 Runs', price: 1.95 }
@@ -229,6 +213,7 @@ function convertTelemetryToMatch(t: any): LiveMatch {
 type ViewType =
   | 'SPORTSBOOK'
   | 'INPLAY'
+  | 'MULTI_MARKETS'
   | 'EXCHANGE'
   | 'MATKA'
   | 'CASINO'
@@ -271,6 +256,42 @@ export const App: React.FC = () => {
 
   // App Download Modal State
   const [isAppDownloadModalOpen, setIsAppDownloadModalOpen] = useState<boolean>(false);
+
+  // Benchmark Feature Modal States
+  const [isLanguageModalOpen, setIsLanguageModalOpen] = useState<boolean>(false);
+  const [isTwoFactorModalOpen, setIsTwoFactorModalOpen] = useState<boolean>(false);
+  const [isStatementExportOpen, setIsStatementExportOpen] = useState<boolean>(false);
+  const [isSpinWheelOpen, setIsSpinWheelOpen] = useState<boolean>(false);
+  const [pinnedMatchIds, setPinnedMatchIds] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem('nexus_pinned_matches');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const handleTogglePinMatch = (matchId: string) => {
+    setPinnedMatchIds((prev) => {
+      const next = prev.includes(matchId) ? prev.filter((id) => id !== matchId) : [...prev, matchId];
+      localStorage.setItem('nexus_pinned_matches', JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const handleSpinReward = (amount: number, description: string) => {
+    setCurrentUser((prev) => {
+      if (!prev) return prev;
+      const updated = {
+        ...prev,
+        availableCredit: (prev.availableCredit || 0) + amount
+      };
+      localStorage.setItem('nexus_demo_user', JSON.stringify(updated));
+      return updated;
+    });
+    setToastMessage(`🎉 ${description} (+₹${amount})!`);
+    setTimeout(() => setToastMessage(null), 4000);
+  };
 
   // Info, Rules, Privacy, T&C & FAQ Modal State
   const [isInfoModalOpen, setIsInfoModalOpen] = useState<boolean>(false);
@@ -916,6 +937,10 @@ export const App: React.FC = () => {
           setInfoModalTab(tab);
           setIsInfoModalOpen(true);
         }}
+        onOpenLanguageModal={() => setIsLanguageModalOpen(true)}
+        onOpenTwoFactor={() => setIsTwoFactorModalOpen(true)}
+        onOpenStatementExport={() => setIsStatementExportOpen(true)}
+        onOpenSpinWheel={() => setIsSpinWheelOpen(true)}
         onLogout={handleLogout}
         openBetsCount={myBets.filter((b) => b.status === 'UNMATCHED' || b.status === 'MATCHED').length}
         oneClickBet={oneClickBet}
@@ -1007,6 +1032,28 @@ export const App: React.FC = () => {
             />
           ) : (
             <>
+              {/* MULTI-MARKET BOARD (RUDRA888 PINNED MATCH MATRIX) */}
+              {activeView === 'MULTI_MARKETS' && (
+                <MultiMarketBoard
+                  allMatches={liveMatches}
+                  pinnedMatchIds={pinnedMatchIds}
+                  onTogglePin={handleTogglePinMatch}
+                  onSelectOdds={(matchId, marketId, marketName, selectionId, selectionName, price, type) => {
+                    handleSelectOdds(
+                      matchId,
+                      marketId,
+                      marketName,
+                      selectionId,
+                      selectionName,
+                      price,
+                      type || 'BACK'
+                    );
+                  }}
+                  onSelectMatch={(matchId) => setSelectedMatchId(matchId)}
+                  oddsFormat={oddsFormat}
+                />
+              )}
+
               {/* IN-PLAY / SPORTSBOOK VIEW (Fairplay 6-Odds Matrix Cards) */}
               {(activeView === 'INPLAY' || activeView === 'SPORTSBOOK') && (
                 <FairplayEventList
@@ -1301,6 +1348,34 @@ export const App: React.FC = () => {
           setIsInfoModalOpen(false);
           setIsAppDownloadModalOpen(true);
         }}
+      />
+
+      {/* 9-Language Localization Modal */}
+      <LanguageModal
+        isOpen={isLanguageModalOpen}
+        onClose={() => setIsLanguageModalOpen(false)}
+      />
+
+      {/* Google Authenticator TOTP 2FA Modal */}
+      <TwoFactorModal
+        isOpen={isTwoFactorModalOpen}
+        onClose={() => setIsTwoFactorModalOpen(false)}
+        user={currentUser}
+      />
+
+      {/* Account Statements & P&L Export Modal (PDF / CSV) */}
+      <StatementExportModal
+        isOpen={isStatementExportOpen}
+        onClose={() => setIsStatementExportOpen(false)}
+        user={currentUser}
+      />
+
+      {/* Daily Lucky Spin Wheel Mini-Game */}
+      <SpinWheelModal
+        isOpen={isSpinWheelOpen}
+        onClose={() => setIsSpinWheelOpen(false)}
+        user={currentUser}
+        onRewardWon={handleSpinReward}
       />
     </div>
   );

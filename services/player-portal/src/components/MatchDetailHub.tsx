@@ -33,9 +33,12 @@ import { SGPBuilder } from './SGPBuilder';
 import { CricketMatchCenter } from './CricketMatchCenter';
 import { FootballMatchCenter } from './FootballMatchCenter';
 import { CricketFancyHub } from './CricketFancyHub';
+import { FancyBettingHub } from './FancyBettingHub';
+import { BookmakerMarketHub } from './BookmakerMarketHub';
 import { LiveMatchStreamPlayer } from './LiveMatchStreamPlayer';
 import { fairplaySocket } from '../services/fairplaySocket';
 import { formatOdds } from '../services/oddsFormatter';
+import { useI18n } from '../services/i18nService';
 
 interface MatchDetailHubProps {
   match: LiveMatch;
@@ -65,12 +68,14 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
   onSelectOdds,
   onAddSGPToSlip
 }) => {
+  const { t } = useI18n();
   const [activeMarketTab, setActiveMarketTab] = useState<string>('MAIN');
   const [isScoreboardExpanded, setIsScoreboardExpanded] = useState<boolean>(true);
   const [isLiveStreamOpen, setIsLiveStreamOpen] = useState<boolean>(false);
   const [isStatsModalOpen, setIsStatsModalOpen] = useState<boolean>(false);
   const [isCashOutModalOpen, setIsCashOutModalOpen] = useState<boolean>(false);
   const [cashOutSliderPercent, setCashOutSliderPercent] = useState<number>(100);
+  const [showLadderView, setShowLadderView] = useState<boolean>(false);
   const [collapsedAccordions, setCollapsedAccordions] = useState<Record<string, boolean>>({});
 
   // Real-time WebSocket connection to Fairplay / ZPlay broadcast
@@ -427,47 +432,77 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
       </div>
 
       {/* ========================================================================= */}
-      {/* 5. PRIMARY EXCHANGE CARD: ⭐ MATCH ODDS (BACK & LAY MATRIX) */}
+      {/* ========================================================================= */}
+      {/* 5. PRIMARY EXCHANGE CARD: ⭐ MATCH ODDS (BACK & LAY MATRIX / 6-LEVEL LADDER) */}
       {/* ========================================================================= */}
       {(activeMarketTab === 'MAIN' || activeMarketTab === 'ALL') && (
         <div className="bg-[#1e1e1e] border border-[#2d2d2d] rounded-2xl overflow-hidden shadow-xl">
-          {/* Card Header (Orange Banner with Star & Cashout badge) */}
+          {/* Card Header (Orange Banner with Star, Ladder Toggle & Cashout badge) */}
           <div className="bg-gradient-to-r from-[#f36c21] to-[#e05b12] px-3.5 py-2.5 flex items-center justify-between text-white">
             <div className="flex items-center space-x-2">
               <Star className="w-4 h-4 text-amber-300 fill-amber-300" />
               <h4 className="font-black text-xs uppercase tracking-wider">MATCH ODDS</h4>
             </div>
 
-            {dynamicCashOutOffer > 0 ? (
+            <div className="flex items-center space-x-2">
+              {/* 6-Level Ladder Toggle */}
               <button
-                onClick={() => setIsCashOutModalOpen(true)}
-                className="px-2.5 py-1 rounded-md bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-[10px] uppercase tracking-wider flex items-center space-x-1 shadow cursor-pointer animate-pulse"
+                type="button"
+                onClick={() => setShowLadderView((prev) => !prev)}
+                className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider border transition-all cursor-pointer ${
+                  showLadderView
+                    ? 'bg-black/50 border-white text-white shadow-inner'
+                    : 'bg-white/20 border-white/40 text-white hover:bg-white/30'
+                }`}
               >
-                <Coins className="w-3 h-3" />
-                <span>CASHOUT : ₹{dynamicCashOutOffer.toFixed(2)}</span>
+                {showLadderView ? '🪜 6-Level Ladder' : '2-Box Odds'}
               </button>
-            ) : (
-              <button
-                onClick={() => alert(`💡 Dynamic Cash-Out Terminal:\n\nOnce you place a Back or Lay bet on this match, this button automatically calculates your exact real-time Cash-Out offer based on live market odds.\n\nYou can cash out 100% or use our partial slider (25%, 50%, 75%, or custom amount) to lock in profit or cut risk anytime before the match ends.`)}
-                className="px-2.5 py-0.8 rounded-md bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-[10px] uppercase tracking-wider flex items-center space-x-1 shadow cursor-pointer"
-              >
-                <Coins className="w-3 h-3" />
-                <span>CASHOUT</span>
-              </button>
-            )}
-          </div>
 
-          {/* BACK & LAY Column Headers */}
-          <div className="bg-[#181818] border-b border-[#2a2a2a] px-3.5 py-1.5 flex items-center justify-end text-[11px] font-black">
-            <div className="flex space-x-2 text-center w-48 sm:w-56">
-              <div className="flex-1 py-0.5 rounded bg-[#23a8f2]/15 text-[#23a8f2] uppercase tracking-wider">
-                BACK
-              </div>
-              <div className="flex-1 py-0.5 rounded bg-[#f26b8a]/15 text-[#f26b8a] uppercase tracking-wider">
-                LAY
-              </div>
+              {dynamicCashOutOffer > 0 ? (
+                <button
+                  onClick={() => setIsCashOutModalOpen(true)}
+                  className="px-2.5 py-1 rounded-md bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-[10px] uppercase tracking-wider flex items-center space-x-1 shadow cursor-pointer animate-pulse"
+                >
+                  <Coins className="w-3 h-3" />
+                  <span>CASHOUT : ₹{dynamicCashOutOffer.toFixed(2)}</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => alert(`💡 Dynamic Cash-Out Terminal:\n\nOnce you place a Back or Lay bet on this match, this button automatically calculates your exact real-time Cash-Out offer based on live market odds.\n\nYou can cash out 100% or use our partial slider (25%, 50%, 75%, or custom amount) to lock in profit or cut risk anytime before the match ends.`)}
+                  className="px-2.5 py-0.8 rounded-md bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-black text-[10px] uppercase tracking-wider flex items-center space-x-1 shadow cursor-pointer"
+                >
+                  <Coins className="w-3 h-3" />
+                  <span>CASHOUT</span>
+                </button>
+              )}
             </div>
           </div>
+
+          {/* Column Headers */}
+          {!showLadderView ? (
+            <div className="bg-[#181818] border-b border-[#2a2a2a] px-3.5 py-1.5 flex items-center justify-end text-[11px] font-black">
+              <div className="flex space-x-2 text-center w-48 sm:w-56">
+                <div className="flex-1 py-0.5 rounded bg-[#23a8f2]/15 text-[#23a8f2] uppercase tracking-wider">
+                  BACK
+                </div>
+                <div className="flex-1 py-0.5 rounded bg-[#f26b8a]/15 text-[#f26b8a] uppercase tracking-wider">
+                  LAY
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-[#181818] border-b border-[#2a2a2a] px-3.5 py-1.5 flex items-center justify-between text-[10px] font-black uppercase text-[#888]">
+              <span>Market Selection</span>
+              <div className="grid grid-cols-6 gap-1 text-center w-72 sm:w-96 text-[9px]">
+                <span className="text-sky-300">Back 3</span>
+                <span className="text-sky-300">Back 2</span>
+                <span className="text-sky-400 font-bold bg-[#a5d9fe]/10 rounded">Back 1</span>
+                <span className="text-pink-400 font-bold bg-[#f8d0ce]/10 rounded">Lay 1</span>
+                <span className="text-pink-300">Lay 2</span>
+                <span className="text-pink-300">Lay 3</span>
+              </div>
+            </div>
+          )}
 
           {/* Runners List */}
           <div className="divide-y divide-[#2a2a2a]">
@@ -478,7 +513,6 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
                   <span>{getFlagEmoji(home.name, true)}</span>
                   <span>{home.name}</span>
                 </div>
-                {/* Live Projected P&L indicator (Rudra888 Green/Red style) */}
                 <div className="text-[11px] font-mono font-bold mt-0.5">
                   {runnerPnL[home.name.toLowerCase()] !== undefined ? (
                     <span className={runnerPnL[home.name.toLowerCase()] >= 0 ? 'text-[#27AE60]' : 'text-[#FF4148]'}>
@@ -490,54 +524,88 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
                 </div>
               </div>
 
-              {/* Odds Cells (Blue Back / Pink Lay) */}
-              <div className="flex space-x-2 shrink-0">
-                {/* BACK Box */}
-                <button
-                  type="button"
-                  onClick={() =>
-                    onSelectOdds(
-                      `MKT_MATCH_${match.id}`,
-                      'Match Odds',
-                      `sel_home_${match.id}`,
-                      home.name,
-                      homeBackOdds,
-                      'BACK'
-                    )
-                  }
-                  className="w-24 sm:w-28 py-2 px-1 rounded-xl bg-[#a5d9fe] hover:bg-[#8ecbf8] text-[#002244] flex flex-col items-center justify-center transition-all transform active:scale-95 shadow cursor-pointer"
-                >
-                  <span className="font-mono font-black text-sm sm:text-base leading-tight">
-                    {homeBackOdds.toFixed(2)}
-                  </span>
-                  <span className="text-[10px] font-bold text-slate-600 leading-none mt-0.5">
-                    259K
-                  </span>
-                </button>
+              {!showLadderView ? (
+                /* Standard 2-Box Odds */
+                <div className="flex space-x-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onSelectOdds(
+                        `MKT_MATCH_${match.id}`,
+                        'Match Odds',
+                        `sel_home_${match.id}`,
+                        home.name,
+                        homeBackOdds,
+                        'BACK'
+                      )
+                    }
+                    className="w-24 sm:w-28 py-2 px-1 rounded-xl bg-[#a5d9fe] hover:bg-[#8ecbf8] text-[#002244] flex flex-col items-center justify-center transition-all transform active:scale-95 shadow cursor-pointer"
+                  >
+                    <span className="font-mono font-black text-sm sm:text-base leading-tight">
+                      {homeBackOdds.toFixed(2)}
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-600 leading-none mt-0.5">
+                      259K
+                    </span>
+                  </button>
 
-                {/* LAY Box */}
-                <button
-                  type="button"
-                  onClick={() =>
-                    onSelectOdds(
-                      `MKT_MATCH_${match.id}`,
-                      'Match Odds',
-                      `sel_home_${match.id}`,
-                      home.name,
-                      homeLayOdds,
-                      'LAY'
-                    )
-                  }
-                  className="w-24 sm:w-28 py-2 px-1 rounded-xl bg-[#f8d0ce] hover:bg-[#f5bec0] text-[#4a0e17] flex flex-col items-center justify-center transition-all transform active:scale-95 shadow cursor-pointer"
-                >
-                  <span className="font-mono font-black text-sm sm:text-base leading-tight">
-                    {homeLayOdds.toFixed(2)}
-                  </span>
-                  <span className="text-[10px] font-bold text-slate-600 leading-none mt-0.5">
-                    169K
-                  </span>
-                </button>
-              </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onSelectOdds(
+                        `MKT_MATCH_${match.id}`,
+                        'Match Odds',
+                        `sel_home_${match.id}`,
+                        home.name,
+                        homeLayOdds,
+                        'LAY'
+                      )
+                    }
+                    className="w-24 sm:w-28 py-2 px-1 rounded-xl bg-[#f8d0ce] hover:bg-[#f5bec0] text-[#4a0e17] flex flex-col items-center justify-center transition-all transform active:scale-95 shadow cursor-pointer"
+                  >
+                    <span className="font-mono font-black text-sm sm:text-base leading-tight">
+                      {homeLayOdds.toFixed(2)}
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-600 leading-none mt-0.5">
+                      169K
+                    </span>
+                  </button>
+                </div>
+              ) : (
+                /* 6-Level Depth Price Ladder */
+                <div className="grid grid-cols-6 gap-1 shrink-0 w-72 sm:w-96 text-center font-mono">
+                  {/* Back 3 */}
+                  <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', `sel_home_${match.id}`, home.name, +(homeBackOdds - 0.02).toFixed(2), 'BACK')} className="p-1 rounded bg-[#a5d9fe]/40 hover:bg-[#a5d9fe] text-[#002244] text-xs font-bold transition-all">
+                    <span>{+(homeBackOdds - 0.02).toFixed(2)}</span>
+                    <span className="block text-[8px] text-slate-600">45k</span>
+                  </button>
+                  {/* Back 2 */}
+                  <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', `sel_home_${match.id}`, home.name, +(homeBackOdds - 0.01).toFixed(2), 'BACK')} className="p-1 rounded bg-[#a5d9fe]/70 hover:bg-[#a5d9fe] text-[#002244] text-xs font-bold transition-all">
+                    <span>{+(homeBackOdds - 0.01).toFixed(2)}</span>
+                    <span className="block text-[8px] text-slate-600">89k</span>
+                  </button>
+                  {/* Back 1 (Best) */}
+                  <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', `sel_home_${match.id}`, home.name, homeBackOdds, 'BACK')} className="p-1.5 rounded-lg bg-[#a5d9fe] hover:bg-[#8ecbf8] text-[#002244] text-xs font-black shadow transition-all transform active:scale-95">
+                    <span>{homeBackOdds.toFixed(2)}</span>
+                    <span className="block text-[9px] text-slate-700">259k</span>
+                  </button>
+                  {/* Lay 1 (Best) */}
+                  <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', `sel_home_${match.id}`, home.name, homeLayOdds, 'LAY')} className="p-1.5 rounded-lg bg-[#f8d0ce] hover:bg-[#f5bec0] text-[#4a0e17] text-xs font-black shadow transition-all transform active:scale-95">
+                    <span>{homeLayOdds.toFixed(2)}</span>
+                    <span className="block text-[9px] text-slate-700">169k</span>
+                  </button>
+                  {/* Lay 2 */}
+                  <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', `sel_home_${match.id}`, home.name, +(homeLayOdds + 0.01).toFixed(2), 'LAY')} className="p-1 rounded bg-[#f8d0ce]/70 hover:bg-[#f8d0ce] text-[#4a0e17] text-xs font-bold transition-all">
+                    <span>{+(homeLayOdds + 0.01).toFixed(2)}</span>
+                    <span className="block text-[8px] text-slate-600">92k</span>
+                  </button>
+                  {/* Lay 3 */}
+                  <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', `sel_home_${match.id}`, home.name, +(homeLayOdds + 0.02).toFixed(2), 'LAY')} className="p-1 rounded bg-[#f8d0ce]/40 hover:bg-[#f8d0ce] text-[#4a0e17] text-xs font-bold transition-all">
+                    <span>{+(homeLayOdds + 0.02).toFixed(2)}</span>
+                    <span className="block text-[8px] text-slate-600">34k</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Runner 2: Away Player */}
@@ -547,7 +615,6 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
                   <span>{getFlagEmoji(away.name, false)}</span>
                   <span>{away.name}</span>
                 </div>
-                {/* Live Projected P&L indicator */}
                 <div className="text-[11px] font-mono font-bold mt-0.5">
                   {runnerPnL[away.name.toLowerCase()] !== undefined ? (
                     <span className={runnerPnL[away.name.toLowerCase()] >= 0 ? 'text-[#27AE60]' : 'text-[#FF4148]'}>
@@ -559,54 +626,88 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
                 </div>
               </div>
 
-              {/* Odds Cells (Blue Back / Pink Lay) */}
-              <div className="flex space-x-2 shrink-0">
-                {/* BACK Box */}
-                <button
-                  type="button"
-                  onClick={() =>
-                    onSelectOdds(
-                      `MKT_MATCH_${match.id}`,
-                      'Match Odds',
-                      `sel_away_${match.id}`,
-                      away.name,
-                      awayBackOdds,
-                      'BACK'
-                    )
-                  }
-                  className="w-24 sm:w-28 py-2 px-1 rounded-xl bg-[#a5d9fe] hover:bg-[#8ecbf8] text-[#002244] flex flex-col items-center justify-center transition-all transform active:scale-95 shadow cursor-pointer"
-                >
-                  <span className="font-mono font-black text-sm sm:text-base leading-tight">
-                    {awayBackOdds.toFixed(2)}
-                  </span>
-                  <span className="text-[10px] font-bold text-slate-600 leading-none mt-0.5">
-                    123K
-                  </span>
-                </button>
+              {!showLadderView ? (
+                /* Standard 2-Box Odds */
+                <div className="flex space-x-2 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onSelectOdds(
+                        `MKT_MATCH_${match.id}`,
+                        'Match Odds',
+                        `sel_away_${match.id}`,
+                        away.name,
+                        awayBackOdds,
+                        'BACK'
+                      )
+                    }
+                    className="w-24 sm:w-28 py-2 px-1 rounded-xl bg-[#a5d9fe] hover:bg-[#8ecbf8] text-[#002244] flex flex-col items-center justify-center transition-all transform active:scale-95 shadow cursor-pointer"
+                  >
+                    <span className="font-mono font-black text-sm sm:text-base leading-tight">
+                      {awayBackOdds.toFixed(2)}
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-600 leading-none mt-0.5">
+                      123K
+                    </span>
+                  </button>
 
-                {/* LAY Box */}
-                <button
-                  type="button"
-                  onClick={() =>
-                    onSelectOdds(
-                      `MKT_MATCH_${match.id}`,
-                      'Match Odds',
-                      `sel_away_${match.id}`,
-                      away.name,
-                      awayLayOdds,
-                      'LAY'
-                    )
-                  }
-                  className="w-24 sm:w-28 py-2 px-1 rounded-xl bg-[#f8d0ce] hover:bg-[#f5bec0] text-[#4a0e17] flex flex-col items-center justify-center transition-all transform active:scale-95 shadow cursor-pointer"
-                >
-                  <span className="font-mono font-black text-sm sm:text-base leading-tight">
-                    {awayLayOdds.toFixed(2)}
-                  </span>
-                  <span className="text-[10px] font-bold text-slate-600 leading-none mt-0.5">
-                    330K
-                  </span>
-                </button>
-              </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onSelectOdds(
+                        `MKT_MATCH_${match.id}`,
+                        'Match Odds',
+                        `sel_away_${match.id}`,
+                        away.name,
+                        awayLayOdds,
+                        'LAY'
+                      )
+                    }
+                    className="w-24 sm:w-28 py-2 px-1 rounded-xl bg-[#f8d0ce] hover:bg-[#f5bec0] text-[#4a0e17] flex flex-col items-center justify-center transition-all transform active:scale-95 shadow cursor-pointer"
+                  >
+                    <span className="font-mono font-black text-sm sm:text-base leading-tight">
+                      {awayLayOdds.toFixed(2)}
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-600 leading-none mt-0.5">
+                      330K
+                    </span>
+                  </button>
+                </div>
+              ) : (
+                /* 6-Level Depth Price Ladder */
+                <div className="grid grid-cols-6 gap-1 shrink-0 w-72 sm:w-96 text-center font-mono">
+                  {/* Back 3 */}
+                  <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', `sel_away_${match.id}`, away.name, +(awayBackOdds - 0.02).toFixed(2), 'BACK')} className="p-1 rounded bg-[#a5d9fe]/40 hover:bg-[#a5d9fe] text-[#002244] text-xs font-bold transition-all">
+                    <span>{+(awayBackOdds - 0.02).toFixed(2)}</span>
+                    <span className="block text-[8px] text-slate-600">32k</span>
+                  </button>
+                  {/* Back 2 */}
+                  <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', `sel_away_${match.id}`, away.name, +(awayBackOdds - 0.01).toFixed(2), 'BACK')} className="p-1 rounded bg-[#a5d9fe]/70 hover:bg-[#a5d9fe] text-[#002244] text-xs font-bold transition-all">
+                    <span>{+(awayBackOdds - 0.01).toFixed(2)}</span>
+                    <span className="block text-[8px] text-slate-600">67k</span>
+                  </button>
+                  {/* Back 1 (Best) */}
+                  <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', `sel_away_${match.id}`, away.name, awayBackOdds, 'BACK')} className="p-1.5 rounded-lg bg-[#a5d9fe] hover:bg-[#8ecbf8] text-[#002244] text-xs font-black shadow transition-all transform active:scale-95">
+                    <span>{awayBackOdds.toFixed(2)}</span>
+                    <span className="block text-[9px] text-slate-700">123k</span>
+                  </button>
+                  {/* Lay 1 (Best) */}
+                  <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', `sel_away_${match.id}`, away.name, awayLayOdds, 'LAY')} className="p-1.5 rounded-lg bg-[#f8d0ce] hover:bg-[#f5bec0] text-[#4a0e17] text-xs font-black shadow transition-all transform active:scale-95">
+                    <span>{awayLayOdds.toFixed(2)}</span>
+                    <span className="block text-[9px] text-slate-700">330k</span>
+                  </button>
+                  {/* Lay 2 */}
+                  <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', `sel_away_${match.id}`, away.name, +(awayLayOdds + 0.01).toFixed(2), 'LAY')} className="p-1 rounded bg-[#f8d0ce]/70 hover:bg-[#f8d0ce] text-[#4a0e17] text-xs font-bold transition-all">
+                    <span>{+(awayLayOdds + 0.01).toFixed(2)}</span>
+                    <span className="block text-[8px] text-slate-600">110k</span>
+                  </button>
+                  {/* Lay 3 */}
+                  <button onClick={() => onSelectOdds(`MKT_MATCH_${match.id}`, 'Match Odds', `sel_away_${match.id}`, away.name, +(awayLayOdds + 0.02).toFixed(2), 'LAY')} className="p-1 rounded bg-[#f8d0ce]/40 hover:bg-[#f8d0ce] text-[#4a0e17] text-xs font-bold transition-all">
+                    <span>{+(awayLayOdds + 0.02).toFixed(2)}</span>
+                    <span className="block text-[8px] text-slate-600">55k</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -619,6 +720,20 @@ export const MatchDetailHub: React.FC<MatchDetailHubProps> = ({
             </span>
           </div>
         </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 5B. BOOKMAKER MARKET (0% COMMISSION) */}
+      {/* ========================================================================= */}
+      {(activeMarketTab === 'BOOKMAKER' || activeMarketTab === 'ALL') && (
+        <BookmakerMarketHub match={match} oddsFormat={oddsFormat} onSelectOdds={onSelectOdds} />
+      )}
+
+      {/* ========================================================================= */}
+      {/* 5C. INDIAN FANCY & SESSIONS (7-CATEGORY HUB) */}
+      {/* ========================================================================= */}
+      {(activeMarketTab === 'FANCY' || activeMarketTab === 'ALL') && (
+        <FancyBettingHub match={match} oddsFormat={oddsFormat} onSelectOdds={onSelectOdds} />
       )}
 
       {/* ========================================================================= */}

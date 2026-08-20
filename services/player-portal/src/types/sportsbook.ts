@@ -27,6 +27,8 @@ export interface BettingMarket {
   name: string;
   category: 'MAIN' | 'HANDICAPS' | 'TOTALS' | 'PROPS' | 'CORNERS_CARDS' | 'PERIODS' | 'SGP' | 'TOSS';
   isSuspended?: boolean;
+  isLive?: boolean;
+  hasCashOut?: boolean;
   selections: SelectionOdds[];
 }
 

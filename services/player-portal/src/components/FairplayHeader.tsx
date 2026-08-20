@@ -24,6 +24,7 @@ import {
   Award
 } from 'lucide-react';
 import { SportCategory } from '../types/sportsbook';
+import { useI18n, LanguageCode } from '../services/i18nService';
 
 export type InfoModalTab = 'ABOUT' | 'PRIVACY' | 'TERMS' | 'RULES' | 'FAQ' | 'RESPONSIBLE';
 
@@ -45,6 +46,10 @@ interface FairplayHeaderProps {
   onOpenCredits?: () => void;
   onOpenAppDownload?: () => void;
   onOpenInfoTab?: (tab: InfoModalTab) => void;
+  onOpenLanguageModal?: () => void;
+  onOpenTwoFactor?: () => void;
+  onOpenStatementExport?: () => void;
+  onOpenSpinWheel?: () => void;
   onLogout: () => void;
   openBetsCount: number;
   oneClickBet: boolean;
@@ -63,22 +68,30 @@ export const FairplayHeader: React.FC<FairplayHeaderProps> = ({
   onOpenCredits,
   onOpenAppDownload,
   onOpenInfoTab,
+  onOpenLanguageModal,
+  onOpenTwoFactor,
+  onOpenStatementExport,
+  onOpenSpinWheel,
   onLogout,
   openBetsCount,
   oneClickBet,
   setOneClickBet
 }) => {
+  const { t, lang, languages } = useI18n();
   const [userDrawerOpen, setUserDrawerOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const currentLangMeta = languages.find((l) => l.code === lang) || languages[0];
+
   const navTabs = [
-    { id: 'INPLAY', label: 'inplay', icon: '/assets/inplay.a7c4dae-C8xV8pYh.webp' },
-    { id: 'FANTASY', label: 'Fantasy Pro', icon: '/assets/fantasybookicon.225b8cb-Cjpd3wag.webp' },
-    { id: 'SPORTSBOOK', label: 'Sportbook', icon: '/assets/sportbook_icon-CaAh8qoq.svg' },
-    { id: 'CASINO', label: 'Live Casino', icon: '/assets/casino-BnBk6FL5.webp' },
-    { id: 'CRASH', label: 'crash games', icon: '/assets/crash-img-d4T8ANqx.webp' },
-    { id: 'LIVECARD', label: 'Live Card', icon: '/assets/live-card.c981209-CS5ln-mD.webp' },
-    { id: 'MATKA', label: 'Matka', icon: '/assets/gold-pot-B7mS4MfM.webp' }
+    { id: 'INPLAY', label: t('inplay'), icon: '/assets/inplay.a7c4dae-C8xV8pYh.webp' },
+    { id: 'MULTI_MARKETS', label: t('multi_markets'), icon: '/assets/sportbook_icon-CaAh8qoq.svg' },
+    { id: 'FANTASY', label: t('fantasy'), icon: '/assets/fantasybookicon.225b8cb-Cjpd3wag.webp' },
+    { id: 'SPORTSBOOK', label: t('sportsbook'), icon: '/assets/sportbook_icon-CaAh8qoq.svg' },
+    { id: 'CASINO', label: t('casino'), icon: '/assets/casino-BnBk6FL5.webp' },
+    { id: 'CRASH', label: t('crash'), icon: '/assets/crash-img-d4T8ANqx.webp' },
+    { id: 'LIVECARD', label: t('livecard'), icon: '/assets/live-card.c981209-CS5ln-mD.webp' },
+    { id: 'MATKA', label: t('matka'), icon: '/assets/gold-pot-B7mS4MfM.webp' }
   ];
 
   return (
@@ -136,12 +149,29 @@ export const FairplayHeader: React.FC<FairplayHeaderProps> = ({
           </button>
         </div>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3">
+          {/* Spin Wheel Daily Bonus Button */}
+          {onOpenSpinWheel && (
+            <button
+              type="button"
+              onClick={onOpenSpinWheel}
+              className="flex items-center space-x-1 px-2 py-0.5 rounded bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 border border-amber-500/40 text-amber-300 font-bold text-[10px] cursor-pointer animate-pulse"
+            >
+              <span>🎁</span>
+              <span>{t('spin_wheel')}</span>
+            </button>
+          )}
+
           {/* Language Selector */}
-          <div className="flex items-center space-x-1 cursor-pointer hover:text-white">
-            <Globe className="w-3.5 h-3.5 text-[#f36c21]" />
-            <span>English</span>
-          </div>
+          <button
+            type="button"
+            onClick={onOpenLanguageModal}
+            className="flex items-center space-x-1 px-2 py-0.5 rounded bg-[#272727] hover:bg-[#333] border border-[#333] cursor-pointer text-slate-200 hover:text-white transition-colors"
+          >
+            <span>{currentLangMeta.flag}</span>
+            <span className="font-bold">{currentLangMeta.nativeName}</span>
+            <ChevronDown className="w-3 h-3 text-[#888]" />
+          </button>
 
           {/* Download App */}
           <button
@@ -150,7 +180,7 @@ export const FairplayHeader: React.FC<FairplayHeaderProps> = ({
             className="flex items-center space-x-1 text-[#f36c21] font-bold hover:underline cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Download App</span>
+            <span>{t('download_app')}</span>
           </button>
 
           {/* WhatsApp Support Buttons */}
@@ -340,49 +370,69 @@ export const FairplayHeader: React.FC<FairplayHeaderProps> = ({
 
             {/* Quick Actions Menu */}
             <div className="flex-1 overflow-y-auto p-3 space-y-1 text-xs">
-              <button onClick={() => { onOpenCashier('DEPOSIT'); setUserDrawerOpen(false); }} className="w-full flex items-center justify-between p-2.5 rounded hover:bg-[#272727] text-left">
+              <button onClick={() => { onOpenCashier('DEPOSIT'); setUserDrawerOpen(false); }} className="w-full flex items-center justify-between p-2.5 rounded hover:bg-[#272727] text-left cursor-pointer">
                 <div className="flex items-center space-x-2">
                   <DollarSign className="w-4 h-4 text-[#f36c21]" />
-                  <span>Deposit Funds</span>
+                  <span>{t('deposit')}</span>
                 </div>
               </button>
-              <button onClick={() => { onOpenCashier('WITHDRAW'); setUserDrawerOpen(false); }} className="w-full flex items-center justify-between p-2.5 rounded hover:bg-[#272727] text-left">
+              <button onClick={() => { onOpenCashier('WITHDRAW'); setUserDrawerOpen(false); }} className="w-full flex items-center justify-between p-2.5 rounded hover:bg-[#272727] text-left cursor-pointer">
                 <div className="flex items-center space-x-2">
                   <TrendingUp className="w-4 h-4 text-[#27AE60]" />
-                  <span>Withdraw Earnings</span>
+                  <span>{t('withdraw')}</span>
                 </div>
               </button>
-              <button onClick={() => { setActiveNavTab('MY_BETS'); setUserDrawerOpen(false); }} className="w-full flex items-center justify-between p-2.5 rounded hover:bg-[#272727] text-left">
+              {onOpenSpinWheel && (
+                <button onClick={() => { onOpenSpinWheel(); setUserDrawerOpen(false); }} className="w-full flex items-center justify-between p-2.5 rounded bg-gradient-to-r from-amber-500/10 to-orange-500/10 hover:from-amber-500/20 text-amber-300 text-left border border-amber-500/30 cursor-pointer">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm">🎁</span>
+                    <span className="font-bold">{t('spin_wheel')} (Daily)</span>
+                  </div>
+                </button>
+              )}
+              <button onClick={() => { setActiveNavTab('MULTI_MARKETS'); setUserDrawerOpen(false); }} className="w-full flex items-center justify-between p-2.5 rounded hover:bg-[#272727] text-left cursor-pointer">
+                <div className="flex items-center space-x-2">
+                  <Zap className="w-4 h-4 text-amber-400" />
+                  <span>{t('multi_markets')} Board</span>
+                </div>
+              </button>
+              <button onClick={() => { setActiveNavTab('MY_BETS'); setUserDrawerOpen(false); }} className="w-full flex items-center justify-between p-2.5 rounded hover:bg-[#272727] text-left cursor-pointer">
                 <div className="flex items-center space-x-2">
                   <Clock className="w-4 h-4 text-blue-400" />
-                  <span>Open Bets ({openBetsCount})</span>
+                  <span>{t('open_bets')} ({openBetsCount})</span>
                 </div>
               </button>
-              <button onClick={() => { setActiveNavTab('MY_BETS'); setUserDrawerOpen(false); }} className="w-full flex items-center justify-between p-2.5 rounded hover:bg-[#272727] text-left">
+              <button onClick={() => { setActiveNavTab('MY_BETS'); setUserDrawerOpen(false); }} className="w-full flex items-center justify-between p-2.5 rounded hover:bg-[#272727] text-left cursor-pointer">
                 <div className="flex items-center space-x-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  <span>Settled Bets</span>
+                  <span>{t('settled_bets')}</span>
                 </div>
               </button>
-              <button onClick={() => { onOpenCashier('HISTORY'); setUserDrawerOpen(false); }} className="w-full flex items-center justify-between p-2.5 rounded hover:bg-[#272727] text-left">
+              <button onClick={() => { if (onOpenStatementExport) onOpenStatementExport(); else onOpenCashier('HISTORY'); setUserDrawerOpen(false); }} className="w-full flex items-center justify-between p-2.5 rounded hover:bg-[#272727] text-left cursor-pointer">
                 <div className="flex items-center space-x-2">
                   <FileText className="w-4 h-4 text-purple-400" />
-                  <span>Account Statements & P&L</span>
+                  <span>{t('account_statement')} & P&L (PDF/Excel)</span>
                 </div>
               </button>
-              <button onClick={() => { setActiveNavTab('CASHOUT'); setUserDrawerOpen(false); }} className="w-full flex items-center justify-between p-2.5 rounded hover:bg-[#272727] text-left">
+              <button onClick={() => { if (onOpenTwoFactor) onOpenTwoFactor(); setUserDrawerOpen(false); }} className="w-full flex items-center justify-between p-2.5 rounded hover:bg-[#272727] text-left cursor-pointer">
+                <div className="flex items-center space-x-2">
+                  <Shield className="w-4 h-4 text-indigo-400" />
+                  <span>{t('two_factor_auth')}</span>
+                </div>
+              </button>
+              <button onClick={() => { setActiveNavTab('CASHOUT'); setUserDrawerOpen(false); }} className="w-full flex items-center justify-between p-2.5 rounded hover:bg-[#272727] text-left cursor-pointer">
                 <div className="flex items-center space-x-2">
                   <Settings className="w-4 h-4 text-amber-400" />
-                  <span>Early Cash Out Terminal</span>
+                  <span>{t('cashout')} Terminal</span>
                 </div>
               </button>
-              <button onClick={() => { onOpenAppDownload && onOpenAppDownload(); setUserDrawerOpen(false); }} className="w-full flex items-center justify-between p-2.5 rounded hover:bg-[#272727] text-left">
+              <button onClick={() => { onOpenAppDownload && onOpenAppDownload(); setUserDrawerOpen(false); }} className="w-full flex items-center justify-between p-2.5 rounded hover:bg-[#272727] text-left cursor-pointer">
                 <div className="flex items-center space-x-2">
                   <Download className="w-4 h-4 text-[#f36c21]" />
-                  <span className="text-white font-bold">Download Android APK (v2.0.0)</span>
+                  <span className="text-white font-bold">{t('download_app')} (v2.0.0)</span>
                 </div>
               </button>
-              <button onClick={() => { onOpenCredits && onOpenCredits(); setUserDrawerOpen(false); }} className="w-full flex items-center justify-between p-2.5 rounded hover:bg-[#272727] text-left">
+              <button onClick={() => { onOpenCredits && onOpenCredits(); setUserDrawerOpen(false); }} className="w-full flex items-center justify-between p-2.5 rounded hover:bg-[#272727] text-left cursor-pointer">
                 <div className="flex items-center space-x-2">
                   <Award className="w-4 h-4 text-[#f36c21]" />
                   <span className="text-amber-300 font-bold">Creator Credits & Architect</span>
