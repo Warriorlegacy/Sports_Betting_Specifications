@@ -1,62 +1,66 @@
 # Sports Betting Exchange & Multi-Tier Control Desk - Session Context
 
-**Date & Time**: August 19, 2026 (23:45 IST)  
+**Date & Time**: August 20, 2026 (12:05 IST)  
 **Workspace**: `d:\Sports_Betting_Specifications`  
-**Git Commit**: `3c169da` (Main Branch)  
+**Git Commit**: `dff7527` (Main Branch)  
 **Live Production Deployments**:
 - **Player Portal (Vercel)**: [https://player-portal-kappa.vercel.app](https://player-portal-kappa.vercel.app)
 - **Agent / Master Portal (Vercel)**: [https://agent-portal-one-omega.vercel.app](https://agent-portal-one-omega.vercel.app)
-- **Backend API & WebSocket Engine (Render)**: [https://sports-exchange-backend-jiaj.onrender.com](https://sports-exchange-backend-jiaj.onrender.com)
+- **Backend API & WebSocket Engine (Render)**: [https://sports-exchange-backend-j1aj.onrender.com](https://sports-exchange-backend-j1aj.onrender.com)
 - **Live Database**: PostgreSQL Cloud Instance with Double-Entry ACID Ledger & Schema Migrations
+- **Codebase Knowledge Graph**: Initialized with 1,719 nodes & 3,520 edges (`codebase-memory-mcp`)
 
 ---
 
-## 1. Executive Summary & Full Accomplishments
+## 1. Credentials Matrix (Unique Per Role)
 
-In this session, we completed the end-to-end development, reverse-engineering, dynamic financial mathematics, live deployment, and UI styling for the **NexusVIP Sports Betting Exchange and Live Casino Platform**.
+| Role | Username | Dedicated Password | Purpose & Capabilities |
+| :--- | :--- | :--- | :--- |
+| **Global Admin** | `admin` | `Admin@Nexus2026!` | Full platform control, settle markets, approve bank & UPI deposits, manage corporate accounts |
+| **Super Master** | `supermaster_asia` | `SuperAsia#7788$` | Regional territory manager, create & credit Masters, monitor downline turnover |
+| **Master** | `master_mumbai` | `MasterMum*9922#` | City/State operator, create & credit Agents, track sub-agent exposure |
+| **Retail Agent** | `agent_vikram` | `AgentVikram@4411` | Retail shop agent, onboard Players, credit wallets, collect cash |
+| **Punter / Player 1** | `player_rahul` | `RahulWin@2026` | Standard punter, trade exchange, play live casino & matka bazars |
+| **Punter / Player 2** | `player_amit` | `AmitBet@7788` | Counter-party punter for P2P order matching & book testing |
 
-### Key Milestones Completed:
+---
 
-1. **Fairplay VIP & Rudra888 Match Detail View (`MatchDetailHub.tsx`)**:
-   - **Header & Navigation**: `< In Play` back button, breadcrumb trail, `Open Bets` badge, TV/Stream toggle, stats toggle, share button, and `Live stream ∨` dropdown.
-   - **Hero Scoreboard Banner**: Authentic Tennis matrix (`Czech Republic` 🇨🇿 vs `India` 🇮🇳), `Set 1 | Game 6`, tennis server ball `🎾`, large `40 : 30` point score, and collapsible `Best of 3` breakdown table (`1 - 4` games).
-   - **Market Tabs**: Gradient orange tabs (`MAIN MARKET`, `BOOKMAKER`, `FANCY / SESSION`, `COIN TOSS`, `PREMIUM MARKET`, `ALL MARKETS`).
-   - **⭐ MATCH ODDS Card**:
-     - Orange header bar with `⭐ MATCH ODDS` and dynamic `CASHOUT` badge / live valuation offer.
-     - Sky Blue `BACK` (`#a5d9fe`) and Pink `LAY` (`#f8d0ce`) odds boxes with real-time volume tickers (`259K`, `169K`).
-     - **Live Runner P&L**: Real-time projected P&L under runners (`+7800.00` in green, `-5000.00` in red) dynamically calculated from active bet positions.
-     - `Min: 100 ⬍ Max: 25,000` with Betfair Exchange Liquidity badge.
-   - **"WHO WILL WIN THE MATCH?" 2-Way Card**: Side-by-side selection buttons (`2.46 / 259k` vs `1.60 / 330k`).
-   - **Collapsible Sub-Market Accordions**: `WINNER ∧`, `GAME HANDICAP ∧`, `TOTAL GAMES (O/U) ∧`.
-   - **Floating Mini Games FAB 🎲**: Floating action button matching Rudra888 for quick casino launch.
+## 2. Benchmark Feature Parity Accomplishments (Fairplay VIP, Rudra888 & Lotusrun365)
 
-2. **Dynamic In-Play Cash-Out Engine & Interactive Modal (`CashOutManager.tsx` & `MatchDetailHub.tsx`)**:
-   - **Exchange Cash-Out Formula**:
-     $$\text{Cash Out Payout} = \text{Original Stake} \times \left( \frac{\text{Placed Odds}}{\text{Current Live Odds}} \right)$$
-     $$\text{Net Profit / Loss} = \text{Payout} - \text{Stake}$$
-   - **Real-Time Dynamic Valuation**: Button automatically computes live offer across all user positions. If no open bets, displays gold `CASHOUT` badge with informative tooltip.
-   - **Partial Cash-Out Slider Modal**: Range slider (10% to 100%) and quick presets (25%, 50%, 75%, 100%) allowing punters to cash out custom fractional amounts to lock in profit or mitigate risk before match conclusion.
+1. **9-Language Internationalization Engine (`i18nService.ts` & `LanguageModal.tsx`)**:
+   - Comprehensive dictionary covering English 🇬🇧, Hindi 🇮🇳 (हिंदी), Kannada 🇮🇳 (ಕನ್ನಡ), Tamil 🇮🇳 (தமிழ்), Telugu 🇮🇳 (తెలుగు), Gujarati 🇮🇳 (ગુજરાતી), Marathi 🇮🇳 (मराठी), Urdu 🇵🇰 (اردو), Russian 🇷🇺 (Русский).
+   - Reactive `useI18n()` hook dynamically translating all market tabs, bet slip, drawer, and headers with persistent localStorage preference.
 
-3. **Information & Compliance Center (`InfoModal.tsx`)**:
-   - Resolved all dead quicklinks in the **Header Mini-Bar** and **Footer**:
-     - **About Us** (`ABOUT`): NexusVIP Exchange overview, sub-second execution engine, 256-bit SSL encryption, live casino tables, and creator attribution.
-     - **Rules & Regulations** (`RULES`): Back & Lay rules, 2% winning rake, Cricket Fancy/Session rules, Tennis retirement rules, and 23 Indian Worli Matka payouts.
-     - **FAQ** (`FAQ`): Interactive accordion covering deposits, 5-second withdrawals, cash-out, rain rules, and Provably Fair casino verification.
-     - **Terms & Conditions** (`TERMS`): Eligibility (18+), KYC, matched bet finality, anti-bot, and liability rules.
-     - **Privacy Policy** (`PRIVACY`): Data protection, zero third-party disclosure, and encrypted transaction storage.
-     - **Responsible Gaming** (`RESPONSIBLE`): 18+ policy, self-exclusion, and deposit/stake limits.
+2. **Multi-Market Trading Board (`MultiMarketBoard.tsx`)**:
+   - Benchmarked against Rudra888.in `/multi-markets`. Punter can pin up to 6 live matches simultaneously to trade Back/Lay prices with real-time score tickers and quick odds execution.
 
-4. **Multi-User Live Bet Records Desk & Admin Controls (`BetRecordsDesk.tsx` & `FinancialApprovalsDesk.tsx`)**:
-   - Real-time cross-user bet audit stream with multi-criteria filters.
-   - KPI aggregate stat cards: Turnover Volume (₹), Worst-Case Liability Exposure (₹), Settled P&L (₹), Matched vs. Unmatched order counts.
-   - 1-click Deposit UTR Approval and Withdrawal Payout clearing desk.
-   - Corporate Banking Gateway Manager (Bank IMPS/NEFT, UPI QR VPAs, USDT TRC-20).
+3. **7-Category Indian Fancy & Session Betting Desk (`FancyBettingHub.tsx`)**:
+   - Benchmarked against Lotusrun365.com 7 Fancy categories:
+     - `SESSION`: Standard Over-by-Over runs (No / Yes with 100/100 or 90/100 rates).
+     - `W/P`: Wicket / Player performance markets.
+     - `ODD/EVEN`: Odd / Even runs per over.
+     - `XTRA`: Extra runs (wides, no-balls).
+     - `METER`: Run meter prediction bars.
+     - `KHADDA`: Low-score / fall of wicket milestones.
+     - `OVERS`: Over-by-over ball-by-ball micro runs.
 
-5. **Creator & Godfather Attribution**:
-   - Official attribution modal and footer ribbon honoring **Piyush Raj Singh** (Solo Creator & Godfather) and Signhify AI Studio.
+4. **Bookmaker & Mini Bookmaker 100-Base 0% Commission Markets (`BookmakerMarketHub.tsx`)**:
+   - Authentic 100-base rate presentation with zero commission rake, live liability projection, and instant bet slip insertion.
 
-6. **Domain Portfolio & Documentation**:
-   - 15 premium brand names with exact registrar links, marketing slogans, and a 2-page executive PDF (`NexusVIP_Domain_Selection_Portfolio.pdf`) deployed on the live CDN.
+5. **6-Depth Price Ladder Mode (`MatchDetailHub.tsx`)**:
+   - Toggle between Standard 2-Box and 6-Depth Ladder (`Back 3..1` vs `Lay 1..3`) showing full market depth liquidity and tick size spreads.
+
+6. **Account Statement & P&L Export Engine (`exportService.ts` & `StatementExportModal.tsx`)**:
+   - FairplayVIP parity: Official formatted PDF statement generator with print trigger and instant CSV/Excel spreadsheet exports.
+
+7. **Google Authenticator TOTP 2FA Security (`TwoFactorModal.tsx`)**:
+   - QR code provisioning, secret key generator, 6-digit TOTP validation, and 4 emergency backup codes.
+
+8. **Promotional Lucky Spin Wheel (`SpinWheelModal.tsx`)**:
+   - 8-segment daily prize wheel with deceleration physics, confetti celebration, 24-hour cooldown timer, and automatic wallet credit callback.
+
+9. **Customizable Quick Stake Presets (`QuickStakeBar.tsx`)**:
+   - 6 configurable quick stake preset buttons (+100, +500, +1000, +2500, +5000, +10000) with custom editor modal and localStorage memory.
 
 ---
 
