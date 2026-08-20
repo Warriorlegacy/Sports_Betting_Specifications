@@ -1,0 +1,11 @@
+{
+    "schema_version": 2,
+    "commit": "b56ab0968f50a9e77b653505676a66ae8f8cec16",
+    "indexed_at": "2026-08-20T06:16:37Z",
+    "project": "Sports_Betting_Specifications",
+    "nodes": 1719,
+    "edges": 3520,
+    "original_size": 4456448,
+    "compressed_size": 944423,
+    "compression_level": 9
+}
