@@ -2,7 +2,7 @@
 
 **Date & Time**: August 20, 2026 (evening session)
 **Workspace**: `d:\Sports_Betting_Specifications`
-**Git Commit**: `dff7527` (Main Branch) + reverse-engineering & real data specifications
+**Git Commit**: `4485a53` (Main Branch — Deployed & Live)
 **Live Production Deployments**:
 - **Player Portal (Vercel)**: [https://player-portal-kappa.vercel.app](https://player-portal-kappa.vercel.app)
 - **Agent / Master Portal (Vercel)**: [https://agent-portal-one-omega.vercel.app](https://agent-portal-one-omega.vercel.app)
