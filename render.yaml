@@ -53,3 +53,9 @@ services:
         generateValue: true
       - key: FEED_POLL_INTERVAL_MS
         value: "30000"
+      - key: FAST2SMS_API_KEY
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_BOT_USERNAME
+        value: "nexusvip_verify_bot"
