@@ -51,6 +51,8 @@ interface FairplayHeaderProps {
   onOpenStatementExport?: () => void;
   onOpenSpinWheel?: () => void;
   onOpenThemeCustomizer?: () => void;
+  onOpenBetHistory?: () => void;
+  onOpenReferralPromo?: () => void;
   onLogout: () => void;
   openBetsCount: number;
   oneClickBet: boolean;
@@ -74,6 +76,8 @@ export const FairplayHeader: React.FC<FairplayHeaderProps> = ({
   onOpenStatementExport,
   onOpenSpinWheel,
   onOpenThemeCustomizer,
+  onOpenBetHistory,
+  onOpenReferralPromo,
   onLogout,
   openBetsCount,
   oneClickBet,
@@ -159,8 +163,20 @@ export const FairplayHeader: React.FC<FairplayHeaderProps> = ({
               onClick={onOpenSpinWheel}
               className="flex items-center space-x-1 px-2 py-0.5 rounded bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 border border-amber-500/40 text-amber-300 font-bold text-[10px] cursor-pointer animate-pulse"
             >
-              <span>🎁</span>
+              <span>🎡</span>
               <span>{t('spin_wheel')}</span>
+            </button>
+          )}
+
+          {/* Refer & Earn Top Button */}
+          {onOpenReferralPromo && (
+            <button
+              type="button"
+              onClick={onOpenReferralPromo}
+              className="hidden md:flex items-center space-x-1 px-2 py-0.5 rounded bg-gradient-to-r from-[#f36c21]/20 to-amber-500/20 hover:from-[#f36c21]/30 hover:to-amber-500/30 border border-[#f36c21]/40 text-orange-300 font-bold text-[10px] cursor-pointer"
+            >
+              <span>🎁</span>
+              <span>Refer & Earn (₹500)</span>
             </button>
           )}
 
@@ -397,6 +413,36 @@ export const FairplayHeader: React.FC<FairplayHeaderProps> = ({
                   </div>
                 </button>
               )}
+              {/* Refer & Earn Promotion */}
+              {onOpenReferralPromo && (
+                <button
+                  type="button"
+                  onClick={() => { onOpenReferralPromo(); setUserDrawerOpen(false); }}
+                  className="w-full flex items-center justify-between p-2.5 rounded bg-gradient-to-r from-[#f36c21]/15 via-amber-500/15 to-[#f36c21]/15 hover:from-[#f36c21]/25 text-amber-300 text-left border border-[#f36c21]/40 cursor-pointer shadow-sm"
+                >
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm">🎁</span>
+                    <span className="font-bold">Refer & Earn (Get ₹500)</span>
+                  </div>
+                  <span className="px-1.5 py-0.5 rounded bg-[#f36c21] text-white text-[9px] font-black uppercase">Bonus</span>
+                </button>
+              )}
+
+              {/* Bet History & P&L Analytics */}
+              {onOpenBetHistory && (
+                <button
+                  type="button"
+                  onClick={() => { onOpenBetHistory(); setUserDrawerOpen(false); }}
+                  className="w-full flex items-center justify-between p-2.5 rounded hover:bg-[#272727] text-left cursor-pointer"
+                >
+                  <div className="flex items-center space-x-2">
+                    <TrendingUp className="w-4 h-4 text-emerald-400" />
+                    <span className="font-bold text-white">Bet History & P&L Dashboard</span>
+                  </div>
+                  <span className="text-[10px] text-emerald-400 font-mono font-bold">Analytics</span>
+                </button>
+              )}
+
               <button onClick={() => { setActiveNavTab('MULTI_MARKETS'); setUserDrawerOpen(false); }} className="w-full flex items-center justify-between p-2.5 rounded hover:bg-[#272727] text-left cursor-pointer">
                 <div className="flex items-center space-x-2">
                   <Zap className="w-4 h-4 text-amber-400" />

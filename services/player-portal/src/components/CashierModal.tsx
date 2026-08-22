@@ -727,35 +727,84 @@ export const CashierModal: React.FC<CashierModalProps> = ({
                     </div>
                   </div>
 
-                  {/* UPI QR & Copy Section */}
-                  {depositMethod === 'UPI' && (
-                    <div className="p-3 bg-[#141414] rounded-xl border border-[#2d2d2d] space-y-3">
-                      <div className="flex flex-col sm:flex-row items-center gap-3">
-                        <div className="w-28 h-28 bg-white p-2 rounded-lg flex items-center justify-center shrink-0 shadow">
-                          <QrCode className="w-24 h-24 text-black" />
-                        </div>
-                        <div className="flex-1 space-y-2 text-center sm:text-left">
-                          <div>
-                            <span className="text-[10px] text-[#adadad] block uppercase font-bold">
-                              {selectedAccount ? selectedAccount.displayName : 'Official Nexusvip UPI ID'}
-                            </span>
-                            <div className="flex items-center justify-center sm:justify-start space-x-2 mt-0.5">
-                              <code className="font-mono font-black text-sm text-[#27AE60]">
-                                {selectedAccount?.upiId || 'nexusvip.pay@icici'}
-                              </code>
-                              <button
-                                onClick={() => copyToClipboard(selectedAccount?.upiId || 'nexusvip.pay@icici', 'upi')}
-                                className="p-1 rounded bg-[#272727] text-white hover:bg-[#333]"
-                              >
-                                {copiedKey === 'upi' ? <Check className="w-3.5 h-3.5 text-[#27AE60]" /> : <Copy className="w-3.5 h-3.5" />}
-                              </button>
+                  {/* UPI QR & Deep Links Section */}
+                  {depositMethod === 'UPI' && (() => {
+                    const targetUpi = selectedAccount?.upiId || 'nexusvip.pay@icici';
+                    const numAmount = parseFloat(depositAmount) || 500;
+                    const payeeName = 'NexusVIP Official';
+                    const txNote = `DEP_${user?.username || 'Player'}_${Date.now().toString().slice(-4)}`;
+                    const upiUri = `upi://pay?pa=${encodeURIComponent(targetUpi)}&pn=${encodeURIComponent(payeeName)}&am=${numAmount.toFixed(2)}&cu=INR&tn=${encodeURIComponent(txNote)}`;
+                    const qrImgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(upiUri)}&margin=6`;
+
+                    return (
+                      <div className="p-3 bg-[#141414] rounded-xl border border-[#2d2d2d] space-y-3">
+                        <div className="flex flex-col sm:flex-row items-center gap-3">
+                          {/* Live Dynamic QR Code with Instant Scan */}
+                          <div className="relative w-32 h-32 bg-white p-1.5 rounded-xl flex flex-col items-center justify-center shrink-0 shadow-lg border-2 border-[#f36c21]/40">
+                            <img
+                              src={qrImgUrl}
+                              alt="Scan & Pay UPI QR"
+                              className="w-28 h-28 object-contain"
+                              onError={(e) => {
+                                // Fallback icon if offline
+                                (e.target as any).style.display = 'none';
+                              }}
+                            />
+                            <span className="text-[8px] font-black text-black uppercase tracking-tighter">Scan Any UPI App</span>
+                          </div>
+
+                          <div className="flex-1 space-y-2 text-center sm:text-left min-w-0">
+                            <div>
+                              <span className="text-[10px] text-[#adadad] block uppercase font-bold">
+                                {selectedAccount ? selectedAccount.displayName : 'Nexusvip Verified UPI ID'}
+                              </span>
+                              <div className="flex items-center justify-center sm:justify-start space-x-2 mt-0.5">
+                                <code className="font-mono font-black text-sm text-[#27AE60] bg-[#1e1e1e] px-2 py-0.5 rounded border border-[#333]">
+                                  {targetUpi}
+                                </code>
+                                <button
+                                  type="button"
+                                  onClick={() => copyToClipboard(targetUpi, 'upi')}
+                                  className="p-1 rounded bg-[#272727] text-white hover:bg-[#333] cursor-pointer"
+                                >
+                                  {copiedKey === 'upi' ? <Check className="w-3.5 h-3.5 text-[#27AE60]" /> : <Copy className="w-3.5 h-3.5" />}
+                                </button>
+                              </div>
+                            </div>
+
+                            {/* 1-Tap Direct UPI App Buttons */}
+                            <div className="space-y-1">
+                              <span className="text-[9px] text-amber-400 font-bold uppercase block">⚡ 1-Tap Pay with UPI App:</span>
+                              <div className="grid grid-cols-4 gap-1.5">
+                                <a
+                                  href={`phonepe://pay?pa=${encodeURIComponent(targetUpi)}&pn=${encodeURIComponent(payeeName)}&am=${numAmount.toFixed(2)}&cu=INR&tn=${encodeURIComponent(txNote)}`}
+                                  className="py-1.5 px-1 rounded-lg bg-[#5f259f]/20 hover:bg-[#5f259f]/40 border border-[#5f259f]/50 text-[#a370f7] text-[10px] font-black text-center transition flex items-center justify-center space-x-1"
+                                >
+                                  <span>PhonePe</span>
+                                </a>
+                                <a
+                                  href={`tez://upi/pay?pa=${encodeURIComponent(targetUpi)}&pn=${encodeURIComponent(payeeName)}&am=${numAmount.toFixed(2)}&cu=INR&tn=${encodeURIComponent(txNote)}`}
+                                  className="py-1.5 px-1 rounded-lg bg-[#4285F4]/20 hover:bg-[#4285F4]/40 border border-[#4285F4]/50 text-[#70a5f9] text-[10px] font-black text-center transition flex items-center justify-center space-x-1"
+                                >
+                                  <span>GPay</span>
+                                </a>
+                                <a
+                                  href={`paytmmp://pay?pa=${encodeURIComponent(targetUpi)}&pn=${encodeURIComponent(payeeName)}&am=${numAmount.toFixed(2)}&cu=INR&tn=${encodeURIComponent(txNote)}`}
+                                  className="py-1.5 px-1 rounded-lg bg-[#00b9f5]/20 hover:bg-[#00b9f5]/40 border border-[#00b9f5]/50 text-[#38cdfa] text-[10px] font-black text-center transition flex items-center justify-center space-x-1"
+                                >
+                                  <span>Paytm</span>
+                                </a>
+                                <a
+                                  href={upiUri}
+                                  className="py-1.5 px-1 rounded-lg bg-[#f36c21]/20 hover:bg-[#f36c21]/40 border border-[#f36c21]/50 text-[#f36c21] text-[10px] font-black text-center transition flex items-center justify-center space-x-1"
+                                >
+                                  <span>Other UPI</span>
+                                </a>
+                              </div>
                             </div>
                           </div>
-                          <p className="text-[10px] text-[#8e8e8e]">
-                            Pay via PhonePe, Google Pay, Paytm, or BHIM. Enter your 12-digit UTR below.
-                          </p>
                         </div>
-                      </div>
+
 
                       {/* UTR Input Form */}
                       <form onSubmit={handleDepositSubmit} className="space-y-2 pt-2 border-t border-[#222]">
@@ -786,7 +835,8 @@ export const CashierModal: React.FC<CashierModalProps> = ({
                         </button>
                       </form>
                     </div>
-                  )}
+                  );
+                })()}
 
                   {/* Bank Transfer Section */}
                   {depositMethod === 'BANK' && (

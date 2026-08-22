@@ -32,6 +32,9 @@ import { LanguageModal } from './components/LanguageModal';
 import { TwoFactorModal } from './components/TwoFactorModal';
 import { StatementExportModal } from './components/StatementExportModal';
 import { SpinWheelModal } from './components/SpinWheelModal';
+import { BetHistoryDashboard } from './components/BetHistoryDashboard';
+import { ReferralPromoModal } from './components/ReferralPromoModal';
+import { PWAInstallPrompt } from './components/PWAInstallPrompt';
 import { useI18n } from './services/i18nService';
 import {
   LiveMatch,
@@ -232,7 +235,9 @@ export const App: React.FC = () => {
   const [selectedSport, setSelectedSport] = useState<SportCategory>('All');
   const [oddsFormat, setOddsFormat] = useState<OddsFormat>('DECIMAL');
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
-  const [oneClickBet, setOneClickBet] = useState<boolean>(false);
+  const [oneClickBet, setOneClickBet] = useState<boolean>(() => {
+    return localStorage.getItem('nexus_one_click_bet') === 'true';
+  });
   const [isPlacingBet, setIsPlacingBet] = useState<boolean>(false);
 
   // Real-world Live Sports Matches & Real Odds State (Zero mock data)
@@ -263,6 +268,8 @@ export const App: React.FC = () => {
   const [isTwoFactorModalOpen, setIsTwoFactorModalOpen] = useState<boolean>(false);
   const [isStatementExportOpen, setIsStatementExportOpen] = useState<boolean>(false);
   const [isSpinWheelOpen, setIsSpinWheelOpen] = useState<boolean>(false);
+  const [isBetHistoryOpen, setIsBetHistoryOpen] = useState<boolean>(false);
+  const [isReferralModalOpen, setIsReferralModalOpen] = useState<boolean>(false);
   const [pinnedMatchIds, setPinnedMatchIds] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem('nexus_pinned_matches');
@@ -653,6 +660,12 @@ export const App: React.FC = () => {
       stake: 500
     };
 
+    // ⚡ 1-CLICK BET MODE: Directly place order if active
+    if (oneClickBet) {
+      handlePlaceBets([newItem]);
+      return;
+    }
+
     setBetSlipItems((prev) => {
       const exists = prev.some((i) => i.id === newItem.id);
       if (exists) {
@@ -943,10 +956,17 @@ export const App: React.FC = () => {
         onOpenStatementExport={() => setIsStatementExportOpen(true)}
         onOpenSpinWheel={() => setIsSpinWheelOpen(true)}
         onOpenThemeCustomizer={() => setIsThemeModalOpen(true)}
+        onOpenBetHistory={() => setIsBetHistoryOpen(true)}
+        onOpenReferralPromo={() => setIsReferralModalOpen(true)}
         onLogout={handleLogout}
         openBetsCount={myBets.filter((b) => b.status === 'UNMATCHED' || b.status === 'MATCHED').length}
         oneClickBet={oneClickBet}
-        setOneClickBet={setOneClickBet}
+        setOneClickBet={(val) => {
+          setOneClickBet(val);
+          localStorage.setItem('nexus_one_click_bet', String(val));
+          setToastMessage(val ? '⚡ 1-Click Bet Mode Activated (Default Stake: ₹500)' : '1-Click Bet Mode Deactivated');
+          setTimeout(() => setToastMessage(null), 3000);
+        }}
       />
 
       {/* LIVE BROADCAST NEWS & ANNOUNCEMENTS TICKER */}
@@ -1394,6 +1414,25 @@ export const App: React.FC = () => {
         isOpen={isThemeModalOpen}
         onClose={() => setIsThemeModalOpen(false)}
       />
+
+      {/* Bet History & Cumulative P&L Analytics Dashboard */}
+      <BetHistoryDashboard
+        isOpen={isBetHistoryOpen}
+        onClose={() => setIsBetHistoryOpen(false)}
+        bets={myBets}
+        user={currentUser}
+      />
+
+      {/* Referral & Promo Code Modal */}
+      <ReferralPromoModal
+        isOpen={isReferralModalOpen}
+        onClose={() => setIsReferralModalOpen(false)}
+        user={currentUser}
+        onBonusCredit={handleSpinReward}
+      />
+
+      {/* Progressive Web App (PWA) Offline Shell & Install Banner */}
+      <PWAInstallPrompt />
     </div>
   );
 };
