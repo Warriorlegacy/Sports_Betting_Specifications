@@ -53,9 +53,6 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   const [otpCode, setOtpCode] = useState<string[]>(['', '', '', '', '', '']);
   const [otpLoading, setOtpLoading] = useState<boolean>(false);
   const [otpError, setOtpError] = useState<string | null>(null);
-  const [testOtpNotice, setTestOtpNotice] = useState<string | null>(null);
-  const [whatsappDeliveryLink, setWhatsappDeliveryLink] = useState<string | null>(null);
-  const [telegramDeliveryLink, setTelegramDeliveryLink] = useState<string | null>(null);
   const [deliveryProvider, setDeliveryProvider] = useState<string>('');
   const [countdown, setCountdown] = useState<number>(0);
   const [otpVerifiedSuccess, setOtpVerifiedSuccess] = useState<boolean>(false);
@@ -118,7 +115,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 
   if (!isOpen) return null;
 
-  // 1. Send OTP Request
+  // 1. Send OTP Request (Dispatched directly via SMS, WhatsApp, Telegram, or Email from server)
   const handleSendOtp = async (
     e?: React.FormEvent,
     forceChannel?: 'SMS' | 'WHATSAPP' | 'EMAIL' | 'TELEGRAM'
@@ -161,22 +158,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
       setOtpSent(true);
       setActiveIdentifier(idDisplay);
       setCountdown(60);
-      setDeliveryProvider(res.provider || 'Free Instant Verification Gateway');
-      
-      if (res.whatsappLink) {
-        setWhatsappDeliveryLink(res.whatsappLink);
-      }
-      if (res.telegramLink) {
-        setTelegramDeliveryLink(res.telegramLink);
-      }
-      if (res.testOtp) {
-        setTestOtpNotice(res.testOtp);
-      }
-
-      // If user chose WhatsApp channel and link exists, prompt 1-click
-      if (targetChannel === 'WHATSAPP' && res.whatsappLink) {
-        window.open(res.whatsappLink, '_blank');
-      }
+      setDeliveryProvider(res.provider || 'Direct Verification Gateway');
 
       // Focus first OTP input on dispatch
       setTimeout(() => {
@@ -572,12 +554,12 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   <div>
                     <span className="text-[#8e8e8e] block text-[10px]">
                       {otpChannel === 'WHATSAPP'
-                        ? '💬 WhatsApp Code Sent To:'
+                        ? '💬 Code Dispatched to WhatsApp:'
                         : otpChannel === 'EMAIL'
-                        ? '📧 Email Code Sent To:'
+                        ? '📧 Code Dispatched to Email:'
                         : otpChannel === 'TELEGRAM'
-                        ? '✈️ Telegram Code Sent To:'
-                        : '📱 SMS Code Sent To:'}
+                        ? '✈️ Code Dispatched to Telegram:'
+                        : '📱 Code Dispatched via SMS:'}
                     </span>
                     <span className="font-mono font-bold text-white tracking-wide">
                       {activeIdentifier}
@@ -597,59 +579,21 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   </button>
                 </div>
 
-                {/* Direct WhatsApp Deep Link Trigger */}
-                {whatsappDeliveryLink && otpChannel === 'WHATSAPP' && (
-                  <a
-                    href={whatsappDeliveryLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="w-full py-2 px-3 rounded-lg bg-[#27AE60]/20 hover:bg-[#27AE60]/30 border border-[#27AE60]/50 text-[#27AE60] text-xs font-bold flex items-center justify-center space-x-2 transition-all cursor-pointer"
-                  >
-                    <MessageSquare className="w-4 h-4" />
-                    <span>Open Code in WhatsApp</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                )}
-
-                {/* Direct Telegram Deep Link Trigger */}
-                {telegramDeliveryLink && otpChannel === 'TELEGRAM' && (
-                  <a
-                    href={telegramDeliveryLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="w-full py-2 px-3 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/50 text-blue-300 text-xs font-bold flex items-center justify-center space-x-2 transition-all cursor-pointer"
-                  >
-                    <Send className="w-4 h-4" />
-                    <span>Open Telegram Bot</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                )}
-
-                {/* Instant Sandbox Autofill Pill */}
-                {testOtpNotice && (
-                  <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-between text-xs">
-                    <div className="flex items-center space-x-1.5 text-amber-300">
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span className="text-[11px]">
-                        Security Code:{' '}
-                        <strong className="font-mono tracking-widest text-white">
-                          {testOtpNotice}
-                        </strong>
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const digits = testOtpNotice.split('');
-                        setOtpCode(digits);
-                        triggerVerifyOtp(testOtpNotice);
-                      }}
-                      className="px-2 py-0.5 rounded bg-amber-500 text-black font-black text-[10px] uppercase cursor-pointer hover:bg-amber-400"
-                    >
-                      Autofill
-                    </button>
-                  </div>
-                )}
+                {/* Direct Delivery Instruction Notice */}
+                <div className="p-3 rounded-xl bg-[#181818] border border-[#262626] text-center space-y-1">
+                  <p className="text-xs text-slate-300">
+                    {otpChannel === 'WHATSAPP' ? (
+                      <>Please check your <strong className="text-[#27AE60]">WhatsApp messages</strong> for the 6-digit code.</>
+                    ) : otpChannel === 'EMAIL' ? (
+                      <>Please check your <strong className="text-sky-400">Email inbox</strong> for the 6-digit verification code.</>
+                    ) : otpChannel === 'TELEGRAM' ? (
+                      <>Please check your <strong className="text-blue-400">Telegram chat</strong> for the 6-digit code.</>
+                    ) : (
+                      <>Please check your <strong className="text-[#f36c21]">SMS text messages</strong> for the 6-digit code.</>
+                    )}
+                  </p>
+                  <p className="text-[10px] text-[#777]">⏱️ Code valid for 5 minutes. Never disclose your code to anyone.</p>
+                </div>
 
                 {/* 6 Individual OTP Boxes */}
                 <div className="space-y-1.5">

@@ -164,7 +164,7 @@ authRouter.post('/send-otp', async (req, res: Response) => {
       channel
     });
 
-    console.log(`[Free OTP Engine] Dispatched code ${otp} to ${targetKey} via ${dispatchResult.provider}`);
+    console.log(`[Direct OTP Engine] Dispatched verification code to ${targetKey} via ${dispatchResult.provider}`);
 
     res.json({
       success: true,
@@ -174,10 +174,7 @@ authRouter.post('/send-otp', async (req, res: Response) => {
       email: emailClean || undefined,
       expiresInSeconds: 300,
       channel: dispatchResult.channel,
-      provider: dispatchResult.provider,
-      whatsappLink: dispatchResult.whatsappLink,
-      telegramLink: dispatchResult.telegramLink,
-      testOtp: config.nodeEnv !== 'production' && process.env.ENABLE_TEST_OTP === 'true' ? otp : undefined
+      provider: dispatchResult.provider
     });
   } catch (error: any) {
     console.error('Send OTP error:', error);

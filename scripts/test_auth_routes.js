@@ -1,9 +1,10 @@
 const express = require('express');
 const { initializeDatabase } = require('../services/backend/dist/db/init');
+const { query } = require('../services/backend/dist/db/pool');
 const { authRouter } = require('../services/backend/dist/modules/auth/authRoutes');
 
 async function testAuthRoutes() {
-  console.log('🧪 Testing Auth API Routes with Free OTP Flow...\n');
+  console.log('🧪 Testing Auth API Routes with Secure Direct OTP Flow...\n');
 
   console.log('0. Initializing DB schema and migrations...');
   await initializeDatabase();
@@ -27,11 +28,23 @@ async function testAuthRoutes() {
     });
     const sendData1 = await sendRes1.json();
     console.log('Send OTP Response:', sendData1);
-    if (!sendData1.success || !sendData1.testOtp) {
-      throw new Error('Send OTP response invalid');
+
+    if (!sendData1.success) {
+      throw new Error('Send OTP failed');
     }
 
-    const otpCode = sendData1.testOtp;
+    // Assert that NO plaintext OTP or deep-link leaks exist in the API response
+    if (sendData1.whatsappLink || sendData1.telegramLink || sendData1.testOtp) {
+      throw new Error('SECURITY VIOLATION: OTP or plaintext links exposed in API response!');
+    }
+    console.log('🔒 Verified: Response is sanitized and exposes NO OTP to frontend.');
+
+    // Fetch generated OTP from DB for automated test verification
+    const dbOtpRes = await query(`SELECT otp FROM otps WHERE phone = '9811223344' LIMIT 1`);
+    const otpCode = dbOtpRes.rows[0]?.otp;
+    if (!otpCode) {
+      throw new Error('OTP was not persisted in database');
+    }
 
     // 2. Verify with Incorrect OTP
     console.log('\n2. Testing verification with invalid OTP...');
@@ -60,7 +73,7 @@ async function testAuthRoutes() {
     }
 
     // 4. Send OTP to Email
-    console.log('\n4. Dispatching Free OTP to Email (vip_player@nexusvip.in)...');
+    console.log('\n4. Dispatching OTP to Email (vip_player@nexusvip.in)...');
     const emailSendRes = await fetch(`${baseUrl}/send-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -68,16 +81,22 @@ async function testAuthRoutes() {
     });
     const emailSendData = await emailSendRes.json();
     console.log('Email Send Response:', emailSendData);
-    if (!emailSendData.success || !emailSendData.testOtp) {
+    if (!emailSendData.success) {
       throw new Error('Email OTP dispatch failed');
     }
+    if (emailSendData.testOtp || emailSendData.whatsappLink) {
+      throw new Error('SECURITY VIOLATION: Email OTP response contains plaintext leak');
+    }
+
+    const emailOtpRes = await query(`SELECT otp FROM otps WHERE phone = 'vip_player@nexusvip.in' LIMIT 1`);
+    const emailOtpCode = emailOtpRes.rows[0]?.otp;
 
     // 5. Verify Email OTP
     console.log('\n5. Verifying Email OTP...');
     const emailVerifyRes = await fetch(`${baseUrl}/verify-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: 'vip_player@nexusvip.in', otp: emailSendData.testOtp })
+      body: JSON.stringify({ email: 'vip_player@nexusvip.in', otp: emailOtpCode })
     });
     const emailVerifyData = await emailVerifyRes.json();
     console.log('Email Verify Status:', emailVerifyRes.status, emailVerifyData);
@@ -85,7 +104,7 @@ async function testAuthRoutes() {
       throw new Error('Email OTP verification failed');
     }
 
-    console.log('\n🎉 ALL AUTH & FREE OTP ROUTE TESTS PASSED SUCCESSFULLY!');
+    console.log('\n🎉 ALL AUTH & PRODUCTION SECURE OTP ROUTE TESTS PASSED SUCCESSFULLY!');
   } finally {
     server.close();
   }
@@ -95,3 +114,4 @@ testAuthRoutes().catch((err) => {
   console.error('❌ Auth Routes Test Failed:', err);
   process.exit(1);
 });
+
