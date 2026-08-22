@@ -177,7 +177,7 @@ authRouter.post('/send-otp', async (req, res: Response) => {
       provider: dispatchResult.provider,
       whatsappLink: dispatchResult.whatsappLink,
       telegramLink: dispatchResult.telegramLink,
-      testOtp: otp
+      testOtp: config.nodeEnv !== 'production' && process.env.ENABLE_TEST_OTP === 'true' ? otp : undefined
     });
   } catch (error: any) {
     console.error('Send OTP error:', error);
