@@ -65,11 +65,11 @@ export const api = {
   auth: {
     login: (credentials: { username: string; password: string }) =>
       request('/auth/login', { method: 'POST', body: JSON.stringify(credentials) }),
-    sendOtp: (payload: { phone: string; channel?: 'SMS' | 'WHATSAPP' }) =>
+    sendOtp: (payload: { phone?: string; email?: string; telegramId?: string; channel?: 'SMS' | 'WHATSAPP' | 'EMAIL' | 'TELEGRAM' | 'AUTO' }) =>
       request('/auth/send-otp', { method: 'POST', body: JSON.stringify(payload) }),
-    verifyOtp: (payload: { phone: string; otp: string }) =>
+    verifyOtp: (payload: { phone?: string; email?: string; identifier?: string; otp: string }) =>
       request('/auth/verify-otp', { method: 'POST', body: JSON.stringify(payload) }),
-    loginWithOtp: (payload: { phone: string; otp: string }) =>
+    loginWithOtp: (payload: { phone?: string; email?: string; identifier?: string; otp: string }) =>
       request('/auth/login-with-otp', { method: 'POST', body: JSON.stringify(payload) }),
     register: (userData: { username: string; password: string; phone?: string; referralCode?: string }) =>
       request('/auth/register', { method: 'POST', body: JSON.stringify(userData) }),

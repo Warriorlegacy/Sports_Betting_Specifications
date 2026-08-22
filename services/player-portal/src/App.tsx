@@ -429,15 +429,13 @@ export const App: React.FC = () => {
       } catch {}
     }
 
-    // 2. Auth & User Initialization — real token only
-    const token = getAuthToken();
-    if (token) {
-      Promise.all([fetchUserData(), fetchExchangeMarkets(), fetchLiveTelemetry()]).finally(() => setLoading(false));
-    } else {
-      localStorage.removeItem('nexus_demo_user');
-      Promise.all([fetchExchangeMarkets(), fetchLiveTelemetry()]).finally(() => setLoading(false));
-    }
-  }, [fetchUserData, fetchExchangeMarkets, fetchLiveTelemetry]);
+    // 2. Auth & User Initialization — Auto-login disabled: always boot into public/guest exchange mode
+    // Real user session must be initiated via explicit Login / OTP verification
+    localStorage.removeItem('exchange_player_token');
+    localStorage.removeItem('nexus_demo_user');
+    sessionStorage.removeItem('exchange_player_token');
+    Promise.all([fetchExchangeMarkets(), fetchLiveTelemetry()]).finally(() => setLoading(false));
+  }, [fetchExchangeMarkets, fetchLiveTelemetry]);
 
   // Dynamic live tick simulation (subtle odds ticks and ball animation)
   useEffect(() => {
@@ -1298,6 +1296,8 @@ export const App: React.FC = () => {
         onLoginSuccess={(user) => {
           setCurrentUser(user);
           setIsLoginModalOpen(false);
+          fetchUserData();
+          fetchExchangeMarkets();
         }}
         loading={loading}
         error={loginError}

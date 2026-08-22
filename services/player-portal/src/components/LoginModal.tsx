@@ -16,7 +16,10 @@ import {
   Sparkles,
   KeyRound,
   MessageSquare,
-  ExternalLink
+  Mail,
+  Send,
+  ExternalLink,
+  Check
 } from 'lucide-react';
 import { api, setAuthToken } from '../services/api';
 
@@ -39,15 +42,20 @@ export const LoginModal: React.FC<LoginModalProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'OTP' | 'PASSWORD' | 'REGISTER'>('OTP');
 
-  // OTP Login State
+  // OTP Channel & Input State
+  const [otpChannel, setOtpChannel] = useState<'SMS' | 'WHATSAPP' | 'EMAIL' | 'TELEGRAM'>('SMS');
   const [phone, setPhone] = useState<string>('');
-  const [otpChannel, setOtpChannel] = useState<'SMS' | 'WHATSAPP'>('SMS');
+  const [email, setEmail] = useState<string>('');
+  const [telegramId, setTelegramId] = useState<string>('');
+  
   const [otpSent, setOtpSent] = useState<boolean>(false);
+  const [activeIdentifier, setActiveIdentifier] = useState<string>('');
   const [otpCode, setOtpCode] = useState<string[]>(['', '', '', '', '', '']);
   const [otpLoading, setOtpLoading] = useState<boolean>(false);
   const [otpError, setOtpError] = useState<string | null>(null);
   const [testOtpNotice, setTestOtpNotice] = useState<string | null>(null);
   const [whatsappDeliveryLink, setWhatsappDeliveryLink] = useState<string | null>(null);
+  const [telegramDeliveryLink, setTelegramDeliveryLink] = useState<string | null>(null);
   const [deliveryProvider, setDeliveryProvider] = useState<string>('');
   const [countdown, setCountdown] = useState<number>(0);
   const [otpVerifiedSuccess, setOtpVerifiedSuccess] = useState<boolean>(false);
@@ -79,38 +87,93 @@ export const LoginModal: React.FC<LoginModalProps> = ({
     return () => clearInterval(timer);
   }, [countdown]);
 
+  // WebOTP API: Automatic SMS OTP Extraction on mobile browsers
+  useEffect(() => {
+    if (!otpSent || otpVerifiedSuccess || typeof window === 'undefined') return;
+
+    if ('OTPCredential' in window && navigator.credentials) {
+      const ac = new AbortController();
+      (navigator.credentials as any)
+        .get({
+          otp: { transport: ['sms'] },
+          signal: ac.signal
+        })
+        .then((otpCredential: any) => {
+          if (otpCredential && otpCredential.code) {
+            const extractedCode = otpCredential.code.slice(0, 6);
+            const digits = extractedCode.split('');
+            setOtpCode(digits);
+            triggerVerifyOtp(extractedCode);
+          }
+        })
+        .catch(() => {
+          // WebOTP aborted or not granted - harmless fallback
+        });
+
+      return () => {
+        ac.abort();
+      };
+    }
+  }, [otpSent, otpVerifiedSuccess]);
+
   if (!isOpen) return null;
 
   // 1. Send OTP Request
-  const handleSendOtp = async (e?: React.FormEvent, forceChannel?: 'SMS' | 'WHATSAPP') => {
+  const handleSendOtp = async (
+    e?: React.FormEvent,
+    forceChannel?: 'SMS' | 'WHATSAPP' | 'EMAIL' | 'TELEGRAM'
+  ) => {
     if (e) e.preventDefault();
-    const cleanDigits = phone.replace(/\D/g, '');
-    if (cleanDigits.length < 10) {
-      setOtpError('Please enter a valid 10-digit mobile number');
-      return;
-    }
-
     const targetChannel = forceChannel || otpChannel;
+
+    let payload: any = { channel: targetChannel };
+    let idDisplay = '';
+
+    if (targetChannel === 'EMAIL') {
+      if (!email.trim() || !email.includes('@')) {
+        setOtpError('Please enter a valid email address');
+        return;
+      }
+      payload.email = email.trim();
+      idDisplay = email.trim();
+    } else if (targetChannel === 'TELEGRAM') {
+      if (!telegramId.trim()) {
+        setOtpError('Please enter your Telegram username or ID');
+        return;
+      }
+      payload.telegramId = telegramId.trim();
+      idDisplay = telegramId.trim();
+    } else {
+      const cleanDigits = phone.replace(/\D/g, '');
+      if (cleanDigits.length < 10) {
+        setOtpError('Please enter a valid 10-digit mobile number');
+        return;
+      }
+      payload.phone = cleanDigits;
+      idDisplay = `+91 ${cleanDigits}`;
+    }
 
     try {
       setOtpLoading(true);
       setOtpError(null);
-      const res = await api.auth.sendOtp({
-        phone: cleanDigits,
-        channel: targetChannel
-      });
+      const res = await api.auth.sendOtp(payload);
 
       setOtpSent(true);
+      setActiveIdentifier(idDisplay);
       setCountdown(60);
-      setDeliveryProvider(res.provider || 'Instant Mobile Gateway');
+      setDeliveryProvider(res.provider || 'Free Instant Verification Gateway');
+      
       if (res.whatsappLink) {
         setWhatsappDeliveryLink(res.whatsappLink);
+      }
+      if (res.telegramLink) {
+        setTelegramDeliveryLink(res.telegramLink);
       }
       if (res.testOtp) {
         setTestOtpNotice(res.testOtp);
       }
 
-      // If user chose WhatsApp channel, auto-open WhatsApp link in a new tab if supported
+      // If user chose WhatsApp channel and link exists, prompt 1-click
       if (targetChannel === 'WHATSAPP' && res.whatsappLink) {
         window.open(res.whatsappLink, '_blank');
       }
@@ -120,7 +183,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         otpInputsRef.current[0]?.focus();
       }, 100);
     } catch (err: any) {
-      setOtpError(err.message || 'Failed to send OTP. Please try again.');
+      setOtpError(err.message || 'Failed to dispatch OTP. Please try another channel.');
     } finally {
       setOtpLoading(false);
     }
@@ -170,17 +233,24 @@ export const LoginModal: React.FC<LoginModalProps> = ({
   const triggerVerifyOtp = async (codeToVerify?: string) => {
     const finalOtp = codeToVerify || otpCode.join('');
     if (finalOtp.length !== 6) {
-      setOtpError('Please enter the complete 6-digit OTP code');
+      setOtpError('Please enter the complete 6-digit verification code');
       return;
     }
 
     try {
       setOtpLoading(true);
       setOtpError(null);
-      const res = await api.auth.verifyOtp({
-        phone: phone.replace(/\D/g, ''),
-        otp: finalOtp
-      });
+
+      const payload: any = { otp: finalOtp };
+      if (otpChannel === 'EMAIL') {
+        payload.email = email.trim();
+      } else if (otpChannel === 'TELEGRAM') {
+        payload.identifier = telegramId.trim();
+      } else {
+        payload.phone = phone.replace(/\D/g, '');
+      }
+
+      const res = await api.auth.verifyOtp(payload);
 
       if (res.token) {
         setAuthToken(res.token);
@@ -251,14 +321,17 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             <span className="text-[#f36c21]">VIP</span>
           </div>
           <p className="text-xs text-[#adadad] font-medium">
-            India's Leading Betting Exchange & Live Casino Portal
+            India's Leading Free-OTP Exchange & Casino Portal
           </p>
         </div>
 
-        {/* 3 Authentication Tabs */}
+        {/* 3 Main Authentication Tabs */}
         <div className="grid grid-cols-3 gap-1 bg-[#141414] p-1 rounded-xl border border-[#272727] text-xs font-bold">
           <button
-            onClick={() => { setActiveTab('OTP'); setOtpError(null); }}
+            onClick={() => {
+              setActiveTab('OTP');
+              setOtpError(null);
+            }}
             className={`py-2 rounded-lg transition-all flex items-center justify-center space-x-1 cursor-pointer ${
               activeTab === 'OTP'
                 ? 'bg-[#f36c21] text-white shadow'
@@ -266,7 +339,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
             }`}
           >
             <Smartphone className="w-3.5 h-3.5" />
-            <span>OTP Login</span>
+            <span>Free OTP</span>
           </button>
           <button
             onClick={() => setActiveTab('PASSWORD')}
@@ -301,18 +374,18 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         )}
 
         {/* ========================================================================= */}
-        {/* 1. OTP AUTHENTICATION TAB (SMS & WHATSAPP PHONE DELIVERY) */}
+        {/* 1. FREE MULTI-CHANNEL OTP TAB (SMS, WHATSAPP, EMAIL, TELEGRAM)            */}
         {/* ========================================================================= */}
         {activeTab === 'OTP' && (
           <div className="space-y-4">
             {otpVerifiedSuccess ? (
               <div className="py-8 text-center space-y-2">
                 <CheckCircle2 className="w-14 h-14 mx-auto text-[#27AE60] animate-bounce" />
-                <h4 className="font-black text-sm text-white">OTP Verified Successfully!</h4>
-                <p className="text-xs text-[#adadad]">Welcome back. Launching your player terminal...</p>
+                <h4 className="font-black text-sm text-white">Verified Successfully!</h4>
+                <p className="text-xs text-[#adadad]">Welcome to NexusVIP. Launching your terminal...</p>
               </div>
             ) : !otpSent ? (
-              /* Step 1: Enter Phone Number & Select Channel */
+              /* Step 1: Select Channel & Enter Identifier */
               <form onSubmit={handleSendOtp} className="space-y-3.5">
                 {otpError && (
                   <div className="p-2.5 rounded-lg bg-[#FF4148]/20 border border-[#FF4148]/40 text-[#FF4148] text-xs flex items-center space-x-2">
@@ -321,67 +394,171 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   </div>
                 )}
 
+                {/* 4 Free Delivery Channels */}
                 <div>
-                  <label className="text-[11px] font-bold uppercase text-[#adadad] flex items-center justify-between">
-                    <span>Mobile Phone Number</span>
-                    <span className="text-[10px] text-[#27AE60] font-bold">Instant OTP to Phone</span>
+                  <label className="text-[11px] font-bold uppercase text-[#adadad] block mb-1.5">
+                    Select Free Verification Channel
                   </label>
-                  <div className="flex mt-1">
-                    <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-[#333] bg-[#181818] text-white text-xs font-bold font-mono">
-                      🇮🇳 +91
-                    </span>
-                    <input
-                      type="tel"
-                      required
-                      autoFocus
-                      maxLength={10}
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                      placeholder="Enter 10-digit number"
-                      className="w-full bg-[#141414] border border-[#333] rounded-r-lg px-3 py-2.5 text-white text-sm font-mono font-bold focus:border-[#f36c21] focus:outline-none tracking-wider"
-                    />
+                  <div className="grid grid-cols-4 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOtpChannel('SMS');
+                        setOtpError(null);
+                      }}
+                      className={`py-2 px-1 rounded-xl border text-[11px] font-bold flex flex-col items-center justify-center space-y-1 transition-all cursor-pointer ${
+                        otpChannel === 'SMS'
+                          ? 'border-[#f36c21] bg-[#f36c21]/20 text-[#f36c21] shadow-sm shadow-orange-500/20'
+                          : 'border-[#333] bg-[#161616] text-[#8e8e8e] hover:text-white'
+                      }`}
+                    >
+                      <Smartphone className="w-3.5 h-3.5" />
+                      <span>SMS</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOtpChannel('WHATSAPP');
+                        setOtpError(null);
+                      }}
+                      className={`py-2 px-1 rounded-xl border text-[11px] font-bold flex flex-col items-center justify-center space-y-1 transition-all cursor-pointer ${
+                        otpChannel === 'WHATSAPP'
+                          ? 'border-[#27AE60] bg-[#27AE60]/20 text-[#27AE60] shadow-sm shadow-green-500/20'
+                          : 'border-[#333] bg-[#161616] text-[#8e8e8e] hover:text-white'
+                      }`}
+                    >
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      <span>WhatsApp</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOtpChannel('EMAIL');
+                        setOtpError(null);
+                      }}
+                      className={`py-2 px-1 rounded-xl border text-[11px] font-bold flex flex-col items-center justify-center space-y-1 transition-all cursor-pointer ${
+                        otpChannel === 'EMAIL'
+                          ? 'border-sky-500 bg-sky-500/20 text-sky-400 shadow-sm shadow-sky-500/20'
+                          : 'border-[#333] bg-[#161616] text-[#8e8e8e] hover:text-white'
+                      }`}
+                    >
+                      <Mail className="w-3.5 h-3.5" />
+                      <span>Email</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setOtpChannel('TELEGRAM');
+                        setOtpError(null);
+                      }}
+                      className={`py-2 px-1 rounded-xl border text-[11px] font-bold flex flex-col items-center justify-center space-y-1 transition-all cursor-pointer ${
+                        otpChannel === 'TELEGRAM'
+                          ? 'border-blue-400 bg-blue-400/20 text-blue-300 shadow-sm shadow-blue-400/20'
+                          : 'border-[#333] bg-[#161616] text-[#8e8e8e] hover:text-white'
+                      }`}
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>Telegram</span>
+                    </button>
                   </div>
                 </div>
 
-                {/* Delivery Channel Radio Choice */}
-                <div className="grid grid-cols-2 gap-2 pt-0.5">
-                  <button
-                    type="button"
-                    onClick={() => setOtpChannel('SMS')}
-                    className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center space-x-1.5 transition-all cursor-pointer ${
-                      otpChannel === 'SMS'
-                        ? 'border-[#f36c21] bg-[#f36c21]/15 text-[#f36c21]'
-                        : 'border-[#333] bg-[#161616] text-[#8e8e8e] hover:text-white'
-                    }`}
-                  >
-                    <Smartphone className="w-3.5 h-3.5" />
-                    <span>SMS Message</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setOtpChannel('WHATSAPP')}
-                    className={`py-2 px-3 rounded-xl border text-xs font-bold flex items-center justify-center space-x-1.5 transition-all cursor-pointer ${
-                      otpChannel === 'WHATSAPP'
-                        ? 'border-[#27AE60] bg-[#27AE60]/15 text-[#27AE60]'
-                        : 'border-[#333] bg-[#161616] text-[#8e8e8e] hover:text-white'
-                    }`}
-                  >
-                    <MessageSquare className="w-3.5 h-3.5" />
-                    <span>WhatsApp OTP</span>
-                  </button>
-                </div>
+                {/* Input Field: Conditional based on channel */}
+                {otpChannel === 'EMAIL' ? (
+                  <div>
+                    <label className="text-[11px] font-bold uppercase text-[#adadad] flex items-center justify-between">
+                      <span>Email Address</span>
+                      <span className="text-[10px] text-sky-400 font-bold">Resend/Brevo Free Tier</span>
+                    </label>
+                    <div className="relative mt-1">
+                      <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#666]" />
+                      <input
+                        type="email"
+                        required
+                        autoFocus
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="yourname@gmail.com"
+                        className="w-full bg-[#141414] border border-[#333] rounded-lg pl-9 pr-3 py-2.5 text-white text-xs font-bold focus:border-sky-500 focus:outline-none transition-colors"
+                      />
+                    </div>
+                  </div>
+                ) : otpChannel === 'TELEGRAM' ? (
+                  <div>
+                    <label className="text-[11px] font-bold uppercase text-[#adadad] flex items-center justify-between">
+                      <span>Telegram ID or Handle</span>
+                      <span className="text-[10px] text-blue-400 font-bold">100% Free Bot Delivery</span>
+                    </label>
+                    <div className="relative mt-1">
+                      <Send className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#666]" />
+                      <input
+                        type="text"
+                        required
+                        autoFocus
+                        value={telegramId}
+                        onChange={(e) => setTelegramId(e.target.value)}
+                        placeholder="@username or Chat ID"
+                        className="w-full bg-[#141414] border border-[#333] rounded-lg pl-9 pr-3 py-2.5 text-white text-xs font-bold focus:border-blue-400 focus:outline-none transition-colors"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="text-[11px] font-bold uppercase text-[#adadad] flex items-center justify-between">
+                      <span>Mobile Phone Number</span>
+                      <span className="text-[10px] text-[#27AE60] font-bold">Fast2SMS / 2Factor / WhatsApp</span>
+                    </label>
+                    <div className="flex mt-1">
+                      <span className="inline-flex items-center px-3 rounded-l-lg border border-r-0 border-[#333] bg-[#181818] text-white text-xs font-bold font-mono">
+                        🇮🇳 +91
+                      </span>
+                      <input
+                        type="tel"
+                        required
+                        autoFocus
+                        maxLength={10}
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
+                        placeholder="10-digit mobile number"
+                        className="w-full bg-[#141414] border border-[#333] rounded-r-lg px-3 py-2.5 text-white text-sm font-mono font-bold focus:border-[#f36c21] focus:outline-none tracking-wider"
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <button
                   type="submit"
-                  disabled={otpLoading || phone.length < 10}
+                  disabled={
+                    otpLoading ||
+                    (otpChannel === 'EMAIL'
+                      ? !email.includes('@')
+                      : otpChannel === 'TELEGRAM'
+                      ? !telegramId.trim()
+                      : phone.length < 10)
+                  }
                   className="w-full py-2.5 rounded-lg bg-[#f36c21] hover:bg-[#e05b12] disabled:opacity-50 text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg flex items-center justify-center space-x-2 cursor-pointer active:scale-98"
                 >
-                  <Smartphone className="w-4 h-4" />
-                  <span>{otpLoading ? 'Dispatching OTP to Phone...' : `Send Code via ${otpChannel === 'WHATSAPP' ? 'WhatsApp' : 'SMS'}`}</span>
+                  <Zap className="w-4 h-4" />
+                  <span>
+                    {otpLoading
+                      ? 'Dispatching Free OTP...'
+                      : `Send Verification Code via ${
+                          otpChannel === 'WHATSAPP'
+                            ? 'WhatsApp'
+                            : otpChannel === 'EMAIL'
+                            ? 'Email'
+                            : otpChannel === 'TELEGRAM'
+                            ? 'Telegram'
+                            : 'SMS'
+                        }`}
+                  </span>
                 </button>
               </form>
             ) : (
-              /* Step 2: Enter 6-Digit OTP Received on Mobile */
+              /* Step 2: 6-Digit OTP Entry with WebOTP & Direct Deep-Links */
               <div className="space-y-3.5">
                 {otpError && (
                   <div className="p-2.5 rounded-lg bg-[#FF4148]/20 border border-[#FF4148]/40 text-[#FF4148] text-xs flex items-center space-x-2">
@@ -390,13 +567,21 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   </div>
                 )}
 
-                {/* Sent Phone Banner with delivery channel */}
+                {/* Sent Channel Banner */}
                 <div className="p-3 bg-[#141414] rounded-xl border border-[#2d2d2d] flex items-center justify-between text-xs">
                   <div>
                     <span className="text-[#8e8e8e] block text-[10px]">
-                      {otpChannel === 'WHATSAPP' ? '💬 WhatsApp OTP sent to:' : '📱 SMS OTP sent to:'}
+                      {otpChannel === 'WHATSAPP'
+                        ? '💬 WhatsApp Code Sent To:'
+                        : otpChannel === 'EMAIL'
+                        ? '📧 Email Code Sent To:'
+                        : otpChannel === 'TELEGRAM'
+                        ? '✈️ Telegram Code Sent To:'
+                        : '📱 SMS Code Sent To:'}
                     </span>
-                    <span className="font-mono font-bold text-white tracking-wide">+91 {phone}</span>
+                    <span className="font-mono font-bold text-white tracking-wide">
+                      {activeIdentifier}
+                    </span>
                   </div>
                   <button
                     type="button"
@@ -412,8 +597,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   </button>
                 </div>
 
-                {/* Direct WhatsApp Mobile Trigger Button */}
-                {whatsappDeliveryLink && (
+                {/* Direct WhatsApp Deep Link Trigger */}
+                {whatsappDeliveryLink && otpChannel === 'WHATSAPP' && (
                   <a
                     href={whatsappDeliveryLink}
                     target="_blank"
@@ -426,12 +611,31 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   </a>
                 )}
 
-                {/* Instant Test Autofill Helper Pill */}
+                {/* Direct Telegram Deep Link Trigger */}
+                {telegramDeliveryLink && otpChannel === 'TELEGRAM' && (
+                  <a
+                    href={telegramDeliveryLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full py-2 px-3 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/50 text-blue-300 text-xs font-bold flex items-center justify-center space-x-2 transition-all cursor-pointer"
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>Open Telegram Bot</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+
+                {/* Instant Sandbox Autofill Pill */}
                 {testOtpNotice && (
                   <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-between text-xs">
                     <div className="flex items-center space-x-1.5 text-amber-300">
                       <Sparkles className="w-3.5 h-3.5" />
-                      <span className="text-[11px]">Phone Code: <strong className="font-mono tracking-widest text-white">{testOtpNotice}</strong></span>
+                      <span className="text-[11px]">
+                        Security Code:{' '}
+                        <strong className="font-mono tracking-widest text-white">
+                          {testOtpNotice}
+                        </strong>
+                      </span>
                     </div>
                     <button
                       type="button"
@@ -458,6 +662,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                         key={idx}
                         ref={(el) => (otpInputsRef.current[idx] = el)}
                         type="text"
+                        autoComplete="one-time-code"
                         inputMode="numeric"
                         pattern="[0-9]*"
                         maxLength={6}
@@ -481,8 +686,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                   disabled={otpLoading || otpCode.some((d) => d === '')}
                   className="w-full py-2.5 rounded-lg bg-[#f36c21] hover:bg-[#e05b12] disabled:opacity-50 text-white font-black text-xs uppercase tracking-wider transition-all shadow-lg flex items-center justify-center space-x-2 cursor-pointer active:scale-98"
                 >
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>{otpLoading ? 'Verifying Phone Code...' : 'Verify & Login'}</span>
+                  <Check className="w-4 h-4" />
+                  <span>{otpLoading ? 'Verifying Code...' : 'Verify & Enter'}</span>
                 </button>
 
                 {/* Resend OTP Options */}
@@ -492,22 +697,32 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                       Resend code in <strong className="text-white">{countdown}s</strong>
                     </span>
                   ) : (
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center space-x-2 flex-wrap gap-y-1">
                       <button
                         type="button"
                         onClick={() => handleSendOtp(undefined, 'SMS')}
-                        className="text-xs text-[#f36c21] hover:underline font-bold inline-flex items-center space-x-1 cursor-pointer"
+                        className="text-[11px] text-[#f36c21] hover:underline font-bold inline-flex items-center space-x-1 cursor-pointer"
                       >
-                        <RotateCw className="w-3.5 h-3.5" />
-                        <span>Resend SMS</span>
+                        <RotateCw className="w-3 h-3" />
+                        <span>SMS</span>
                       </button>
+                      <span className="text-[#444]">•</span>
                       <button
                         type="button"
                         onClick={() => handleSendOtp(undefined, 'WHATSAPP')}
-                        className="text-xs text-[#27AE60] hover:underline font-bold inline-flex items-center space-x-1 cursor-pointer"
+                        className="text-[11px] text-[#27AE60] hover:underline font-bold inline-flex items-center space-x-1 cursor-pointer"
                       >
-                        <MessageSquare className="w-3.5 h-3.5" />
-                        <span>Resend WhatsApp</span>
+                        <MessageSquare className="w-3 h-3" />
+                        <span>WhatsApp</span>
+                      </button>
+                      <span className="text-[#444]">•</span>
+                      <button
+                        type="button"
+                        onClick={() => handleSendOtp(undefined, 'EMAIL')}
+                        className="text-[11px] text-sky-400 hover:underline font-bold inline-flex items-center space-x-1 cursor-pointer"
+                      >
+                        <Mail className="w-3 h-3" />
+                        <span>Email</span>
                       </button>
                     </div>
                   )}
@@ -518,7 +733,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         )}
 
         {/* ========================================================================= */}
-        {/* 2. PASSWORD LOGIN TAB */}
+        {/* 2. PASSWORD LOGIN TAB                                                     */}
         {/* ========================================================================= */}
         {activeTab === 'PASSWORD' && (
           <form onSubmit={handlePasswordSubmit} className="space-y-3">
@@ -571,7 +786,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         )}
 
         {/* ========================================================================= */}
-        {/* 3. REGISTER TAB */}
+        {/* 3. REGISTER TAB                                                           */}
         {/* ========================================================================= */}
         {activeTab === 'REGISTER' && (
           <div className="space-y-3">
@@ -626,7 +841,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({
                 </div>
 
                 <div>
-                  <label className="text-[10px] font-bold uppercase text-[#adadad]">Referral / Promo Code (Optional)</label>
+                  <label className="text-[10px] font-bold uppercase text-[#adadad]">
+                    Referral / Promo Code (Optional)
+                  </label>
                   <input
                     type="text"
                     value={referralCode}

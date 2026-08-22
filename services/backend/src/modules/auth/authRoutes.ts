@@ -4,17 +4,36 @@ import jwt from 'jsonwebtoken';
 import { query } from '../../db/pool';
 import { config } from '../../config';
 import { AuthenticatedRequest, authenticateToken } from '../../middleware/auth';
+import { sendOtpToTarget } from '../../services/smsService';
 
 export const authRouter = Router();
 
 // In-memory OTP cache for instant sub-millisecond lookups + DB fallback
 const memoryOtpStore = new Map<string, { otp: string; expiresAt: number }>();
 
+// Anti-abuse rate limiter: max 5 requests per 5 minutes per identifier
+const rateLimitMap = new Map<string, number[]>();
+
+function checkRateLimit(key: string, maxAttempts = 5, windowMs = 5 * 60 * 1000): boolean {
+  const now = Date.now();
+  const timestamps = (rateLimitMap.get(key) || []).filter((t) => now - t < windowMs);
+  if (timestamps.length >= maxAttempts) {
+    return false;
+  }
+  timestamps.push(now);
+  rateLimitMap.set(key, timestamps);
+  return true;
+}
+
 function normalizePhone(rawPhone: string): { formatted: string; raw10: string } {
   const digits = rawPhone.replace(/\D/g, '');
   const raw10 = digits.length >= 10 ? digits.slice(-10) : digits;
   const formatted = `+91${raw10}`;
   return { formatted, raw10 };
+}
+
+function normalizeEmail(rawEmail: string): string {
+  return rawEmail.trim().toLowerCase();
 }
 
 /**
@@ -78,32 +97,49 @@ authRouter.post('/login', async (req, res: Response) => {
   }
 });
 
-import { sendOtpToPhone } from '../../services/smsService';
-
 /**
  * POST /api/auth/send-otp
- * Generates and dispatches a 6-digit OTP to a mobile phone number via real SMS / WhatsApp
+ * Generates and dispatches a 6-digit OTP code to mobile phone, email, or Telegram
+ * Supports: Fast2SMS, 2Factor.in, MSG91, Resend, Brevo, Nodemailer, WhatsApp, Telegram, Supabase Auth
  */
 authRouter.post('/send-otp', async (req, res: Response) => {
   try {
-    const { phone, channel = 'SMS' } = req.body;
+    const { phone, email, telegramId, channel = 'SMS' } = req.body;
 
-    if (!phone || typeof phone !== 'string' || phone.trim().length < 6) {
-      return res.status(400).json({ error: 'A valid mobile phone number is required' });
+    let targetKey = '';
+    let phoneFormatted = '';
+    let raw10 = '';
+    let emailClean = '';
+
+    if (email && String(email).includes('@')) {
+      emailClean = normalizeEmail(String(email));
+      targetKey = emailClean;
+    } else if (phone && typeof phone === 'string' && phone.trim().length >= 6) {
+      const parsed = normalizePhone(phone);
+      phoneFormatted = parsed.formatted;
+      raw10 = parsed.raw10;
+      targetKey = raw10;
+    } else if (telegramId) {
+      targetKey = String(telegramId).trim();
+    } else {
+      return res.status(400).json({ error: 'A valid 10-digit mobile number or email address is required' });
     }
 
-    const { formatted, raw10 } = normalizePhone(phone);
-    if (raw10.length < 10) {
-      return res.status(400).json({ error: 'Please enter a valid 10-digit mobile number' });
+    // Anti-abuse rate limiting check
+    if (!checkRateLimit(targetKey, 5, 5 * 60 * 1000)) {
+      return res.status(429).json({
+        error: 'Too many OTP requests. Please wait 5 minutes before requesting a new code.'
+      });
     }
 
     // Generate random secure 6-digit OTP (e.g. 748201)
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
 
-    // Store in memory
-    memoryOtpStore.set(formatted, { otp, expiresAt });
-    memoryOtpStore.set(raw10, { otp, expiresAt });
+    // Store in memory cache
+    memoryOtpStore.set(targetKey, { otp, expiresAt });
+    if (phoneFormatted) memoryOtpStore.set(phoneFormatted, { otp, expiresAt });
+    if (emailClean) memoryOtpStore.set(emailClean, { otp, expiresAt });
 
     // Store in PostgreSQL DB table
     try {
@@ -111,26 +147,36 @@ authRouter.post('/send-otp', async (req, res: Response) => {
         `INSERT INTO otps (phone, otp, expires_at)
          VALUES ($1, $2, NOW() + INTERVAL '5 minutes')
          ON CONFLICT (phone) DO UPDATE SET otp = $2, expires_at = NOW() + INTERVAL '5 minutes'`,
-        [formatted, otp]
+        [targetKey, otp]
       );
     } catch (dbErr) {
-      // Non-blocking in-memory fallback
+      // In-memory fallback
       console.warn('DB OTP persist error (using memory store):', dbErr);
     }
 
-    // Dispatch via real SMS / WhatsApp gateway
-    const dispatchResult = await sendOtpToPhone(formatted, raw10, otp, channel);
+    // Dispatch via multi-gateway dispatcher
+    const dispatchResult = await sendOtpToTarget({
+      phoneFormatted,
+      raw10Digits: raw10,
+      emailRecipient: emailClean,
+      telegramId: telegramId ? String(telegramId) : undefined,
+      otpCode: otp,
+      channel
+    });
 
-    console.log(`[OTP Verification Engine] Dispatched OTP ${otp} to phone ${formatted} via ${dispatchResult.provider}`);
+    console.log(`[Free OTP Engine] Dispatched code ${otp} to ${targetKey} via ${dispatchResult.provider}`);
 
     res.json({
       success: true,
-      message: `OTP sent successfully to ${formatted}`,
-      phone: formatted,
+      message: `OTP sent successfully to ${emailClean || phoneFormatted || targetKey}`,
+      identifier: emailClean || phoneFormatted || targetKey,
+      phone: phoneFormatted || undefined,
+      email: emailClean || undefined,
       expiresInSeconds: 300,
       channel: dispatchResult.channel,
       provider: dispatchResult.provider,
       whatsappLink: dispatchResult.whatsappLink,
+      telegramLink: dispatchResult.telegramLink,
       testOtp: otp
     });
   } catch (error: any) {
@@ -145,28 +191,41 @@ authRouter.post('/send-otp', async (req, res: Response) => {
  */
 const verifyOtpHandler = async (req: any, res: Response) => {
   try {
-    const { phone, otp } = req.body;
+    const { phone, email, identifier, otp } = req.body;
 
-    if (!phone || !otp) {
-      return res.status(400).json({ error: 'Phone number and 6-digit OTP are required' });
+    const rawTarget = email || phone || identifier;
+    if (!rawTarget || !otp) {
+      return res.status(400).json({ error: 'Phone/Email identifier and 6-digit OTP are required' });
     }
 
-    const { formatted, raw10 } = normalizePhone(phone);
     const cleanOtp = String(otp).trim();
+    let isEmail = String(rawTarget).includes('@');
+    let emailClean = isEmail ? normalizeEmail(String(rawTarget)) : '';
+    let phoneParsed = !isEmail ? normalizePhone(String(rawTarget)) : { formatted: '', raw10: '' };
 
     // Check in-memory store
     let isValid = false;
-    const memEntry = memoryOtpStore.get(formatted) || memoryOtpStore.get(raw10);
-    if (memEntry && memEntry.otp === cleanOtp && memEntry.expiresAt > Date.now()) {
-      isValid = true;
+    const lookupKeys = [
+      emailClean,
+      phoneParsed.formatted,
+      phoneParsed.raw10,
+      String(rawTarget).trim()
+    ].filter(Boolean);
+
+    for (const key of lookupKeys) {
+      const entry = memoryOtpStore.get(key);
+      if (entry && entry.otp === cleanOtp && entry.expiresAt > Date.now()) {
+        isValid = true;
+        break;
+      }
     }
 
     // Check DB store if not validated in memory
     if (!isValid) {
       try {
         const dbOtpRes = await query(
-          `SELECT otp, expires_at FROM otps WHERE phone = $1 OR phone = $2`,
-          [formatted, raw10]
+          `SELECT otp, expires_at FROM otps WHERE phone = ANY($1::text[])`,
+          [lookupKeys]
         );
         if (dbOtpRes.rows.length > 0) {
           const row = dbOtpRes.rows[0];
@@ -180,20 +239,25 @@ const verifyOtpHandler = async (req: any, res: Response) => {
     }
 
     if (!isValid) {
-      return res.status(401).json({ error: 'Invalid or expired OTP code. Please request a new one.' });
+      return res.status(401).json({ error: 'Invalid or expired OTP code. Please request a new code.' });
     }
 
-    // Invalidate / clear used OTP
-    memoryOtpStore.delete(formatted);
-    memoryOtpStore.delete(raw10);
-    query(`DELETE FROM otps WHERE phone = $1 OR phone = $2`, [formatted, raw10]).catch(() => {});
+    // Clear used OTP from memory and DB
+    for (const key of lookupKeys) {
+      memoryOtpStore.delete(key);
+    }
+    query(`DELETE FROM otps WHERE phone = ANY($1::text[])`, [lookupKeys]).catch(() => {});
 
-    // Check if user exists by phone or generated username
-    const usernameByPhone = `player_${raw10}`;
+    // Find or Auto-Onboard Player Account
+    const usernameGenerated = isEmail
+      ? `player_${emailClean.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '_')}`
+      : `player_${phoneParsed.raw10}`;
+
     let userRes = await query(
       `SELECT id, username, role, parent_id, credit_limit, available_credit, exposure, is_active
-       FROM users WHERE phone = $1 OR username = $2 OR username = $3 LIMIT 1`,
-      [formatted, usernameByPhone, raw10]
+       FROM users 
+       WHERE phone = $1 OR phone = $2 OR username = $3 OR username = $4 LIMIT 1`,
+      [phoneParsed.formatted, phoneParsed.raw10, usernameGenerated, emailClean]
     );
 
     let user = userRes.rows[0];
@@ -210,7 +274,7 @@ const verifyOtpHandler = async (req: any, res: Response) => {
         parentId = adminRes.rows[0]?.id;
       }
 
-      const randomPass = Math.random().toString(36).substring(2, 12);
+      const randomPass = Math.random().toString(36).substring(2, 14);
       const passwordHash = await bcrypt.hash(randomPass, 10);
 
       const insertRes = await query(
@@ -218,7 +282,7 @@ const verifyOtpHandler = async (req: any, res: Response) => {
           username, phone, password_hash, role, parent_id, credit_limit, available_credit, exposure, is_active
         ) VALUES ($1, $2, $3, 'USER', $4, 10000.00, 0.00, 0.00, TRUE)
         RETURNING id, username, role, parent_id, credit_limit, available_credit, exposure, is_active`,
-        [usernameByPhone, formatted, passwordHash, parentId]
+        [usernameGenerated, phoneParsed.formatted || emailClean, passwordHash, parentId]
       );
 
       user = insertRes.rows[0];

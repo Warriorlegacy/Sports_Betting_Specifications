@@ -13,6 +13,7 @@ import {
   Wallet,
   ShieldCheck
 } from 'lucide-react';
+import { getAuthToken } from '../services/api';
 
 export interface LedgerEntry {
   id: string;
@@ -40,7 +41,7 @@ export const LedgerTable: React.FC<LedgerTableProps> = ({ entries, onRefresh }) 
 
   const fetchWithdrawals = async () => {
     setWithdrawalsLoading(true);
-    const token = localStorage.getItem('token');
+    const token = getAuthToken();
     const apiUrl = import.meta.env.VITE_API_URL || 'https://sports-exchange-backend-j1aj.onrender.com';
 
     try {
@@ -66,7 +67,7 @@ export const LedgerTable: React.FC<LedgerTableProps> = ({ entries, onRefresh }) 
 
   const handleProcessWithdrawal = async (id: string, action: 'APPROVE' | 'REJECT') => {
     setProcessingId(id);
-    const token = localStorage.getItem('token');
+    const token = getAuthToken();
     const apiUrl = import.meta.env.VITE_API_URL || 'https://sports-exchange-backend-j1aj.onrender.com';
 
     try {

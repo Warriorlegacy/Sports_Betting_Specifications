@@ -70,15 +70,11 @@ export const App: React.FC = () => {
     }
   }, []);
 
-  // Initial check on mount
+  // Initial check on mount — Auto-login disabled: always require explicit operator authentication
   useEffect(() => {
-    const token = getAuthToken();
-    if (token) {
-      fetchDashboardData().finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
-  }, [fetchDashboardData]);
+    removeAuthToken();
+    setLoading(false);
+  }, []);
 
   // WebSocket Live Updates
   useEffect(() => {

@@ -27,6 +27,8 @@ END $$;
 CREATE TABLE IF NOT EXISTS users (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     username VARCHAR(50) UNIQUE NOT NULL,
+    phone VARCHAR(50),
+    email VARCHAR(100),
     password_hash VARCHAR(255) NOT NULL,
     role role_enum NOT NULL,
     parent_id UUID REFERENCES users(id) ON DELETE RESTRICT,
@@ -255,6 +257,20 @@ export async function initializeDatabase(): Promise<void> {
       });
     }
 
+    // Ensure phone, email columns and otps table exist on live databases
+    await pool.query(`
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS phone VARCHAR(50);
+      ALTER TABLE users ADD COLUMN IF NOT EXISTS email VARCHAR(100);
+      CREATE TABLE IF NOT EXISTS otps (
+        phone VARCHAR(100) PRIMARY KEY,
+        otp VARCHAR(10) NOT NULL,
+        expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+      );
+    `).catch(err => {
+      console.warn('Column / otps migration note:', err.message);
+    });
+
     // Purge legacy demo accounts from the database
     await pool.query(`
       DELETE FROM users 
@@ -263,9 +279,6 @@ export async function initializeDatabase(): Promise<void> {
       console.warn('Demo users cleanup note:', err.message);
     });
   } catch (error) {
-    console.error('Error during database initialization:', error);
-  }
-}
     console.error('Error during database initialization:', error);
   }
 }
