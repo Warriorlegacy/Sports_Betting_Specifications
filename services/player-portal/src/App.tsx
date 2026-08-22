@@ -604,7 +604,19 @@ export const App: React.FC = () => {
     removeAuthToken();
     localStorage.removeItem('nexus_demo_user');
     setCurrentUser(null);
+    setSelectedMatchId(null);
     playerSocket.disconnect();
+  };
+
+  // Open detailed match center — Gate strictly for authenticated / registered users
+  const handleSelectMatch = (matchId: string) => {
+    if (!currentUser) {
+      setToastMessage('🔒 Please Sign In or Register to view match details & full markets.');
+      setTimeout(() => setToastMessage(null), 3500);
+      setIsLoginModalOpen(true);
+      return;
+    }
+    setSelectedMatchId(matchId);
   };
 
   // Add individual odds selection to Universal Bet Slip
@@ -617,6 +629,12 @@ export const App: React.FC = () => {
     price: number,
     type: 'BACK' | 'LAY' | 'SPORTSBOOK' = 'BACK'
   ) => {
+    if (!currentUser) {
+      setToastMessage('🔒 Please Sign In or Register to add selections & place bets.');
+      setTimeout(() => setToastMessage(null), 3500);
+      setIsLoginModalOpen(true);
+      return;
+    }
     const match = liveMatches.find((m) => m && m.id === matchId);
     const homeName = (match && typeof match.homeTeam === 'object' && match.homeTeam !== null) ? (match.homeTeam.name || 'Home') : String(match?.homeTeam || 'Home');
     const awayName = (match && typeof match.awayTeam === 'object' && match.awayTeam !== null) ? (match.awayTeam.name || 'Away') : String(match?.awayTeam || 'Away');
@@ -647,6 +665,12 @@ export const App: React.FC = () => {
 
   // Add Same-Game Parlay (SGP) Ticket to Bet Slip
   const handleAddSGPToSlip = (ticket: SGPTicket, stake: number) => {
+    if (!currentUser) {
+      setToastMessage('🔒 Please Sign In or Register to build parlays & place bets.');
+      setTimeout(() => setToastMessage(null), 3500);
+      setIsLoginModalOpen(true);
+      return;
+    }
     const sgpItem: BetSlipItem = {
       id: `SGP_${ticket.matchId}_${Date.now()}`,
       matchId: ticket.matchId,
@@ -983,8 +1007,8 @@ export const App: React.FC = () => {
 
         {/* CENTER COLUMN: MAIN EVENT FEED & HUBS */}
         <main className="flex-1 min-w-0">
-          {/* Detailed Match Hub View */}
-          {selectedMatch ? (
+          {/* Detailed Match Hub View (Protected for Authenticated Users) */}
+          {selectedMatch && currentUser ? (
             <MatchDetailHub
               match={selectedMatch}
               oddsFormat={oddsFormat}
@@ -1027,7 +1051,7 @@ export const App: React.FC = () => {
                       type || 'BACK'
                     );
                   }}
-                  onSelectMatch={(matchId) => setSelectedMatchId(matchId)}
+                  onSelectMatch={handleSelectMatch}
                   oddsFormat={oddsFormat}
                 />
               )}
@@ -1037,7 +1061,7 @@ export const App: React.FC = () => {
                 <FairplayEventList
                   matches={liveMatches}
                   selectedSport={selectedSport}
-                  onSelectMatch={(matchId) => setSelectedMatchId(matchId)}
+                  onSelectMatch={handleSelectMatch}
                   onSelectOdds={(
                     matchId,
                     marketId,
@@ -1190,6 +1214,8 @@ export const App: React.FC = () => {
               setActiveView('MY_BETS' as any);
             }}
             oneClickBet={oneClickBet}
+            user={currentUser}
+            onOpenLogin={() => setIsLoginModalOpen(true)}
           />
         </div>
       </div>
@@ -1266,6 +1292,11 @@ export const App: React.FC = () => {
                 setIsSlipOpen(false);
               }}
               oneClickBet={oneClickBet}
+              user={currentUser}
+              onOpenLogin={() => {
+                setIsSlipOpen(false);
+                setIsLoginModalOpen(true);
+              }}
             />
             <button
               onClick={() => setIsSlipOpen(false)}

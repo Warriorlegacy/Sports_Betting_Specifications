@@ -18,6 +18,8 @@ interface FairplayBetSlipProps {
   openBetsCount: number;
   onViewMyBets: () => void;
   oneClickBet: boolean;
+  user?: any | null;
+  onOpenLogin?: () => void;
 }
 
 export const FairplayBetSlip: React.FC<FairplayBetSlipProps> = ({
@@ -33,7 +35,9 @@ export const FairplayBetSlip: React.FC<FairplayBetSlipProps> = ({
   userBalance,
   openBetsCount,
   onViewMyBets,
-  oneClickBet
+  oneClickBet,
+  user,
+  onOpenLogin
 }) => {
   const [activeTab, setActiveTab] = useState<'BET_SLIP' | 'OPEN_BETS'>('BET_SLIP');
   const [quickStakes, setQuickStakes] = useState<number[]>(getSavedQuickStakes());
@@ -340,13 +344,23 @@ export const FairplayBetSlip: React.FC<FairplayBetSlipProps> = ({
           )}
 
           {/* Place Bet Button (Fairplay style) */}
-          <button
-            onClick={onPlaceBets}
-            disabled={isPlacing || hasInsufficientCredit || betItems.length === 0}
-            className="w-full py-2.5 rounded bg-[#f36c21] hover:bg-[#e05b12] disabled:opacity-50 text-white font-black text-xs uppercase tracking-wider transition-all shadow cursor-pointer active:scale-98"
-          >
-            {isPlacing ? 'Submitting to Engine...' : `Place Bet (₹${totalLiability.toFixed(2)})`}
-          </button>
+          {!user ? (
+            <button
+              onClick={onOpenLogin || onPlaceBets}
+              className="w-full py-2.5 rounded bg-gradient-to-r from-[#f36c21] to-amber-500 hover:brightness-110 text-white font-black text-xs uppercase tracking-wider transition-all shadow flex items-center justify-center space-x-1.5 cursor-pointer active:scale-98"
+            >
+              <span>🔒</span>
+              <span>Login / Register to Place Bet</span>
+            </button>
+          ) : (
+            <button
+              onClick={onPlaceBets}
+              disabled={isPlacing || hasInsufficientCredit || betItems.length === 0}
+              className="w-full py-2.5 rounded bg-[#f36c21] hover:bg-[#e05b12] disabled:opacity-50 text-white font-black text-xs uppercase tracking-wider transition-all shadow cursor-pointer active:scale-98"
+            >
+              {isPlacing ? 'Submitting to Engine...' : `Place Bet (₹${totalLiability.toFixed(2)})`}
+            </button>
+          )}
         </div>
       )}
 
